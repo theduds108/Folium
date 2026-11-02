@@ -2425,3 +2425,20 @@ html { scroll-padding-top: 84px; }
 .link-ajuda { background: none; border: 0; padding: 0; min-height: 44px; font: inherit; font-size: 0.85rem; color: var(--verde-folio-escuro); text-decoration: underline; cursor: pointer; text-align: left; }
 .guia-precos { width: min(720px, calc(100vw - 24px)); }
 .guia-precos .tabela { min-width: 480px; }
+.guia-precos { width: min(760px, calc(100vw - 24px)); }
+.guia-abas { display: flex; gap: 4px; border-bottom: 1px solid var(--linha); margin-bottom: 14px; overflow-x: auto; }
+.guia-abas button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px; min-height: 44px; font: inherit; font-weight: 600; color: var(--texto-suave); cursor: pointer; white-space: nowrap; }
+.guia-abas button.atual { color: var(--verde-folio-escuro); border-bottom-color: var(--verde-folio); }
+.guia-calc { display: grid; gap: 14px; }
+.guia-calc .campo { margin: 0; }
+.guia-calc select { width: 100%; }
+.guia-resultado { border: 1.5px solid var(--verde-folio); background: var(--creme-papel); padding: 16px; border-radius: 4px; display: grid; gap: 4px; }
+.guia-valor { font-family: var(--fonte-titulo, inherit); font-size: 2.2rem; margin: 0; color: var(--verde-folio-escuro); line-height: 1.1; }
+.guia-lista { display: grid; gap: 8px; }
+.guia-item { border: 1px solid var(--linha); border-radius: 4px; background: var(--papel-claro); }
+.guia-item-topo { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; text-align: left; background: none; border: 0; font: inherit; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+.guia-faixa { font-weight: 700; color: var(--verde-folio-escuro); }
+.guia-item-corpo { padding: 4px 14px 12px; }
+.guia-item-corpo p { margin: 6px 0; }
+.guia-exemplos { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+@media (max-width: 560px) { .guia-precos { padding: 18px; } }

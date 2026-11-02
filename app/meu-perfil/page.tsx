@@ -525,7 +525,7 @@ function Editor(props: PropsEditor) {
         <div className="cartao editor-topo">
           <h1 style={{ fontSize: "1.9rem", marginBottom: 4 }}>Meu portfólio</h1>
           <p className="suave" style={{ margin: 0 }}>
-            {real ? <>Você entrou como <strong>{email}</strong>. </> : null}
+            {real ? <>Você entrou como <strong style={{ overflowWrap: "anywhere" }}>{email}</strong>. </> : null}
             Três fichas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
           </p>
           {recuperado && (
@@ -769,7 +769,7 @@ function Editor(props: PropsEditor) {
           <label className="campo">
             Valor de referência
             <input value={r.valorReferencia} onChange={(e) => mudar("valorReferencia", e.target.value)} placeholder="A partir de R$ 150" />
-            <span className="ajuda"><GuiaPrecos /></span>
+            <span className="ajuda"><GuiaPrecos onUsar={(t) => mudar("valorReferencia", t)} /></span>
           </label>
           <fieldset className="campo">
             <legend>Tenho interesse em</legend>
