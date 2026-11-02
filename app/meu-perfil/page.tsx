@@ -119,14 +119,33 @@ const VAZIO: Rascunho = {
   idiomas: [],
 };
 
-const SECOES = [
-  { id: "basico", rotulo: "Básico" },
-  { id: "sobre", rotulo: "Sobre mim" },
-  { id: "trabalhos", rotulo: "Trabalhos" },
-  { id: "experiencia", rotulo: "Experiência" },
-  { id: "formacao", rotulo: "Cursos e idiomas" },
-  { id: "contato", rotulo: "Contato e links" },
-];
+/**
+ * O portfólio é preenchido em fichas, uma por vez. As três primeiras são essenciais
+ * (com elas o portfólio já pode ir ao ar); as outras "turbinam" o perfil quando o aluno quiser.
+ */
+const PASSOS = [
+  { id: "voce", rotulo: "Você", tempo: "1 min", essencial: true, dica: "Quem é você e o que estuda. Uma foto ajuda muito." },
+  { id: "obra", rotulo: "Sua obra", tempo: "2 min", essencial: true, dica: "Mostre um trabalho de que você se orgulha. Pode ser de aula." },
+  { id: "contato", rotulo: "Como te contratar", tempo: "1 min", essencial: true, dica: "O que você oferece e por onde falam com você." },
+  { id: "detalhes", rotulo: "Sobre mim", tempo: "2 min", essencial: false, dica: "Sua história, habilidades, valor e formatura." },
+  { id: "experiencia", rotulo: "Experiência", tempo: "2 min", essencial: false, dica: "Estágio, freela, empresa júnior, monitoria, voluntariado. Tudo conta." },
+  { id: "formacao", rotulo: "Cursos e idiomas", tempo: "1 min", essencial: false, dica: "Cursos livres, certificados, prêmios e idiomas." },
+  { id: "links", rotulo: "Links e currículo", tempo: "1 min", essencial: false, dica: "Instagram, Behance, LinkedIn e um PDF para baixar." },
+] as const;
+type Passo = (typeof PASSOS)[number]["id"];
+
+/** Quais fichas já têm o mínimo preenchido. */
+function fichasFeitas(r: Rascunho): Record<Passo, boolean> {
+  return {
+    voce: preenchido(r.nome) && preenchido(r.curso),
+    obra: r.trabalhos.some((t) => preenchido(t.titulo)),
+    contato: r.servicos.length > 0 && (preenchido(r.whatsapp) || preenchido(r.emailContato)),
+    detalhes: r.sobre.trim().length >= 120 || r.habilidades.split(",").filter((h) => h.trim()).length >= 3,
+    experiencia: r.experiencias.some((e) => preenchido(e.cargo)),
+    formacao: r.certificados.some((c) => preenchido(c.nome)) || r.idiomas.some((i) => preenchido(i.idioma)),
+    links: Object.values(r.links).some((l) => l && preenchido(l)) || preenchido(r.curriculo),
+  };
+}
 
 const preenchido = (s: string) => s.trim().length > 0;
 
@@ -221,6 +240,9 @@ function Editor(props: PropsEditor) {
   const [enviando, setEnviando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
   const [cursoOutro, setCursoOutro] = useState(false);
+  const [passo, setPasso] = useState<Passo>("voce");
+  const tituloRef = useRef<HTMLHeadingElement>(null);
+  const trocouPasso = useRef(false);
   const userId = props.modo === "banco" ? props.userId : "";
   const email = props.modo === "banco" ? props.email : "";
   const real = props.modo === "banco";
@@ -336,14 +358,19 @@ function Editor(props: PropsEditor) {
       setSalvo(true);
       return;
     }
+    if (r.nome.trim().length < 2 || !r.curso.trim()) {
+      setErro("Falta seu nome e curso, na ficha \"Você\".");
+      irPara("voce");
+      return;
+    }
     if (!telefoneValido(r.whatsapp)) {
       setErro("Confira o WhatsApp: use DDD + número, ex.: (14) 99123-4567.");
-      document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
+      irPara("contato");
       return;
     }
     if (!r.whatsapp.trim() && !r.emailContato.trim()) {
       setErro("Coloque pelo menos um contato: WhatsApp ou e-mail.");
-      document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
+      irPara("contato");
       return;
     }
     setSalvando(true);
@@ -402,7 +429,28 @@ function Editor(props: PropsEditor) {
     }
   };
 
+  // Ao trocar de ficha, leva o foco (e a rolagem) para o título da nova ficha.
+  useEffect(() => {
+    if (!trocouPasso.current) return;
+    const h = tituloRef.current;
+    if (!h) return;
+    h.focus({ preventScroll: true });
+    const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    h.closest(".editor-form")?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
+  }, [passo]);
+
+  const irPara = (id: Passo) => {
+    trocouPasso.current = true;
+    setPasso(id);
+  };
+
   if (!pronto) return <Aguarde texto="Carregando seu portfólio…" />;
+
+  const feitas = fichasFeitas(r);
+  const indice = PASSOS.findIndex((p) => p.id === passo);
+  const anterior = PASSOS[indice - 1];
+  const proximo = PASSOS[indice + 1];
+  const essenciaisProntas = PASSOS.filter((p) => p.essencial).every((p) => feitas[p.id]);
 
   const itens = checklist(r);
   const feitos = itens.filter((i) => i.ok).length;
@@ -416,18 +464,13 @@ function Editor(props: PropsEditor) {
           <h1 style={{ fontSize: "1.9rem", marginBottom: 4 }}>Meu portfólio</h1>
           <p className="suave" style={{ margin: 0 }}>
             {real ? <>Você entrou como <strong>{email}</strong>. </> : null}
-            Quanto mais completo, mais fácil alguém te contratar.
+            Três fichas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
           </p>
-          <nav className="editor-indice" aria-label="Seções do portfólio">
-            {SECOES.map((s) => (
-              <a key={s.id} href={`#${s.id}`}>{s.rotulo}</a>
-            ))}
-          </nav>
+          <Fichas atual={passo} feitas={feitas} onIr={irPara} />
         </div>
 
-        {/* Básico */}
-        <section id="basico" className="cartao secao-editor">
-          <h2>Básico</h2>
+        {passo === "voce" && (
+          <Ficha id="voce" titulo={tituloRef}>
           {(
             <div className="campo">
               Foto de perfil
@@ -448,18 +491,10 @@ function Editor(props: PropsEditor) {
               </div>
             </div>
           )}
-
           <label className="campo">
             Nome
             <input value={r.nome} onChange={(e) => mudar("nome", e.target.value)} placeholder="Como quer aparecer" required minLength={2} maxLength={80} />
           </label>
-
-          <label className="campo">
-            Título profissional
-            <input value={r.titulo} onChange={(e) => mudar("titulo", e.target.value)} maxLength={80} placeholder="Ex.: Designer gráfica e ilustradora" />
-            <span className="ajuda">Aparece logo abaixo do seu nome. Diga o que você faz em poucas palavras.</span>
-          </label>
-
           <div className="linha-dupla">
             <div className="campo">
               Curso
@@ -482,97 +517,22 @@ function Editor(props: PropsEditor) {
             </div>
           </div>
 
-          <div className="linha-dupla">
-            <label className="campo">
-              Previsão de formatura
-              <input type="month" value={/^\d{4}-\d{2}$/.test(r.conclusao) ? r.conclusao : ""} onChange={(e) => mudar("conclusao", e.target.value)} min="2020-01" max="2040-12" />
-            </label>
-            <label className="campo">
-              Cidade
-              <input value={r.cidade} onChange={(e) => mudar("cidade", e.target.value)} placeholder="Bauru, SP" />
-            </label>
-          </div>
-        </section>
-
-        {/* Sobre */}
-        <section id="sobre" className="cartao secao-editor">
-          <h2>Sobre mim</h2>
+          <label className="campo">
+            Título profissional
+            <input value={r.titulo} onChange={(e) => mudar("titulo", e.target.value)} maxLength={80} placeholder="Ex.: Designer gráfica e ilustradora" />
+            <span className="ajuda">Aparece logo abaixo do seu nome. Diga o que você faz em poucas palavras.</span>
+          </label>
           <label className="campo">
             Resumo
             <textarea value={r.bio} onChange={(e) => mudar("bio", e.target.value)} maxLength={280} rows={3} placeholder="Em duas frases: o que você faz e para quem." />
             <span className="ajuda">{r.bio.length}/280. Aparece no seu cartão na busca.</span>
           </label>
-          <label className="campo">
-            Sobre mim (completo)
-            <textarea value={r.sobre} onChange={(e) => mudar("sobre", e.target.value)} maxLength={1500} rows={6} placeholder="Como você começou, como gosta de trabalhar, que tipo de projeto te anima…" />
-            <span className="ajuda">{r.sobre.length}/1500</span>
-          </label>
+          </Ficha>
+        )}
 
-          <fieldset className="campo">
-            <legend>Serviços que você oferece</legend>
-            <div className="grupos-servicos">
-              {SERVICOS_POR_AREA.map((g) => (
-                <div key={g.area}>
-                  <span className="grupo-servicos-titulo">{g.area}</span>
-                  <div className="opcoes">
-                    {g.servicos.map((s) => (
-                      <label key={s} className="opcao">
-                        <input type="checkbox" checked={r.servicos.includes(s)} onChange={() => alternar("servicos", s)} />
-                        {s}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="campo">
-            Habilidades e ferramentas
-            <input value={r.habilidades} onChange={(e) => mudar("habilidades", e.target.value)} placeholder="Figma, Lightroom, Redação…" />
-            <span className="ajuda">Separe por vírgula.</span>
-          </label>
-
-          <label className="campo">
-            Valor de referência
-            <input value={r.valorReferencia} onChange={(e) => mudar("valorReferencia", e.target.value)} placeholder="A partir de R$ 150" />
-            <span className="ajuda"><Link href="/guia#precos">Não sabe quanto cobrar? Veja o guia.</Link></span>
-          </label>
-
-          <fieldset className="campo">
-            <legend>Tenho interesse em</legend>
-            <div className="opcoes">
-              {TIPOS_VAGA.map((t) => (
-                <label key={t} className="opcao">
-                  <input type="checkbox" checked={r.tiposVaga.includes(t)} onChange={() => alternar("tiposVaga", t)} />
-                  {t}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="campo">
-            <legend>Modalidade</legend>
-            <div className="opcoes">
-              {MODALIDADES.map((m) => (
-                <label key={m} className="opcao">
-                  <input type="checkbox" checked={r.modalidades.includes(m)} onChange={() => alternar("modalidades", m)} />
-                  {m}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="filtro-check">
-            <input type="checkbox" checked={r.disponivel} onChange={(e) => mudar("disponivel", e.target.checked)} />
-            Estou disponível para novos trabalhos
-          </label>
-        </section>
-
-        {/* Trabalhos */}
-        <section id="trabalhos" className="cartao secao-editor">
-          <h2>Trabalhos</h2>
-          <p className="suave ajuda-secao">Projetos de aula, freelas, extensão, estágio. Conte para quem foi e o que você fez.</p>
+        {passo === "obra" && (
+          <Ficha id="obra" titulo={tituloRef}>
+          <p className="suave ajuda-secao">Projetos de aula, freelas, extensão, estágio. Um trabalho com imagem já basta para publicar; dá para somar outros depois.</p>
           {r.trabalhos.map((t, i) => (
             <div key={i} className="item-lista">
               <div className="item-lista-topo">
@@ -590,13 +550,6 @@ function Editor(props: PropsEditor) {
                 <input className="entrada" value={t.titulo} onChange={(e) => mudarTrabalho(i, { titulo: e.target.value })} placeholder="Título do trabalho" maxLength={80} aria-label={`Título do trabalho ${i + 1}`} />
                 <Seletor aria-label={`Tipo do trabalho ${i + 1}`} valor={t.tipo} onMudar={(v) => mudarTrabalho(i, { tipo: v })} grupos={GRUPOS_SERVICOS} />
               </div>
-              <div className="linha-dupla">
-                <input className="entrada" value={t.cliente} onChange={(e) => mudarTrabalho(i, { cliente: e.target.value })} placeholder="Cliente ou disciplina" maxLength={80} aria-label={`Cliente do trabalho ${i + 1}`} />
-                <input className="entrada" value={t.ano} onChange={(e) => mudarTrabalho(i, { ano: mascaraAno(e.target.value) })} placeholder="Ano (ex.: 2025)" inputMode="numeric" aria-label={`Ano do trabalho ${i + 1}`} />
-              </div>
-              <textarea className="entrada" rows={2} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho e qual foi o resultado" maxLength={200} aria-label={`Descrição do trabalho ${i + 1}`} />
-              <input className="entrada" value={t.papel} onChange={(e) => mudarTrabalho(i, { papel: e.target.value })} placeholder="Se foi em grupo: o que você fez?" maxLength={120} aria-label={`Seu papel no trabalho ${i + 1}`} />
-              <input className="entrada" value={t.link} onChange={(e) => mudarTrabalho(i, { link: e.target.value })} placeholder="Link (Behance, site no ar, vídeo, matéria publicada)" maxLength={300} aria-label={`Link do trabalho ${i + 1}`} />
               {(
                 <div className="linha-arquivo">
                   {[t.imagem, ...t.galeria].filter(Boolean).map((img, k) => (
@@ -634,6 +587,18 @@ function Editor(props: PropsEditor) {
                       }}
                     />
                   )}
+              <textarea className="entrada" rows={2} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho e qual foi o resultado" maxLength={200} aria-label={`Descrição do trabalho ${i + 1}`} />
+              <details className="mais-detalhes" open={Boolean(t.cliente || t.ano || t.papel || t.link)}>
+                <summary>Mais detalhes (opcional): cliente, ano, sua parte, link</summary>
+                <div className="mais-detalhes-corpo">
+              <div className="linha-dupla">
+                <input className="entrada" value={t.cliente} onChange={(e) => mudarTrabalho(i, { cliente: e.target.value })} placeholder="Cliente ou disciplina" maxLength={80} aria-label={`Cliente do trabalho ${i + 1}`} />
+                <input className="entrada" value={t.ano} onChange={(e) => mudarTrabalho(i, { ano: mascaraAno(e.target.value) })} placeholder="Ano (ex.: 2025)" inputMode="numeric" aria-label={`Ano do trabalho ${i + 1}`} />
+              </div>
+              <input className="entrada" value={t.papel} onChange={(e) => mudarTrabalho(i, { papel: e.target.value })} placeholder="Se foi em grupo: o que você fez?" maxLength={120} aria-label={`Seu papel no trabalho ${i + 1}`} />
+              <input className="entrada" value={t.link} onChange={(e) => mudarTrabalho(i, { link: e.target.value })} placeholder="Link (Behance, site no ar, vídeo, matéria publicada)" maxLength={300} aria-label={`Link do trabalho ${i + 1}`} />
+                </div>
+              </details>
                 </div>
               )}
             </div>
@@ -645,11 +610,114 @@ function Editor(props: PropsEditor) {
           ) : (
             <span className="ajuda">O plano grátis permite até {MAX_TRABALHOS} trabalhos.</span>
           )}
-        </section>
+          </Ficha>
+        )}
 
-        {/* Experiência */}
-        <section id="experiencia" className="cartao secao-editor">
-          <h2>Experiência</h2>
+        {passo === "contato" && (
+          <Ficha id="contato" titulo={tituloRef}>
+          <fieldset className="campo">
+            <legend>Serviços que você oferece</legend>
+            <span className="ajuda">Abra uma área e marque o que você faz.</span>
+            <div className="grupos-servicos">
+              {SERVICOS_POR_AREA.map((g) => {
+                const marcados = g.servicos.filter((x) => r.servicos.includes(x)).length;
+                return (
+                <details key={g.area} className="area-servicos" open={marcados > 0}>
+                  <summary>
+                    {g.area}
+                    {marcados > 0 && <span className="area-servicos-n">{marcados} {marcados === 1 ? "marcado" : "marcados"}</span>}
+                  </summary>
+                  <div className="opcoes">
+                    {g.servicos.map((s) => (
+                      <label key={s} className="opcao">
+                        <input type="checkbox" checked={r.servicos.includes(s)} onChange={() => alternar("servicos", s)} />
+                        {s}
+                      </label>
+                    ))}
+                  </div>
+                </details>
+                );
+              })}
+            </div>
+          </fieldset>
+          <label className="filtro-check">
+            <input type="checkbox" checked={r.disponivel} onChange={(e) => mudar("disponivel", e.target.checked)} />
+            Estou disponível para novos trabalhos
+          </label>
+          <div className="linha-dupla">
+            <label className="campo">
+              WhatsApp
+              <input type="tel" inputMode="tel" value={r.whatsapp} onChange={(e) => mudar("whatsapp", mascaraTelefone(e.target.value))} placeholder="(14) 99999-0000" aria-invalid={!telefoneValido(r.whatsapp)} />
+              {!telefoneValido(r.whatsapp) && <span className="erro">Use DDD + número, ex.: (14) 99123-4567</span>}
+            </label>
+            <label className="campo">
+              E-mail de contato
+              <input type="email" value={r.emailContato} onChange={(e) => mudar("emailContato", e.target.value)} placeholder="voce@exemplo.com" />
+            </label>
+          </div>
+          {real && (
+            <label className="filtro-check">
+              <input type="checkbox" checked={r.publicado} onChange={(e) => mudar("publicado", e.target.checked)} />
+              Mostrar meu portfólio na busca de talentos
+            </label>
+          )}
+          </Ficha>
+        )}
+
+        {passo === "detalhes" && (
+          <Ficha id="detalhes" titulo={tituloRef}>
+          <label className="campo">
+            Sobre mim (completo)
+            <textarea value={r.sobre} onChange={(e) => mudar("sobre", e.target.value)} maxLength={1500} rows={6} placeholder="Como você começou, como gosta de trabalhar, que tipo de projeto te anima…" />
+            <span className="ajuda">{r.sobre.length}/1500</span>
+          </label>
+          <label className="campo">
+            Habilidades e ferramentas
+            <input value={r.habilidades} onChange={(e) => mudar("habilidades", e.target.value)} placeholder="Figma, Lightroom, Redação…" />
+            <span className="ajuda">Separe por vírgula.</span>
+          </label>
+          <label className="campo">
+            Valor de referência
+            <input value={r.valorReferencia} onChange={(e) => mudar("valorReferencia", e.target.value)} placeholder="A partir de R$ 150" />
+            <span className="ajuda"><Link href="/guia#precos">Não sabe quanto cobrar? Veja o guia.</Link></span>
+          </label>
+          <fieldset className="campo">
+            <legend>Tenho interesse em</legend>
+            <div className="opcoes">
+              {TIPOS_VAGA.map((t) => (
+                <label key={t} className="opcao">
+                  <input type="checkbox" checked={r.tiposVaga.includes(t)} onChange={() => alternar("tiposVaga", t)} />
+                  {t}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="campo">
+            <legend>Modalidade</legend>
+            <div className="opcoes">
+              {MODALIDADES.map((m) => (
+                <label key={m} className="opcao">
+                  <input type="checkbox" checked={r.modalidades.includes(m)} onChange={() => alternar("modalidades", m)} />
+                  {m}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className="linha-dupla">
+            <label className="campo">
+              Previsão de formatura
+              <input type="month" value={/^\d{4}-\d{2}$/.test(r.conclusao) ? r.conclusao : ""} onChange={(e) => mudar("conclusao", e.target.value)} min="2020-01" max="2040-12" />
+            </label>
+            <label className="campo">
+              Cidade
+              <input value={r.cidade} onChange={(e) => mudar("cidade", e.target.value)} placeholder="Bauru, SP" />
+            </label>
+          </div>
+          </Ficha>
+        )}
+
+        {passo === "experiencia" && (
+          <Ficha id="experiencia" titulo={tituloRef}>
           <p className="suave ajuda-secao">Estágio, freela, empresa júnior, iniciação científica, monitoria, voluntariado. Tudo conta.</p>
           {r.experiencias.map((x, i) => (
             <div key={i} className="item-lista">
@@ -683,11 +751,11 @@ function Editor(props: PropsEditor) {
               + Adicionar experiência
             </button>
           )}
-        </section>
+          </Ficha>
+        )}
 
-        {/* Formação */}
-        <section id="formacao" className="cartao secao-editor">
-          <h2>Cursos, certificados e idiomas</h2>
+        {passo === "formacao" && (
+          <Ficha id="formacao" titulo={tituloRef}>
           {r.certificados.map((c, i) => (
             <div key={i} className="item-lista">
               <div className="item-lista-topo">
@@ -740,22 +808,11 @@ function Editor(props: PropsEditor) {
               + Adicionar idioma
             </button>
           )}
-        </section>
+          </Ficha>
+        )}
 
-        {/* Contato */}
-        <section id="contato" className="cartao secao-editor">
-          <h2>Contato e links</h2>
-          <div className="linha-dupla">
-            <label className="campo">
-              WhatsApp
-              <input type="tel" inputMode="tel" value={r.whatsapp} onChange={(e) => mudar("whatsapp", mascaraTelefone(e.target.value))} placeholder="(14) 99999-0000" aria-invalid={!telefoneValido(r.whatsapp)} />
-              {!telefoneValido(r.whatsapp) && <span className="erro">Use DDD + número, ex.: (14) 99123-4567</span>}
-            </label>
-            <label className="campo">
-              E-mail de contato
-              <input type="email" value={r.emailContato} onChange={(e) => mudar("emailContato", e.target.value)} placeholder="voce@exemplo.com" />
-            </label>
-          </div>
+        {passo === "links" && (
+          <Ficha id="links" titulo={tituloRef}>
           {REDES.map((rede) => (
             <label key={rede.chave} className="campo">
               {rede.rotulo}
@@ -786,13 +843,19 @@ function Editor(props: PropsEditor) {
               <span className="ajuda">Até 3 MB. Quem visitar seu portfólio poderá baixar.</span>
             </div>
           )}
-          {real && (
-            <label className="filtro-check">
-              <input type="checkbox" checked={r.publicado} onChange={(e) => mudar("publicado", e.target.checked)} />
-              Mostrar meu portfólio na busca de talentos
-            </label>
+          </Ficha>
+        )}
+
+        <nav className="fichas-nav" aria-label="Navegar entre as fichas">
+          {anterior ? (
+            <button type="button" className="botao botao-contorno" onClick={() => irPara(anterior.id)}>← {anterior.rotulo}</button>
+          ) : <span />}
+          {proximo && (
+            <button type="button" className={proximo.essencial ? "botao botao-verde" : "botao botao-contorno"} onClick={() => irPara(proximo.id)}>
+              {proximo.essencial ? `Próxima: ${proximo.rotulo} →` : `Turbinar: ${proximo.rotulo} →`}
+            </button>
           )}
-        </section>
+        </nav>
 
         <div className="cartao barra-salvar">
           {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
@@ -800,13 +863,20 @@ function Editor(props: PropsEditor) {
             <button className="botao botao-primario" type="submit" disabled={salvando || enviando !== null}>
               {salvando ? "Salvando…" : real ? "Salvar portfólio" : "Salvar rascunho"}
             </button>
-            {salvo && (
-              <span className="salvo" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <SalvoLottie />
-                {real ? "Portfólio salvo" : "Rascunho salvo neste aparelho"}
-              </span>
-            )}
+            <span role="status" aria-live="polite">
+              {salvo && (
+                <span className="salvo confirmacao" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <SalvoLottie />
+                  {real ? "Portfólio salvo" : "Rascunho salvo neste aparelho"}
+                </span>
+              )}
+            </span>
           </div>
+          {salvo && essenciaisProntas && PASSOS[indice]?.essencial && (
+            <p className="turbinar">
+              Portfólio no ar! Quando quiser, <button type="button" className="link-mao" onClick={() => irPara("detalhes")}>turbine com mais fichas →</button>
+            </p>
+          )}
           {real && (
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
               {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio público →</Link>}
@@ -898,5 +968,62 @@ function EscolherArquivo({
         {enviando ? "Enviando…" : rotulo}
       </button>
     </>
+  );
+}
+
+/** Fichas do editor, como abas de arquivo: essenciais primeiro, opcionais depois. */
+function Fichas({ atual, feitas, onIr }: { atual: Passo; feitas: Record<Passo, boolean>; onIr: (id: Passo) => void }) {
+  const grupo = (essencial: boolean) =>
+    PASSOS.filter((p) => p.essencial === essencial).map((p) => {
+      const n = PASSOS.indexOf(p) + 1;
+      return (
+        <li key={p.id}>
+          <button
+            type="button"
+            className={`ficha-aba${p.id === atual ? " atual" : ""}${feitas[p.id] ? " feita" : ""}`}
+            aria-current={p.id === atual ? "step" : undefined}
+            onClick={() => onIr(p.id)}
+          >
+            <span className="ficha-aba-n" aria-hidden="true">{feitas[p.id] ? "✓" : String(n).padStart(2, "0")}</span>
+            <span className="ficha-aba-rotulo">{p.rotulo}</span>
+            <span className="visualmente-oculto">{feitas[p.id] ? " (feita)" : " (a fazer)"}</span>
+          </button>
+        </li>
+      );
+    });
+  const essenciais = PASSOS.filter((p) => p.essencial);
+  const prontas = essenciais.filter((p) => feitas[p.id]).length;
+  return (
+    <div className="fichas">
+      <div className="fichas-grupo">
+        <span className="fichas-grupo-rotulo">Para publicar · {prontas} de {essenciais.length}</span>
+        <ol>{grupo(true)}</ol>
+      </div>
+      <div className="fichas-grupo">
+        <span className="fichas-grupo-rotulo">Turbinar depois · opcional</span>
+        <ol>{grupo(false)}</ol>
+      </div>
+    </div>
+  );
+}
+
+/** Uma ficha do editor: cabeçalho com número, tempo estimado e dica, e os campos daquela etapa. */
+function Ficha({ id, titulo, children }: { id: Passo; titulo: React.Ref<HTMLHeadingElement>; children: React.ReactNode }) {
+  const p = PASSOS.find((x) => x.id === id)!;
+  const n = PASSOS.indexOf(p) + 1;
+  const total = PASSOS.filter((x) => x.essencial === p.essencial).length;
+  const posicao = PASSOS.filter((x) => x.essencial === p.essencial).indexOf(p) + 1;
+  return (
+    <section id={id} className="cartao secao-editor ficha-editor" aria-labelledby={`${id}-titulo`}>
+      <div className="ficha-editor-topo">
+        <span className="ficha-editor-n" aria-hidden="true">{String(n).padStart(2, "0")}</span>
+        <span className="rotulos">
+          <span>{p.essencial ? `Essencial · ${posicao} de ${total}` : "Opcional"} · ~{p.tempo}</span>
+        </span>
+      </div>
+      <h2 id={`${id}-titulo`} ref={titulo} tabIndex={-1}>{p.rotulo}</h2>
+      <p className="anotacao-ficha">{p.dica}</p>
+      {children}
+    </section>
   );
 }

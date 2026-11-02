@@ -1,55 +1,14 @@
-"use client";
-
-import { useEffect } from "react";
-import { reduzirMovimento } from "./movimento";
-
 /**
- * anime.js: animação de entrada do topo da página inicial.
- * As letras sobem uma a uma, o bloco cobre cresce, a folha gira,
- * e o leque de fichas se abre como cartas sendo distribuídas.
+ * Entrada da capa da página inicial: uma coreografia única e curta.
+ *
+ * Objetivo: apresentar a marca e, em seguida, a busca, sem competir com ela.
+ *   1. wordmark: sobe 10px e aparece (400ms);
+ *   2. frase de valor, busca, ações e provas: aparecem juntas (400ms, 120ms depois);
+ *   3. fichas do leque: abrem uma vez (520ms), por último.
+ * Tudo em CSS (classe .entrada-capa em globals.css), com escopo neste bloco:
+ * roda desde a primeira pintura, sem esperar JavaScript, então o conteúdo não "pisca".
+ * Com prefers-reduced-motion: reduce, nada se move e tudo já aparece no lugar.
  */
-export function EntradaCapa() {
-  useEffect(() => {
-    if (reduzirMovimento()) return;
-    let cancelado = false;
-    let parar: (() => void) | undefined;
-
-    import("animejs").then(({ createTimeline, stagger, animate }) => {
-      if (cancelado) return;
-      const tl = createTimeline({ defaults: { ease: "outExpo", duration: 900 } });
-
-      tl.add(".marca-gigante > span:not(.bloco-cobre)", {
-        translateY: ["60%", "0%"],
-        opacity: [0, 1],
-        delay: stagger(70),
-      })
-        .add(".bloco-cobre", { scaleY: [0, 1], duration: 700 }, "-=800")
-        .add(".letra-folha svg", { rotate: [-200, 0], scale: [0.4, 1], duration: 1200, ease: "outElastic(1, .6)" }, "-=900")
-        .add(".capa-zine .rotulos span, .capa-zine .ornamentos svg", { opacity: [0, 1], translateY: [10, 0], delay: stagger(60) }, "-=900")
-        .add(".capa-zine .anotacao", { opacity: [0, 1], translateX: [-16, 0] }, "-=700")
-        .add(".capa-zine .lead-zine, .capa-zine .busca-rapida, .capa-zine .hero-acoes", { opacity: [0, 1], translateY: [16, 0], delay: stagger(90) }, "-=800")
-        .add(".leque .ficha", { "--abre": [0, 1], opacity: [0, 1], delay: stagger(90, { from: "center" }), duration: 1100 }, "-=700");
-
-      // Ornamentos giram devagar depois da entrada.
-      const giro = animate(".capa-zine .ornamentos svg", {
-        rotate: 360,
-        duration: 9000,
-        loop: true,
-        ease: "linear",
-        delay: stagger(600),
-      });
-
-      parar = () => {
-        tl.pause();
-        giro.pause();
-      };
-    });
-
-    return () => {
-      cancelado = true;
-      parar?.();
-    };
-  }, []);
-
-  return null;
+export function EntradaCapa({ children }: { children: React.ReactNode }) {
+  return <div className="container entrada-capa">{children}</div>;
 }

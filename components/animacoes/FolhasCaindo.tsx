@@ -5,18 +5,25 @@ import type { Material } from "three";
 import { reduzirMovimento } from "./movimento";
 
 const CORES = [0x4f7a3a, 0xb0673b, 0x6b4a34, 0x7c8b5a, 0x2f3e2a];
+/** Tempo que cada folha leva para atravessar a capa (s). */
+const QUEDA_MIN = 3.2;
+const QUEDA_MAX = 5.2;
 
 /**
- * Three.js: folhas 3D caindo e girando atrás do topo da página.
- * Carrega a biblioteca só no navegador, pausa quando sai da tela
- * e não roda se a pessoa preferir menos movimento.
+ * Three.js: folhas 3D que caem UMA vez atrás da capa e param.
+ *
+ * Objetivo: dar a sensação de "chegada" na página inicial, junto com a entrada da marca,
+ * sem ficar disputando atenção com a busca. Cada folha atravessa a capa uma única vez;
+ * quando a última sai de cena, o laço para e o WebGL é liberado.
+ * É só decoração (aria-hidden): a capa comunica tudo sem ele.
+ * Não roda em telas estreitas nem com prefers-reduced-motion: reduce.
  */
 export function FolhasCaindo() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || reduzirMovimento()) return;
+    if (!el || reduzirMovimento() || window.innerWidth < 720) return;
     let limpar: (() => void) | undefined;
     let cancelado = false;
 
@@ -46,65 +53,53 @@ export function FolhasCaindo() {
       forma.quadraticCurveTo(-0.9, 0, 0, -1);
       const geometria = new THREE.ShapeGeometry(forma, 12);
 
-      const visivelY = () => Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
-      const qtd = largura() < 640 ? 12 : 24;
-      const folhas = Array.from({ length: qtd }, (_, i) => {
+      const visivelY = () => Math.tan((camera.fov * Math.PI) / 360) * camera.position.z + 1.5;
+      const folhas = Array.from({ length: 14 }, (_, i) => {
         const material = new THREE.MeshStandardMaterial({
           color: CORES[i % CORES.length],
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.55,
+          opacity: 0.45,
           roughness: 0.8,
         });
         const m = new THREE.Mesh(geometria, material);
-        const s = 0.25 + Math.random() * 0.35;
+        const s = 0.25 + Math.random() * 0.3;
         m.scale.set(s, s, s);
         const vy = visivelY();
-        const vx = vy * camera.aspect;
-        m.position.set((Math.random() * 2 - 1) * vx, (Math.random() * 2 - 1) * vy, -Math.random() * 6);
+        // Todas começam acima da capa, em alturas diferentes, e caem uma vez.
+        m.position.set((Math.random() * 2 - 1) * vy * camera.aspect, vy + Math.random() * vy * 0.8, -Math.random() * 6);
         m.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
         cena.add(m);
+        const duracao = QUEDA_MIN + Math.random() * (QUEDA_MAX - QUEDA_MIN);
         return {
           m,
-          queda: 0.004 + Math.random() * 0.008,
+          velocidade: (2 * vy) / duracao,
           balanco: Math.random() * Math.PI * 2,
-          giro: new THREE.Vector3(Math.random() * 0.02, Math.random() * 0.02, Math.random() * 0.01),
+          giro: new THREE.Vector3(Math.random() * 1.2, Math.random() * 1.2, Math.random() * 0.6),
         };
       });
 
       let quadro = 0;
-      let rodando = true;
+      let anterior = performance.now();
       const tick = (t: number) => {
-        if (!rodando) return;
-        const vy = visivelY() + 1.5;
-        const vx = vy * camera.aspect;
+        const dt = Math.min((t - anterior) / 1000, 0.05);
+        anterior = t;
+        const limite = -visivelY();
+        let caindo = 0;
         for (const f of folhas) {
-          f.m.position.y -= f.queda * 6;
-          f.m.position.x += Math.sin(t / 1400 + f.balanco) * 0.006;
-          f.m.rotation.x += f.giro.x;
-          f.m.rotation.y += f.giro.y;
-          f.m.rotation.z += f.giro.z;
-          if (f.m.position.y < -vy) {
-            f.m.position.y = vy;
-            f.m.position.x = (Math.random() * 2 - 1) * vx;
-          }
+          if (f.m.position.y < limite) continue;
+          caindo++;
+          f.m.position.y -= f.velocidade * dt;
+          f.m.position.x += Math.sin(t / 1400 + f.balanco) * 0.35 * dt;
+          f.m.rotation.x += f.giro.x * dt;
+          f.m.rotation.y += f.giro.y * dt;
+          f.m.rotation.z += f.giro.z * dt;
         }
         renderer.render(cena, camera);
-        quadro = requestAnimationFrame(tick);
+        if (caindo > 0) quadro = requestAnimationFrame(tick);
+        else limpar?.();
       };
       quadro = requestAnimationFrame(tick);
-
-      const observador = new IntersectionObserver(([e]) => {
-        const visivel = !!e?.isIntersecting;
-        if (visivel && !rodando) {
-          rodando = true;
-          quadro = requestAnimationFrame(tick);
-        } else if (!visivel) {
-          rodando = false;
-          cancelAnimationFrame(quadro);
-        }
-      });
-      observador.observe(el);
 
       const redimensionar = () => {
         camera.aspect = largura() / altura();
@@ -113,10 +108,11 @@ export function FolhasCaindo() {
       };
       window.addEventListener("resize", redimensionar);
 
+      let limpo = false;
       limpar = () => {
-        rodando = false;
+        if (limpo) return;
+        limpo = true;
         cancelAnimationFrame(quadro);
-        observador.disconnect();
         window.removeEventListener("resize", redimensionar);
         geometria.dispose();
         folhas.forEach((f) => (f.m.material as Material).dispose());

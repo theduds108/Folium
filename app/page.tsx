@@ -1,11 +1,25 @@
 import Link from "next/link";
-import { ALUNOS, SERVICOS } from "@/lib/data";
+import { ALUNOS } from "@/lib/data";
 import { DEPOIMENTOS, MISSAO, OPORTUNIDADES, VALORES } from "@/lib/conteudo";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { Leque } from "@/components/Leque";
-import { Anotacao, Faixa, Ornamentos, PapelRasgado } from "@/components/Zine";
+import { Anotacao, Faixa, PapelRasgado } from "@/components/Zine";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
+
+/** Serviços mais procurados, mostrados no índice da faixa escura (cada um abre a busca filtrada). */
+const INDICE = [
+  "Identidade visual",
+  "Fotografia",
+  "Vídeo e edição",
+  "Social media",
+  "Ilustração",
+  "UX/UI design",
+  "Sites e sistemas",
+  "Redação e revisão",
+  "Motion design e animação",
+  "Projeto de interiores",
+];
 
 export default function Inicio() {
   const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
@@ -13,16 +27,15 @@ export default function Inicio() {
 
   return (
     <>
-      <section className="capa-zine">
+      <section className="capa-zine" aria-labelledby="capa-marca">
         <FolhasCaindo />
-        <EntradaCapa />
-        <div className="container">
-          <div className="rotulos">
-            <span>Bem-vindo ao</span>
-            <span>UNISAGRADO · 2026</span>
+        <EntradaCapa>
+          <div className="rotulos capa-rotulos">
+            <span>Vitrine de portfólios universitários</span>
+            <span>UNISAGRADO · Bauru, SP</span>
           </div>
 
-          <h1 className="marca-gigante" aria-label="Fólium">
+          <h1 className="marca-gigante" id="capa-marca" aria-label="Fólium">
             <span className="bloco-cobre" aria-hidden="true" />
             <span aria-hidden="true">F</span>
             <span className="letra-folha" aria-hidden="true">
@@ -35,37 +48,52 @@ export default function Inicio() {
             <span aria-hidden="true">LIUM</span>
           </h1>
 
-          <div className="rotulos rotulos-baixo">
-            <span>Vitrine de universitários</span>
-            <Anotacao className="anotacao-capa">portfólios que viram oportunidade</Anotacao>
-            <span>Bauru · SP</span>
+          <div className="capa-conteudo">
+            <p className="valor-capa">Talentos da UNISAGRADO para o seu próximo freela.</p>
+            <p className="lead-zine">
+              Veja trabalhos de universitários, filtre pelo que você precisa e fale direto com quem fez. Para contratar,
+              não precisa criar conta.
+            </p>
+
+            <form className="busca-rapida" action="/talentos/" role="search">
+              <label className="visualmente-oculto" htmlFor="busca-capa">Buscar talentos</label>
+              <input id="busca-capa" className="entrada" type="search" name="q" placeholder="Ex.: identidade visual, fotografia…" />
+              <button className="botao botao-verde" type="submit">Buscar</button>
+            </form>
+
+            <div className="hero-acoes">
+              <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
+              <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
+            </div>
+
+            <ul className="provas" aria-label="Por que confiar">
+              <li>
+                <strong>Alunos UNISAGRADO</strong>
+                <span>vínculo conferido pelo e-mail institucional</span>
+              </li>
+              <li>
+                <strong>Portfólios publicados</strong>
+                <span>trabalhos montados pelo próprio aluno</span>
+              </li>
+              <li>
+                <strong>Contato direto</strong>
+                <span>WhatsApp ou e-mail, sem intermediário</span>
+              </li>
+            </ul>
           </div>
 
-          <div className="centro">
-            <Ornamentos />
+          <div className="leque-legenda">
+            <span className="rotulos"><span>Do arquivo · {leque.length} fichas</span></span>
+            <Anotacao className="anotacao-capa">abra uma ficha</Anotacao>
+            <Link href="/talentos" className="link-mao">ver todos →</Link>
           </div>
-
-          <p className="lead-zine">
-            Alunos mostram seus trabalhos. Quem precisa de um freela encontra talento local, jovem e verificado pela
-            instituição.
-          </p>
-
-          <form className="busca-rapida" action="/talentos" role="search">
-            <input className="entrada" type="search" name="q" placeholder="Ex.: identidade visual, fotografia…" aria-label="Buscar talentos" />
-            <button className="botao botao-verde" type="submit">Buscar</button>
-          </form>
-          <div className="hero-acoes">
-            <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
-            <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
-          </div>
-
           <Leque alunos={leque} />
-        </div>
+        </EntradaCapa>
       </section>
 
       <div className="bloco-escuro">
         <PapelRasgado />
-        <Faixa itens={[...SERVICOS]} />
+        <Faixa itens={INDICE} />
         <PapelRasgado inverter />
       </div>
 
@@ -91,13 +119,17 @@ export default function Inicio() {
           </div>
           <div className="grade-vagas revelar-grupo">
             {OPORTUNIDADES.slice(0, 3).map((o) => (
-              <Link key={o.id} href="/oportunidades" className="cartao vaga vaga-link">
+              <Link key={o.id} href="/oportunidades" className={`cartao vaga vaga-link vaga-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>
                 <div className="vaga-topo">
-                  <span className={o.tipo === "Estágio" ? "etiqueta etiqueta-terra" : "etiqueta"}>{o.tipo}</span>
+                  <span className={`carimbo carimbo-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>{o.tipo}</span>
                   <span className="suave vaga-data">{o.publicadaHa}</span>
                 </div>
                 <h3>{o.titulo}</h3>
-                <p className="suave vaga-empresa">{o.empresa} · {o.orcamento}</p>
+                <p className="suave vaga-empresa">{o.empresa}</p>
+                <dl className="vaga-dados">
+                  <div><dt>Orçamento</dt><dd>{o.orcamento}</dd></div>
+                  <div><dt>Prazo</dt><dd>{o.prazo}</dd></div>
+                </dl>
               </Link>
             ))}
           </div>

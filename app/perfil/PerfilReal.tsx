@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { Aluno } from "@/lib/data";
 import { buscarAlunoReal } from "@/lib/repositorio";
 import { PerfilVista } from "@/components/PerfilVista";
+import { EsqueletoPerfil } from "@/components/Esqueleto";
 
 export function PerfilReal() {
   const slug = useSearchParams().get("u") ?? "";
@@ -27,12 +28,7 @@ export function PerfilReal() {
     };
   }, [slug]);
 
-  if (aluno === undefined)
-    return (
-      <div className="container">
-        <div className="cartao pagina-estreita"><p className="suave" style={{ margin: 0 }}>Carregando portfólio…</p></div>
-      </div>
-    );
+  if (aluno === undefined) return <EsqueletoPerfil />;
 
   if (!aluno)
     return (

@@ -1,4 +1,6 @@
-/* Elementos visuais do estilo "zine": ornamentos, papel rasgado, faixa de texto correndo e anotações à mão. */
+import Link from "next/link";
+
+/* Elementos visuais do estilo "zine": ornamentos, papel rasgado, índice de serviços e anotações à mão. */
 
 export function Ornamentos({ claro = false }: { claro?: boolean }) {
   const cor = claro ? "#F6F0E4" : "#2F3E2A";
@@ -23,18 +25,25 @@ export function PapelRasgado({ cor = "#2F3E2A", inverter = false }: { cor?: stri
   );
 }
 
-export function Faixa({ itens }: { itens: string[] }) {
-  const linha = itens.flatMap((t, i) => [
-    <span key={`t${i}`}>{t}</span>,
-    <span key={`o${i}`} className="faixa-orn" aria-hidden="true">✦</span>,
-  ]);
+/**
+ * Índice de serviços em faixa escura. Antes era um letreiro correndo sem parar;
+ * agora é um bloco estático e clicável: cada serviço abre a busca já filtrada.
+ * Ritmo editorial sem movimento contínuo.
+ */
+export function Faixa({ itens, rotulo = "Índice de serviços" }: { itens: string[]; rotulo?: string }) {
   return (
-    <div className="faixa" aria-label={itens.join(", ")}>
-      <div className="faixa-trilho" aria-hidden="true">
-        <div>{linha}</div>
-        <div>{linha}</div>
+    <nav className="faixa" aria-label={rotulo}>
+      <div className="container">
+        <span className="faixa-rotulo">{rotulo}</span>
+        <ul className="faixa-lista">
+          {itens.map((t) => (
+            <li key={t}>
+              <Link href={`/talentos/?servico=${encodeURIComponent(t)}`}>{t}</Link>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+    </nav>
   );
 }
 
