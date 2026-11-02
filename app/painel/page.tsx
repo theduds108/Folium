@@ -61,7 +61,7 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
           <strong>Encontrar talentos</strong>
           <span className="suave">Filtre por serviço e fale direto com o aluno.</span>
         </Link>
-        <Link href="/oportunidades/#publicar" className="cartao atalho-painel">
+        <Link href="/publicar" className="cartao atalho-painel">
           <strong>Publicar vaga</strong>
           <span className="suave">
             {premium ? "Vagas ilimitadas, com destaque no mural." : podePublicar ? "Você tem 1 vaga disponível este mês." : "Sua vaga do mês já foi usada."}
@@ -84,7 +84,7 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
           ) : vagas.length === 0 ? (
             <div className="painel-vazio">
               <p className="suave">Você ainda não publicou nenhuma vaga.</p>
-              <Link href="/oportunidades/#publicar" className="botao botao-verde">Publicar a primeira</Link>
+              <Link href="/publicar" className="botao botao-verde">Publicar a primeira</Link>
             </div>
           ) : (
             <ul className="lista-vagas">

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { SERVICOS } from "@/lib/data";
 import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
@@ -58,7 +59,10 @@ export function PublicarOportunidade({ conta, premium = false }: { conta?: Conta
           <p className="suave">
             A equipe do Fólium confere a empresa e publica em até 1 dia útil. Acompanhe o status no seu painel.
           </p>
-          <button className="botao botao-contorno" onClick={() => setEnviada(false)}>Enviar outra vaga</button>
+          <div className="trava-acoes">
+            <Link href="/painel" className="botao botao-verde">Ver no meu painel</Link>
+            <button className="botao botao-contorno" onClick={() => setEnviada(false)}>Enviar outra vaga</button>
+          </div>
         </div>
       ) : (
         <form

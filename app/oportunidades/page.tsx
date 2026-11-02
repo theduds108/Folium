@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MuralOportunidades } from "./MuralOportunidades";
-import { AvisoEmpresa, SecaoPublicar } from "./AreaVagas";
+import { AvisoEmpresa } from "./AreaVagas";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 
 export const metadata: Metadata = { title: "Oportunidades" };
@@ -16,7 +16,6 @@ export default function Oportunidades() {
         <AvisoEmpresa />
       </CabecalhoArquivo>
       <MuralOportunidades />
-      <SecaoPublicar />
     </div>
   );
 }
