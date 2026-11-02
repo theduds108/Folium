@@ -2109,17 +2109,24 @@ html { scroll-padding-top: 84px; }
   aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
-  padding: clamp(8px, 2vw, 18px);
+  --passe: clamp(8px, 2vw, 18px);
+  padding: var(--passe);
   border-radius: 3px;
   overflow: hidden;
 }
 .obra-destaque .obra-quadro { aspect-ratio: 16 / 10; }
 /* Imagem inteira dentro do passe-partout: nada é recortado. */
 .obra-quadro img {
-  width: 100%;
-  height: 100%;
+  /* Posicionada sobre o quadro: imagens altas não esticam a moldura nem são cortadas. */
+  position: absolute;
+  top: var(--passe);
+  left: var(--passe);
+  width: calc(100% - 2 * var(--passe));
+  height: calc(100% - 2 * var(--passe));
+  max-width: none;
   object-fit: contain;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  /* A sombra acompanha a imagem, não a caixa inteira. */
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
 }
 .obra-sem-imagem {
   font-family: var(--fonte-titulo), sans-serif;

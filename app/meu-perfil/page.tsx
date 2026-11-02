@@ -653,8 +653,7 @@ function Editor(props: PropsEditor) {
                 <input className="entrada" value={t.titulo} onChange={(e) => mudarTrabalho(i, { titulo: e.target.value })} placeholder="Título do trabalho" maxLength={80} aria-label={`Título do trabalho ${i + 1}`} />
                 <Seletor aria-label={`Tipo do trabalho ${i + 1}`} valor={t.tipo} onMudar={(v) => mudarTrabalho(i, { tipo: v })} grupos={GRUPOS_SERVICOS} />
               </div>
-              {(
-                <div className="linha-arquivo">
+              <div className="linha-arquivo">
                   {[t.imagem, ...t.galeria].filter(Boolean).map((img, k) => (
                     <span key={img} className="miniatura-caixa">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -690,6 +689,7 @@ function Editor(props: PropsEditor) {
                       }}
                     />
                   )}
+              </div>
               <label className="campo campo-pequeno">
                 Conte sobre o trabalho
                 <textarea className="entrada" rows={6} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho, o problema que resolve, como foi feito e qual foi o resultado" maxLength={MAX_DESCRICAO} />
@@ -706,8 +706,6 @@ function Editor(props: PropsEditor) {
               <input className="entrada" value={t.link} onChange={(e) => mudarTrabalho(i, { link: e.target.value })} placeholder="Link (Behance, site no ar, vídeo, matéria publicada)" maxLength={300} aria-label={`Link do trabalho ${i + 1}`} />
                 </div>
               </details>
-                </div>
-              )}
             </div>
           ))}
           {r.trabalhos.length < MAX_TRABALHOS ? (
