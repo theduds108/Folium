@@ -3,6 +3,7 @@ import { REDES, iniciais, linkExterno, unsplash, type Aluno, type Trabalho } fro
 import { Anotacao } from "@/components/Zine";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 import { SeloVerificado } from "@/components/Logo";
+import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
 import type { Avaliacao } from "@/lib/conteudo";
@@ -141,6 +142,7 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
               Baixar currículo (PDF)
             </a>
           )}
+          <SalvarTalento slug={aluno.slug} />
           <div className="compartilhar">
             <CopiarLink />
           </div>

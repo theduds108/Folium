@@ -22,6 +22,8 @@ import { emailInstitucional } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
 import { sair, useSessao } from "@/lib/sessao";
+import { RECURSOS, useConta } from "@/lib/conta";
+import { SeloPlano } from "@/components/Area";
 import { formatarPeriodo, mascaraAno, mascaraTelefone, telefoneValido } from "@/lib/formato";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
@@ -37,7 +39,6 @@ const CHAVE = "folium-rascunho-perfil";
 /** Rascunho automático de quem está logado: guarda o que ainda não foi salvo no banco. */
 const CHAVE_AUTO = "folium-autosave-perfil";
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
-const MAX_TRABALHOS = 6;
 const MAX_GALERIA = 4;
 const MAX_DESCRICAO = 1000;
 const OUTRO = "__outro__";
@@ -195,9 +196,18 @@ function paraAluno(r: Rascunho): Aluno {
 
 export default function MeuPerfil() {
   const { usuario, carregando } = useSessao();
+  const { conta, carregando: carregandoConta } = useConta();
 
+  // Portfólio é a área do colaborador. Contratante tem o próprio painel.
+  if (conta?.tipo === "contratante")
+    return (
+      <Aviso titulo="Sua conta é de contratante">
+        <p className="suave">O portfólio é para alunos que oferecem trabalho. Para publicar vagas e ver quem se interessou, use o seu painel.</p>
+        <Link href="/painel" className="botao botao-primario" style={{ width: "100%" }}>Ir para o meu painel</Link>
+      </Aviso>
+    );
   if (!bancoLigado) return <Editor modo="demo" />;
-  if (carregando) return <Aguarde texto="Carregando…" />;
+  if (carregando || (usuario && carregandoConta)) return <Aguarde texto="Carregando…" />;
   if (!usuario)
     return (
       <Aviso titulo="Entre para montar seu portfólio">
@@ -239,6 +249,8 @@ function Aviso({ titulo, children }: { titulo: string; children: React.ReactNode
 type PropsEditor = { modo: "demo" } | { modo: "banco"; userId: string; email: string };
 
 function Editor(props: PropsEditor) {
+  const { premium } = useConta();
+  const MAX_TRABALHOS = RECURSOS.colaborador[premium ? "premium" : "gratis"].trabalhos;
   const [r, setR] = useState<Rascunho>(VAZIO);
   const [pronto, setPronto] = useState(props.modo === "demo");
   const [salvo, setSalvo] = useState(false);
@@ -523,7 +535,12 @@ function Editor(props: PropsEditor) {
     <div className="container editor">
       <form className="editor-form form" onSubmit={salvar}>
         <div className="cartao editor-topo">
-          <h1 style={{ fontSize: "1.9rem", marginBottom: 4 }}>Meu portfólio</h1>
+          <div className="editor-topo-linha">
+            <h1 style={{ fontSize: "1.9rem", marginBottom: 4 }}>Meu portfólio</h1>
+            <Link href="/planos" className="selo-plano-link" aria-label={`Plano ${premium ? "Premium" : "Grátis"}, ver planos`}>
+              <SeloPlano premium={premium} />
+            </Link>
+          </div>
           <p className="suave" style={{ margin: 0 }}>
             {real ? <>Você entrou como <strong style={{ overflowWrap: "anywhere" }}>{email}</strong>. </> : null}
             Três fichas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
@@ -698,7 +715,13 @@ function Editor(props: PropsEditor) {
               + Adicionar trabalho
             </button>
           ) : (
-            <span className="ajuda">O plano grátis permite até {MAX_TRABALHOS} trabalhos.</span>
+            <span className="ajuda">
+              {premium ? (
+                <>Você chegou ao máximo de {MAX_TRABALHOS} trabalhos.</>
+              ) : (
+                <>O plano grátis permite até {MAX_TRABALHOS} trabalhos. <Link href="/planos">Com o Premium não há limite.</Link></>
+              )}
+            </span>
           )}
           </Ficha>
         )}

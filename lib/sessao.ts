@@ -34,4 +34,11 @@ export function useSessao() {
 
 export async function sair() {
   await supabase()?.auth.signOut();
+  // Modo demonstração: esquece a conta de teste (ver lib/conta.ts).
+  try {
+    localStorage.removeItem("folium-demo-conta");
+  } catch {
+    /* sem armazenamento */
+  }
+  window.dispatchEvent(new Event("folium-conta"));
 }

@@ -9,6 +9,7 @@ import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { listarOportunidadesReais, marcarInteresse } from "@/lib/repositorio";
 import { useSessao } from "@/lib/sessao";
+import { useConta } from "@/lib/conta";
 import { Denunciar } from "@/components/Denunciar";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
@@ -31,6 +32,9 @@ function IconeCheck() {
 
 export function MuralOportunidades() {
   const { usuario } = useSessao();
+  const { conta } = useConta();
+  // "Tenho interesse" é para quem trabalha; contratante só vê as vagas.
+  const podeSeInteressar = conta?.tipo !== "contratante";
   const idMesa = useId();
   const [tipo, setTipo] = useState("");
   const [servico, setServico] = useState("");
@@ -49,7 +53,10 @@ export function MuralOportunidades() {
     };
   }, []);
 
-  const todas = MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : reais;
+  // Vagas em destaque (contratante Premium) vêm primeiro.
+  const todas = (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : [...reais]).sort(
+    (a, b) => Number(!!b.destaque) - Number(!!a.destaque)
+  );
   const porServico = todas.filter((o) => !servico || o.servico === servico);
   const lista = porServico.filter((o) => !tipo || o.tipo === tipo);
   const contar = (t: string) => porServico.filter((o) => o.tipo === t).length;
@@ -117,6 +124,7 @@ export function MuralOportunidades() {
                 <article key={o.id} className={`cartao vaga vaga-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>
                   <div className="vaga-topo">
                     <span className={CARIMBO[o.tipo]}>{o.tipo}</span>
+                    {o.destaque && <span className="carimbo carimbo-destaque">Destaque</span>}
                     <span className="suave vaga-data">{o.publicadaHa}</span>
                   </div>
                   <h3>{o.titulo}</h3>
@@ -126,7 +134,7 @@ export function MuralOportunidades() {
                     <div><dt>Prazo</dt><dd>{o.prazo}</dd></div>
                   </dl>
                   <p className="vaga-desc">{o.descricao}</p>
-                  {marcada && o.contato ? (
+                  {!podeSeInteressar ? null : marcada && o.contato ? (
                     <p className="salvo confirmacao" style={{ margin: 0 }}>
                       <IconeCheck />
                       <span>Interesse enviado. Fale com a empresa: <strong>{o.contato}</strong></span>
