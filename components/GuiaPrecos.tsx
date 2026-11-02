@@ -2,7 +2,8 @@
 
 import { useId, useMemo, useRef, useState } from "react";
 import { OPORTUNIDADES } from "@/lib/conteudo";
-import { NEGOCIACAO, NIVEIS, SERVICOS_PRECO, TAMANHOS, brl, redondo } from "@/lib/precos";
+import { Seletor } from "@/components/Seletor";
+import { GRUPOS_PRECO, NEGOCIACAO, NIVEIS, SERVICOS_PRECO, TAMANHOS, brl, redondo } from "@/lib/precos";
 
 const ABAS = ["Calculadora", "Faixas e exemplos", "Como negociar"] as const;
 
@@ -52,12 +53,10 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
 
       {aba === "Calculadora" && (
         <div role="tabpanel" className="guia-calc">
-          <label className="campo">
+          <div className="campo">
             O que você vai fazer?
-            <select value={servicoId} onChange={(e) => setServicoId(e.target.value)}>
-              {SERVICOS_PRECO.map((x) => <option key={x.id} value={x.id}>{x.servico}</option>)}
-            </select>
-          </label>
+            <Seletor aria-label="O que você vai fazer?" valor={servicoId} onMudar={setServicoId} grupos={GRUPOS_PRECO} />
+          </div>
           <fieldset className="campo">
             <legend>Sua experiência</legend>
             <div className="opcoes">
@@ -105,11 +104,14 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
 
       {aba === "Faixas e exemplos" && (
         <div role="tabpanel" className="guia-lista">
-          {SERVICOS_PRECO.map((x) => {
+          {SERVICOS_PRECO.map((x, i) => {
+            const novaArea = i === 0 || SERVICOS_PRECO[i - 1].area !== x.area;
             const exemplos = vagas(x.vaga);
             const ab = aberto === x.id;
             return (
-              <section key={x.id} className="guia-item">
+              <div key={x.id} className="guia-item-grupo">
+              {novaArea && <h3 className="guia-area">{x.area}</h3>}
+              <section className="guia-item">
                 <button type="button" className="guia-item-topo" aria-expanded={ab} onClick={() => setAberto(ab ? null : x.id)}>
                   <span><strong>{x.servico}</strong><span className="suave"> · {x.base}</span></span>
                   <span className="guia-faixa">{brl(x.min)} a {brl(x.max)}</span>
@@ -138,6 +140,7 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
                   </div>
                 )}
               </section>
+              </div>
             );
           })}
         </div>

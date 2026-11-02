@@ -2444,3 +2444,7 @@ html { scroll-padding-top: 84px; }
 @media (max-width: 560px) { .guia-precos { padding: 18px; } }
 .guia-pagina { padding: clamp(16px, 3vw, 28px); margin-top: 16px; }
 .guia-item-corpo .rotulos { margin-top: 12px; }
+.guia-item-grupo { display: grid; gap: 8px; }
+.guia-area { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--marrom-cobre); margin: 14px 0 0; }
+.guia-item-grupo:first-child .guia-area { margin-top: 0; }
+.guia-precos .seletor-lista, .guia-precos [role="listbox"] { z-index: 5; }
