@@ -2442,3 +2442,5 @@ html { scroll-padding-top: 84px; }
 .guia-item-corpo p { margin: 6px 0; }
 .guia-exemplos { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 8px; }
 @media (max-width: 560px) { .guia-precos { padding: 18px; } }
+.guia-pagina { padding: clamp(16px, 3vw, 28px); margin-top: 16px; }
+.guia-item-corpo .rotulos { margin-top: 12px; }
