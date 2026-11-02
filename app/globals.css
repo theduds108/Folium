@@ -2385,3 +2385,21 @@ html { scroll-padding-top: 84px; }
 }
 .enquadrar-acoes { position: sticky; bottom: -24px; margin-inline: -4px; padding: 12px 4px; background: var(--papel-claro); border-top: 1px solid var(--linha); }
 @media (max-width: 560px) { .enquadrar-acoes { bottom: -18px; } }
+
+/* Enquadramento: a foto acompanha o ponteiro; sem isso o navegador "arrasta a imagem" e cancela o gesto. */
+.enquadrar-quadro img { pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.enquadrar-quadro:focus-visible { outline: 3px solid var(--marrom-cobre); outline-offset: 2px; }
+.enquadrar-dica {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(47, 62, 42, 0.78);
+  border-radius: 999px;
+  pointer-events: none;
+}
+.enquadrar-quadro:active .enquadrar-dica { opacity: 0; transition: opacity var(--mov-rapido) ease-out; }

@@ -27,62 +27,89 @@ export function EnquadrarFoto({
   const dialogo = useRef<HTMLDialogElement>(null);
   const quadro = useRef<HTMLDivElement>(null);
   const arrasto = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
-  const natural = useRef<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
     const d = dialogo.current;
     if (d && !d.open) d.showModal();
-    const img = new Image();
-    img.onload = () => (natural.current = { w: img.naturalWidth, h: img.naturalHeight });
-    img.src = exibir(inicial.src);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mudar = (m: Partial<Enquadramento>) => setEnq((a) => ({ ...a, ...m }));
   const url = (e: Enquadramento) => gravarFoto(exibir(inicial.src), e);
 
-  /** Quanto a imagem "sobra" do quadro em cada eixo (px), para o arrasto acompanhar o dedo. */
+  /** Quanto a imagem sobra do quadro em cada eixo (px), já com o zoom. Zero = não há o que arrastar. */
   const sobra = () => {
     const q = quadro.current;
-    const n = natural.current;
-    if (!q || !n) return { x: 200, y: 200 };
+    const img = q?.querySelector("img");
+    if (!q || !img || !img.naturalWidth) return { x: 0, y: 0 };
     const { width: w, height: h } = q.getBoundingClientRect();
-    const escala = Math.max(w / n.w, h / n.h);
+    const escala = Math.max(w / img.naturalWidth, h / img.naturalHeight);
     return {
-      x: Math.max(40, n.w * escala * enq.z - w),
-      y: Math.max(40, n.h * escala * enq.z - h),
+      x: Math.max(0, img.naturalWidth * escala * enq.z - w),
+      y: Math.max(0, img.naturalHeight * escala * enq.z - h),
     };
   };
+
+  /** Move a foto junto com o ponteiro (1 px arrastado = 1 px na tela). */
+  const mover = (dx: number, dy: number, base: { x: number; y: number }) => {
+    const s = sobra();
+    const limitar = (n: number) => Math.min(100, Math.max(0, n));
+    mudar({
+      x: s.x > 0 ? limitar(base.x - (dx / s.x) * 100) : base.x,
+      y: s.y > 0 ? limitar(base.y - (dy / s.y) * 100) : base.y,
+    });
+  };
+
+  // Rodinha do mouse = zoom. Precisa de ouvinte nativo para poder cancelar a rolagem da janela.
+  useEffect(() => {
+    const q = quadro.current;
+    if (!q) return;
+    const rodar = (e: WheelEvent) => {
+      e.preventDefault();
+      setEnq((a) => ({ ...a, z: Math.min(ZOOM_MAX, Math.max(1, Math.round((a.z - e.deltaY * 0.002) * 100) / 100)) }));
+    };
+    q.addEventListener("wheel", rodar, { passive: false });
+    return () => q.removeEventListener("wheel", rodar);
+  }, []);
 
   return (
     <dialog ref={dialogo} className="enquadrar" onClose={onFechar} aria-labelledby="enq-titulo">
       <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <h2 id="enq-titulo">Enquadrar foto</h2>
         <p className="suave" style={{ margin: "0 0 12px" }}>
-          Arraste a foto para escolher o que aparece. Use o zoom para aproximar o rosto.
+          Arraste a foto com o mouse (ou o dedo) até ficar como você quer. Gire a rodinha ou use o zoom para aproximar.
         </p>
 
         <div className="enquadrar-grade">
           <div
             ref={quadro}
             className="enquadrar-quadro"
+            tabIndex={0}
+            role="group"
+            aria-label="Foto para enquadrar. Arraste com o mouse ou use as setas do teclado."
             onPointerDown={(e) => {
-              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+              e.currentTarget.setPointerCapture(e.pointerId);
               arrasto.current = { px: e.clientX, py: e.clientY, x: enq.x, y: enq.y };
             }}
             onPointerMove={(e) => {
               const a = arrasto.current;
-              if (!a) return;
-              const s = sobra();
-              mudar({
-                x: Math.min(100, Math.max(0, a.x - ((e.clientX - a.px) / s.x) * 100)),
-                y: Math.min(100, Math.max(0, a.y - ((e.clientY - a.py) / s.y) * 100)),
-              });
+              if (a) mover(e.clientX - a.px, e.clientY - a.py, a);
             }}
             onPointerUp={() => (arrasto.current = null)}
             onPointerCancel={() => (arrasto.current = null)}
+            onKeyDown={(e) => {
+              const passo = e.shiftKey ? 40 : 12;
+              const mapa: Record<string, [number, number]> = {
+                ArrowLeft: [passo, 0], ArrowRight: [-passo, 0], ArrowUp: [0, passo], ArrowDown: [0, -passo],
+              };
+              const d = mapa[e.key];
+              if (!d) return;
+              e.preventDefault();
+              mover(d[0], d[1], enq);
+            }}
           >
             <FotoEnquadrada src={url(enq)} alt="Foto sendo enquadrada" className="foto-cobrir" />
+            <span className="enquadrar-dica" aria-hidden="true">✥ arraste a foto</span>
           </div>
 
           <div className="enquadrar-previas" aria-label="Como a foto aparece no site">
@@ -105,14 +132,6 @@ export function EnquadrarFoto({
           <label className="campo campo-pequeno">
             Zoom
             <input type="range" min={1} max={ZOOM_MAX} step={0.05} value={enq.z} onChange={(e) => mudar({ z: Number(e.target.value) })} />
-          </label>
-          <label className="campo campo-pequeno">
-            Esquerda ↔ direita
-            <input type="range" min={0} max={100} step={1} value={enq.x} onChange={(e) => mudar({ x: Number(e.target.value) })} />
-          </label>
-          <label className="campo campo-pequeno">
-            Cima ↕ baixo
-            <input type="range" min={0} max={100} step={1} value={enq.y} onChange={(e) => mudar({ y: Number(e.target.value) })} />
           </label>
         </div>
 
