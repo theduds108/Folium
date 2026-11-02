@@ -16,6 +16,3 @@ export function emailInstitucional(email: string) {
  * Quando houver alunos de verdade suficientes, troque para false.
  */
 export const MOSTRAR_EXEMPLOS = true;
-
-/** Exemplo mostrado no campo de e-mail da tela de entrada. */
-export const EXEMPLO_EMAIL = "nome.RA@alunos.unisagrado.edu.br";
