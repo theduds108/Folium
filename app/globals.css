@@ -879,6 +879,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
 
 .ficha {
   --w: clamp(120px, 17vw, 200px);
+  --afasta: calc(var(--w) * 0.55);
   position: absolute;
   left: 50%;
   bottom: -6px;
@@ -893,13 +894,13 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
   box-shadow: 0 10px 30px rgba(47, 62, 42, 0.25);
   border: 1px solid rgba(47, 62, 42, 0.15);
   transform-origin: 50% 160%;
-  transform: translateY(calc((1 - var(--abre, 1)) * 170px)) rotate(calc(var(--pos) * var(--abre, 1) * 15deg)) translateY(calc(var(--pos) * var(--pos) * 6px));
+  transform: translateX(calc(var(--pos) * var(--abre, 1) * var(--afasta))) translateY(calc((1 - var(--abre, 1)) * 170px)) rotate(calc(var(--pos) * var(--abre, 1) * 11deg)) translateY(calc(var(--pos) * var(--pos) * 8px));
   transition: transform 0.25s ease;
 }
 
 .ficha:hover,
 .ficha:focus-visible {
-  transform: rotate(calc(var(--pos) * 15deg)) translateY(-26px);
+  transform: translateX(calc(var(--pos) * var(--afasta))) rotate(calc(var(--pos) * 11deg)) translateY(-26px);
   z-index: 20 !important;
 }
 
@@ -1178,6 +1179,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
 @media (max-width: 640px) {
   .polaroide-foto { aspect-ratio: 16 / 9; }
   .leque { height: 200px; }
+  .ficha { --afasta: calc(var(--w) * 0.32); }
 }
 
 /* Animações */
