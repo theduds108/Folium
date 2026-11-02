@@ -800,12 +800,14 @@ function Editor(props: PropsEditor) {
             <button className="botao botao-primario" type="submit" disabled={salvando || enviando !== null}>
               {salvando ? "Salvando…" : real ? "Salvar portfólio" : "Salvar rascunho"}
             </button>
-            {salvo && (
-              <span className="salvo" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <SalvoLottie />
-                {real ? "Portfólio salvo" : "Rascunho salvo neste aparelho"}
-              </span>
-            )}
+            <span role="status" aria-live="polite">
+              {salvo && (
+                <span className="salvo confirmacao" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <SalvoLottie />
+                  {real ? "Portfólio salvo" : "Rascunho salvo neste aparelho"}
+                </span>
+              )}
+            </span>
           </div>
           {real && (
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
