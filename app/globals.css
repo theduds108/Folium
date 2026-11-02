@@ -2726,3 +2726,7 @@ html { scroll-padding-top: 84px; }
   .aba-conta, .atalho-painel { transition: none; }
   .atalho-painel:hover { transform: none; }
 }
+
+/* Tela de publicar oportunidade */
+.publicar-status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 16px; }
+.publicar-status .selo-plano { align-self: center; }

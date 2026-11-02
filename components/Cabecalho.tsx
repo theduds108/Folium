@@ -13,6 +13,7 @@ const ICONE = {
   jornal: "M3 5h13v15H5a2 2 0 0 1-2-2Zm3 3v4h7V8Zm0 6v1.6h7V14Zm0 3v1.6h5V17Zm11.5-9h3v10.5a1.5 1.5 0 0 1-3 0Z",
   perfil: "M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 10c4.4 0 8 2 8 5v1H4v-1c0-3 3.6-5 8-5Z",
   painel: "M4 4h7v7H4Zm9 0h7v4h-7Zm0 6h7v10h-7ZM4 13h7v7H4Z",
+  publicar: "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Zm-1 5v3H8v2h3v3h2v-3h3v-2h-3V8Z",
 };
 
 type ItemNav = { href: string; rotulo: string; icone?: keyof typeof ICONE };
@@ -57,14 +58,15 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
     topo: [
       { href: "/talentos", rotulo: "Talentos" },
       { href: "/oportunidades", rotulo: "Vagas" },
+      { href: "/publicar", rotulo: "Publicar vaga" },
       { href: "/jornal", rotulo: "Jornal" },
       { href: "/planos", rotulo: "Planos" },
     ],
     acao: { href: "/painel", rotulo: "Meu painel" },
     barra: [
-      { href: "/", rotulo: "Início", icone: "inicio" },
       { href: "/talentos", rotulo: "Talentos", icone: "talentos" },
       { href: "/oportunidades", rotulo: "Vagas", icone: "vagas" },
+      { href: "/publicar", rotulo: "Publicar", icone: "publicar" },
       { href: "/jornal", rotulo: "Jornal", icone: "jornal" },
       { href: "/painel", rotulo: "Painel", icone: "painel" },
     ],
@@ -104,7 +106,7 @@ export function Cabecalho() {
         {nav.barra.map((l) => (
           <Link key={l.href} href={l.href} className={ativo(pathname, l.href) ? "ativo" : ""}>
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-              <path d={ICONE[l.icone ?? "inicio"]} fill="currentColor" fillRule={l.icone === "jornal" ? "evenodd" : undefined} />
+              <path d={ICONE[l.icone ?? "inicio"]} fill="currentColor" fillRule={l.icone === "jornal" || l.icone === "publicar" ? "evenodd" : undefined} />
             </svg>
             {l.rotulo}
           </Link>
