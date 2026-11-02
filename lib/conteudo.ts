@@ -46,6 +46,8 @@ export type Oportunidade = {
   contato?: string;
   /** Verdadeiro para vagas que vêm do banco. */
   real?: boolean;
+  /** Vaga em destaque no topo do mural (contratante Premium). */
+  destaque?: boolean;
 };
 
 export const OPORTUNIDADES: Oportunidade[] = [
@@ -150,37 +152,56 @@ export const DEPOIMENTOS = [
   { texto: "Prefiro contratar gente da região, e aqui eu vejo o trabalho antes de conversar.", autor: "Carlos, Agência Ponte" },
 ];
 
-/** Preços sugeridos para validar com alunos e empresas; ainda não são definitivos. */
+/**
+ * Planos por tipo de conta. Preços sugeridos para validar com alunos e empresas; ainda não são definitivos.
+ * O que cada plano libera de verdade no site está em RECURSOS (lib/conta.ts).
+ */
 export type Plano = {
-  publico: string;
+  tipo: "colaborador" | "contratante" | "instituicao";
+  plano: "gratis" | "premium" | "licenca";
   nome: string;
   preco: string;
   destaque?: boolean;
   itens: string[];
+  /** Itens que ainda vão chegar. */
+  emBreve?: string[];
 };
 
 export const PLANOS: Plano[] = [
   {
-    publico: "Aluno",
-    nome: "Fólium Grátis",
+    tipo: "colaborador",
+    plano: "gratis",
+    nome: "Colaborador Grátis",
     preco: "R$ 0",
-    itens: ["Portfólio com até 6 trabalhos", "Link próprio para compartilhar", "Selo de aluno verificado", "Acesso ao mural de oportunidades"],
+    itens: ["Portfólio com até 6 trabalhos", "Link próprio para compartilhar", "Selo de aluno verificado", "Mural de oportunidades e botão Tenho interesse", "Guia de quanto cobrar"],
   },
   {
-    publico: "Aluno",
-    nome: "Fólium Destaque",
+    tipo: "colaborador",
+    plano: "premium",
+    nome: "Colaborador Premium",
     preco: "R$ 9,90/mês",
     destaque: true,
-    itens: ["Trabalhos ilimitados", "Perfil em destaque nas buscas", "Estatísticas de visitas ao perfil", "Prioridade nas novas vagas"],
+    itens: ["Trabalhos ilimitados no portfólio", "Jornal do Fólium, edição do colaborador: vagas da semana, quanto cobrar e matérias", "Chance de ser o perfil da semana no jornal"],
+    emBreve: ["Perfil em destaque nas buscas", "Estatísticas de visitas ao perfil"],
   },
   {
-    publico: "Empresa",
-    nome: "Publicar oportunidade",
-    preco: "R$ 29 por vaga",
-    itens: ["Vaga visível por 30 dias", "Alunos interessados chegam direto", "Primeira vaga grátis"],
+    tipo: "contratante",
+    plano: "gratis",
+    nome: "Contratante Grátis",
+    preco: "R$ 0",
+    itens: ["Todos os portfólios, com contato direto", "1 vaga por mês no mural", "Painel para acompanhar suas vagas"],
   },
   {
-    publico: "Instituição",
+    tipo: "contratante",
+    plano: "premium",
+    nome: "Contratante Premium",
+    preco: "R$ 49/mês",
+    destaque: true,
+    itens: ["Vagas ilimitadas no mural", "Vaga em destaque no topo do mural", "Lista de talentos salvos", "Jornal do Fólium, edição do contratante: talentos em alta, recém-chegados e quanto pagar"],
+  },
+  {
+    tipo: "instituicao",
+    plano: "licenca",
     nome: "Licença institucional",
     preco: "Sob consulta",
     itens: ["Painel com dados dos alunos", "Selo oficial da instituição", "Vitrine para eventos e extensão"],

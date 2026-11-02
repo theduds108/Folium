@@ -20,6 +20,8 @@ Leva uns 10 minutos e só precisa ser feito uma vez.
    - `20261102000000_inicial.sql`
    - `20261102120000_portfolio_completo.sql` (título, sobre mim, experiências, cursos, idiomas, links, currículo em PDF)
    - `20261102180000_empresas.sql` (catálogo de empresas para a busca no campo de experiência)
+   - `20261102210000_descricao_trabalho_maior.sql`
+   - `20261102220000_contas_planos.sql` (tipos de conta, planos Grátis/Premium, talentos salvos e Jornal do Fólium)
 
    Cada arquivo só precisa ser rodado uma vez. Quando aparecer um arquivo novo nessa pasta, rode só ele.
 
@@ -33,6 +35,9 @@ Isso cria:
 | `interesses` | Alunos que clicaram em "Tenho interesse" numa vaga |
 | `denuncias` | Denúncias de perfis e vagas |
 | `empresas` | Catálogo de empresas da busca de experiência; cresce sozinho quando alunos cadastram empresas novas |
+| `contas` | Tipo de cada conta (`colaborador` ou `contratante`) e plano (`gratis` ou `premium`) |
+| `salvos` | Talentos salvos pelos contratantes Premium |
+| `jornal_materias` | Matérias do Jornal do Fólium, escritas pela equipe |
 | `dominios_institucionais` | Domínios de e-mail aceitos (`unisagrado.edu.br`) |
 
 E as pastas `fotos` (imagens) e `curriculos` (PDFs). As regras de segurança já vêm prontas:
@@ -93,3 +98,10 @@ Enquanto não existe um painel de administração próprio, tudo é feito em **T
 - **Aceitar outra faculdade**: tabela `dominios_institucionais`, adicione o domínio
   (ex.: `fib.br`) e inclua o mesmo domínio em `lib/config.ts`.
 - **Esconder os alunos e vagas de exemplo**: em `lib/config.ts`, troque `MOSTRAR_EXEMPLOS` para `false`.
+- **Liberar o Premium**: tabela `contas`. Quem pediu aparece com `plano_pedido = premium`.
+  Mude `plano` para `premium` e, se quiser data para acabar, preencha `plano_ate`.
+  Pelo site ninguém consegue mudar o próprio plano nem o tipo de conta.
+- **Publicar uma matéria no jornal**: tabela `jornal_materias`, **Insert row**. Preencha `titulo`,
+  `linha_fina`, `texto` (parágrafos separados por uma linha em branco), `editoria`, `autor` e
+  `publico` (`todos`, `colaborador` ou `contratante`), e marque `publicada`. Só assinantes Premium
+  leem. Enquanto não houver matéria publicada, o jornal mostra três matérias de exemplo.

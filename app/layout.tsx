@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { Cabecalho } from "@/components/Cabecalho";
 import { RegistrarSW } from "@/components/RegistrarSW";
+import { VisaoDemo } from "@/components/VisaoDemo";
 import { Revelar } from "@/components/animacoes/Revelar";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
@@ -38,11 +39,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>
             </span>
             <span>
-              <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/guia">Guia</Link> ·{" "}
+              <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
               <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link>
             </span>
           </div>
         </footer>
+        <VisaoDemo />
         <RegistrarSW />
         <Revelar />
       </body>

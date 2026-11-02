@@ -232,6 +232,8 @@ type LinhaOportunidade = {
   prazo: string;
   descricao: string;
   criada_em: string;
+  destaque: boolean;
+  status: "pendente" | "aprovada" | "recusada";
 };
 
 function tempoDesde(iso: string) {
@@ -250,13 +252,19 @@ export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
   const { data, error } = await sb
     .from("oportunidades")
     .select("*")
+    .eq("status", "aprovada")
+    .order("destaque", { ascending: false })
     .order("criada_em", { ascending: false })
     .limit(100);
   if (error) {
     console.error("Erro ao listar oportunidades", error);
     return [];
   }
-  return (data as LinhaOportunidade[]).map((o) => ({
+  return (data as LinhaOportunidade[]).map(paraOportunidade);
+}
+
+function paraOportunidade(o: LinhaOportunidade): Oportunidade {
+  return {
     id: o.id,
     titulo: o.titulo,
     empresa: o.empresa,
@@ -269,10 +277,11 @@ export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
     publicadaHa: tempoDesde(o.criada_em),
     contato: o.contato,
     real: true,
-  }));
+    destaque: !!o.destaque,
+  };
 }
 
-export type NovaOportunidade = Omit<LinhaOportunidade, "id" | "criada_em">;
+export type NovaOportunidade = Omit<LinhaOportunidade, "id" | "criada_em" | "status">;
 
 /** Envia a vaga para análise. Ela só aparece no mural depois de aprovada. */
 export async function enviarOportunidade(o: NovaOportunidade) {
@@ -298,8 +307,9 @@ export async function denunciar(alvoTipo: "perfil" | "oportunidade", alvo: strin
 /** Mensagens de erro do Supabase em português, para mostrar ao usuário. */
 export function traduzirErro(e: { message?: string; code?: string } | null | undefined): Error {
   const msg = e?.message ?? "";
-  if (/row-level security/i.test(msg)) return new Error("Sem permissão. Confira se você entrou com o e-mail institucional.");
-  if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos.");
+  if (/row-level security/i.test(msg)) return new Error("Sua conta não tem permissão para isso. Confira se entrou com o e-mail certo.");
+  if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos. Com o Premium não há limite.");
+  if (/Limite de 1 vaga/.test(msg)) return new Error("O plano grátis permite 1 vaga por mês. Com o Premium as vagas são ilimitadas.");
   if (/rate limit|too many/i.test(msg)) return new Error("Muitas tentativas seguidas. Espere um minuto e tente de novo.");
   if (/fetch|network/i.test(msg)) return new Error("Sem conexão com o servidor. Confira sua internet.");
   return new Error(msg || "Algo deu errado. Tente de novo.");
@@ -344,4 +354,128 @@ export async function cadastrarEmpresas(nomes: string[]) {
   const limpos = [...new Set(nomes.map((n) => n.trim().replace(/\s+/g, " ")).filter((n) => n.length >= 2 && n.length <= 80))];
   if (!sb || !limpos.length) return;
   await sb.from("empresas").upsert(limpos.map((nome) => ({ nome })), { onConflict: "chave", ignoreDuplicates: true });
+}
+
+/* ---------- Área do contratante ---------- */
+
+export type MinhaVaga = Oportunidade & { status: LinhaOportunidade["status"]; interessados: number; criadaEm: string };
+
+const CHAVE_VAGAS_DEMO = "folium-demo-vagas";
+
+/** Vagas enviadas no modo demonstração ficam no navegador, para o painel mostrar algo. */
+export function guardarVagaDemo(o: NovaOportunidade) {
+  try {
+    const lista = JSON.parse(localStorage.getItem(CHAVE_VAGAS_DEMO) ?? "[]") as LinhaOportunidade[];
+    lista.unshift({ ...o, id: `demo-${Date.now()}`, criada_em: new Date().toISOString(), status: "pendente" });
+    localStorage.setItem(CHAVE_VAGAS_DEMO, JSON.stringify(lista.slice(0, 20)));
+  } catch {
+    /* sem armazenamento */
+  }
+}
+
+/** Vagas publicadas por quem está logado, com o status da análise e quantos alunos se interessaram. */
+export async function minhasVagas(): Promise<MinhaVaga[]> {
+  const sb = supabase();
+  if (!sb) {
+    try {
+      const lista = JSON.parse(localStorage.getItem(CHAVE_VAGAS_DEMO) ?? "[]") as LinhaOportunidade[];
+      return lista.map((o) => ({ ...paraOportunidade(o), status: o.status, interessados: 0, criadaEm: o.criada_em }));
+    } catch {
+      return [];
+    }
+  }
+  const { data: u } = await sb.auth.getUser();
+  if (!u.user) return [];
+  const { data, error } = await sb
+    .from("oportunidades")
+    .select("*, interesses(count)")
+    .eq("autor_id", u.user.id)
+    .order("criada_em", { ascending: false });
+  if (error) {
+    console.error("Erro ao listar minhas vagas", error);
+    return [];
+  }
+  return (data as (LinhaOportunidade & { interesses: { count: number }[] })[]).map((o) => ({
+    ...paraOportunidade(o),
+    status: o.status,
+    interessados: o.interesses?.[0]?.count ?? 0,
+    criadaEm: o.criada_em,
+  }));
+}
+
+const CHAVE_SALVOS_DEMO = "folium-demo-salvos";
+
+/** Endereços (slugs) dos talentos salvos pelo contratante. */
+export async function listarSalvos(): Promise<string[]> {
+  const sb = supabase();
+  if (!sb) {
+    try {
+      return JSON.parse(localStorage.getItem(CHAVE_SALVOS_DEMO) ?? "[]") as string[];
+    } catch {
+      return [];
+    }
+  }
+  const { data, error } = await sb.from("salvos").select("perfil_slug").order("criado_em", { ascending: false });
+  if (error) return [];
+  return (data as { perfil_slug: string }[]).map((l) => l.perfil_slug);
+}
+
+export async function alternarSalvo(slug: string, salvar: boolean) {
+  const sb = supabase();
+  if (!sb) {
+    const atual = await listarSalvos();
+    const nova = salvar ? [slug, ...atual.filter((s) => s !== slug)] : atual.filter((s) => s !== slug);
+    try {
+      localStorage.setItem(CHAVE_SALVOS_DEMO, JSON.stringify(nova));
+    } catch {
+      /* sem armazenamento */
+    }
+    return;
+  }
+  const { data: u } = await sb.auth.getUser();
+  if (!u.user) throw new Error("Entre para salvar talentos.");
+  const r = salvar
+    ? await sb.from("salvos").upsert({ contratante_id: u.user.id, perfil_slug: slug }, { ignoreDuplicates: true })
+    : await sb.from("salvos").delete().eq("contratante_id", u.user.id).eq("perfil_slug", slug);
+  if (r.error) throw traduzirErro(r.error);
+}
+
+/* ---------- Jornal do Fólium ---------- */
+
+export type Materia = {
+  id: string;
+  publico: "todos" | "colaborador" | "contratante";
+  editoria: string;
+  titulo: string;
+  linhaFina: string;
+  texto: string;
+  autor: string;
+  imagem?: string;
+  publicadaEm: string;
+};
+
+/** Matérias da equipe. O banco só devolve para assinantes Premium (regra no Supabase). */
+export async function listarMaterias(): Promise<Materia[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb
+    .from("jornal_materias")
+    .select("*")
+    .eq("publicada", true)
+    .order("publicada_em", { ascending: false })
+    .limit(12);
+  if (error) return [];
+  return (
+    data as { id: string; publico: Materia["publico"]; editoria: string; titulo: string; linha_fina: string; texto: string; autor: string; imagem_url: string | null; publicada_em: string }[]
+  ).map((m) => ({
+    id: m.id,
+    publico: m.publico,
+    editoria: m.editoria,
+    titulo: m.titulo,
+    linhaFina: m.linha_fina,
+    texto: m.texto,
+    autor: m.autor,
+    imagem: m.imagem_url ?? undefined,
+    publicadaEm: m.publicada_em,
+  }));
 }

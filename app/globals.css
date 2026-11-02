@@ -2495,3 +2495,234 @@ html { scroll-padding-top: 84px; }
   .sb-problema article, .sb-problema article + article, .sb-parceiros li, .sb-parceiros li + li { padding: 0 0 24px; border-left: 0; }
   .sb-comparacao li { grid-template-columns: 1fr; }
 }
+
+/* ===========================================================
+   Tipos de conta e planos: abas de entrar, selo de plano,
+   trava Premium, painel do contratante e Jornal do Fólium
+   =========================================================== */
+
+/* Abas "Sou aluno / Vou contratar" (e escolha da edição do jornal) */
+.abas-conta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+.aba-conta {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--verde-musgo);
+  font: inherit;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--mov-rapido) var(--ease-saida), color var(--mov-rapido) var(--ease-saida);
+}
+.aba-conta + .aba-conta { border-left: 1.5px solid var(--verde-musgo); }
+.aba-conta.ativa { background: var(--verde-musgo); color: var(--creme-papel); }
+.aba-conta:focus-visible { outline: 3px solid var(--marrom-cobre); outline-offset: -3px; }
+
+/* Selo do plano: grátis em contorno, Premium em cobre carimbado */
+.selo-plano {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--verde-musgo);
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--verde-musgo);
+  white-space: nowrap;
+  align-self: flex-start;
+}
+.selo-premium { background: var(--cobre-botao); border-color: var(--cobre-botao); color: #fff; }
+.selo-plano-link { text-decoration: none; }
+.editor-topo-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* Bloco no lugar de um recurso Premium */
+.trava-premium {
+  position: relative;
+  padding: 26px 22px 22px;
+  border: 1.5px dashed var(--cobre-texto);
+  border-radius: var(--raio);
+  background: rgba(176, 103, 59, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.trava-premium h3 { margin: 0; font-size: 1.1rem; }
+.trava-premium p { margin: 0 0 8px; max-width: 40em; }
+.trava-compacta { margin-top: 16px; padding: 22px 18px 18px; }
+.trava-carimbo {
+  position: absolute;
+  top: -12px;
+  left: 18px;
+  padding: 2px 10px;
+  background: var(--cobre-botao);
+  color: #fff;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+.trava-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Painel do contratante */
+.painel-titulo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.painel-titulo .titulo-pagina { margin-bottom: 0; }
+.painel-titulo .selo-plano, .editor-topo-linha .selo-plano { align-self: center; }
+.painel-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.atalho-painel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px;
+  text-decoration: none;
+  transition: transform var(--mov-rapido) var(--ease-saida), border-color var(--mov-rapido) var(--ease-saida);
+}
+.atalho-painel strong { font-family: var(--fonte-titulo), sans-serif; text-transform: uppercase; font-weight: 400; font-size: 1rem; }
+.atalho-painel:hover { border-color: var(--verde-musgo); transform: translateY(var(--elevar)); }
+.painel-grade { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 860px) { .painel-grade { grid-template-columns: 1fr; } }
+.painel-secao .secao-titulo { margin-bottom: 8px; }
+.painel-vazio { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.lista-vagas { list-style: none; margin: 0; padding: 0; }
+.lista-vagas li { padding: 12px 0; border-top: 1px solid var(--linha); display: grid; gap: 6px; }
+.lista-vagas li:first-child { border-top: 0; }
+.lista-vagas-dados { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.88rem; }
+.status { padding: 2px 9px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; }
+.status-pendente { background: rgba(176, 103, 59, 0.14); color: var(--cobre-texto); }
+.status-aprovada { background: rgba(79, 122, 58, 0.15); color: var(--verde-folio-escuro); }
+.status-recusada { background: rgba(163, 58, 31, 0.1); color: #a33a1f; }
+.carimbo-destaque { background: var(--cobre-botao); color: #fff; margin-left: 8px; margin-right: auto; }
+
+/* Botão "Salvar talento" no perfil */
+.botao-salvar-talento { gap: 8px; }
+.botao-salvar-talento.salvo-ativo { border-color: var(--verde-folio); color: var(--verde-folio-escuro); background: rgba(79, 122, 58, 0.1); }
+.publicar-destaque { padding: 10px 12px; border: 1px dashed var(--cobre-texto); border-radius: 10px; }
+
+/* Planos por tipo de conta */
+.planos-grupo { padding-top: 8px; }
+.planos-grupo-cabeca { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1.5px solid var(--verde-musgo); padding-bottom: 8px; }
+.planos-grupo-cabeca h2 { margin: 0; font-size: clamp(1.3rem, 3.5vw, 1.8rem); }
+.planos-grupo-cabeca p { margin: 0; }
+.plano-atual { outline: 3px solid var(--verde-folio); outline-offset: 3px; }
+.plano-seu { margin-top: auto; font-family: var(--fonte-titulo), sans-serif; text-transform: uppercase; font-size: 0.85rem; color: var(--verde-folio-escuro); }
+.plano-outro { margin-top: auto; }
+.lista-check li.em-breve::before { content: "○"; color: var(--texto-suave); }
+
+/* Troca de visão no modo demonstração */
+.visao-demo { position: fixed; left: 12px; bottom: 12px; z-index: 30; max-width: calc(100vw - 24px); }
+@media (max-width: 720px) { .visao-demo { bottom: calc(76px + env(safe-area-inset-bottom)); } }
+.visao-demo-botao {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: 999px;
+  background: var(--papel-claro);
+  color: var(--verde-musgo);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: var(--sombra);
+}
+.visao-demo-painel {
+  margin-bottom: 8px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  background: var(--papel-claro);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: min(340px, calc(100vw - 24px));
+}
+
+/* Jornal do Fólium: página de jornal em papel, colunas com fio e manchete */
+.jornal-cabeca { text-align: center; border-bottom: 4px double var(--verde-musgo); padding-bottom: 10px; margin-bottom: 22px; }
+.jornal-nome {
+  font-size: clamp(2.4rem, 9vw, 5.4rem);
+  margin: 14px 0 10px;
+  letter-spacing: -0.02em;
+  border-top: 1.5px solid var(--verde-musgo);
+  border-bottom: 1.5px solid var(--verde-musgo);
+  padding: 10px 0 6px;
+}
+.jornal-linha { color: var(--cobre-texto); }
+.jornal-abas { max-width: 460px; margin: 0 auto 22px; }
+.jornal-chapeu {
+  display: inline-block;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cobre-texto);
+  border-bottom: 2px solid currentColor;
+  margin-bottom: 8px;
+}
+.jornal-linha-fina { font-size: 1.05rem; color: var(--texto-suave); }
+.jornal-manchete {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1.5px solid var(--verde-musgo);
+  margin-bottom: 24px;
+}
+.jornal-manchete h2 { font-size: clamp(1.8rem, 5vw, 3rem); margin-bottom: 8px; }
+.jornal-manchete-foto {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  background: var(--verde-musgo);
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  display: grid;
+  place-items: center;
+}
+.jornal-manchete-foto .polaroide-iniciais { color: var(--creme-papel); }
+.jornal-manchete-texto { display: flex; flex-direction: column; align-items: flex-start; }
+.jornal-manchete-texto .botao { margin-top: 8px; }
+.jornal-manchete-vaga { grid-template-columns: 1fr; }
+.jornal-manchete-vaga .jornal-manchete-texto { max-width: 46em; }
+.jornal-manchete.compacta { grid-template-columns: 1fr; gap: 12px; border-bottom: 0; padding-bottom: 0; margin-bottom: 8px; }
+.jornal-manchete.compacta h2 { font-size: 1.4rem; }
+@media (max-width: 760px) { .jornal-manchete { grid-template-columns: 1fr; } }
+
+.jornal-secao-titulo { font-size: 1.15rem; border-bottom: 1.5px solid var(--verde-musgo); padding-bottom: 6px; margin-bottom: 12px; }
+.jornal-colunas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 28px; }
+.jornal-coluna { padding: 0 0 24px; }
+@media (min-width: 900px) {
+  .jornal-coluna + .jornal-coluna { border-left: 1px solid var(--linha); padding-left: 28px; margin-left: -28px; padding-right: 0; }
+}
+.jornal-colunas-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) { .jornal-colunas { grid-template-columns: 1fr; } }
+.jornal-lista { list-style: none; margin: 0 0 8px; padding: 0; }
+.jornal-lista li { display: grid; gap: 2px; padding: 9px 0; border-top: 1px dotted var(--linha); font-size: 0.95rem; }
+.jornal-lista li:first-child { border-top: 0; padding-top: 0; }
+.jornal-precos li span { font-variant-numeric: tabular-nums; }
+.jornal-materias { grid-column: 1 / -1; border-top: 4px double var(--verde-musgo); padding-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.jornal-materias > .jornal-secao-titulo { grid-column: 1 / -1; margin-bottom: 0; }
+.jornal-materia h3 { font-size: 1.25rem; margin-bottom: 8px; }
+.jornal-materia details summary { cursor: pointer; font-weight: 700; color: var(--cobre-texto); min-height: 44px; display: flex; align-items: center; }
+.jornal-materia details[open] summary { margin-bottom: 6px; }
+.jornal-dobra { display: grid; gap: 18px; }
+.jornal-indice { margin: 0; padding: 0; list-style: none; counter-reset: indice; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.jornal-indice li { counter-increment: indice; display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--linha); border-radius: 10px; background: var(--papel-claro); }
+.jornal-indice li strong::before { content: counter(indice, decimal-leading-zero) " · "; color: var(--cobre-texto); font-family: var(--fonte-titulo), sans-serif; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aba-conta, .atalho-painel { transition: none; }
+  .atalho-painel:hover { transform: none; }
+}

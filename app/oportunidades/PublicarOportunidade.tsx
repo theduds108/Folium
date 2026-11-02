@@ -5,23 +5,25 @@ import { SERVICOS } from "@/lib/data";
 import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
 import { Seletor } from "@/components/Seletor";
 import { bancoLigado } from "@/lib/supabase";
-import { enviarOportunidade } from "@/lib/repositorio";
+import { enviarOportunidade, guardarVagaDemo } from "@/lib/repositorio";
+import type { Conta } from "@/lib/conta";
 import { formatarData, mascaraReais, mascaraTelefone } from "@/lib/formato";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
 
 const PASSOS = [
-  { titulo: "Conte o que precisa", texto: "Leva 2 minutos e não precisa criar conta." },
+  { titulo: "Conte o que precisa", texto: "Leva 2 minutos. Seus dados do painel já vêm preenchidos." },
   { titulo: "A equipe confere", texto: "Verificamos cada empresa antes de a vaga ir ao ar." },
   { titulo: "Alunos te chamam", texto: "Quem tiver interesse fala direto com você." },
 ];
 
 /** Formulário para empresas publicarem uma vaga. Ela entra como "pendente" até a equipe aprovar. */
-export function PublicarOportunidade() {
+export function PublicarOportunidade({ conta, premium = false }: { conta?: Conta | null; premium?: boolean }) {
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada] = useState(false);
   const [erro, setErro] = useState("");
-  const [contato, setContato] = useState("");
+  const [contato, setContato] = useState(conta?.whatsapp || conta?.email || "");
+  const [destaque, setDestaque] = useState(false);
   const [orcamento, setOrcamento] = useState("");
   const [combinar, setCombinar] = useState(false);
   const [servico, setServico] = useState<string>(SERVICOS[0]);
@@ -34,7 +36,11 @@ export function PublicarOportunidade() {
       <aside className="publicar-lado">
         <span className="rotulos"><span>Para empresas</span></span>
         <h2>Publique uma oportunidade</h2>
-        <p>A primeira vaga é grátis. Talento universitário da região, com selo da instituição.</p>
+        <p>
+          {premium
+            ? "Plano Premium: vagas ilimitadas e opção de destaque no topo do mural."
+            : "No plano grátis você publica 1 vaga por mês. Talento universitário da região, com selo da instituição."}
+        </p>
         <ol className="publicar-passos">
           {PASSOS.map((p) => (
             <li key={p.titulo}>
@@ -50,7 +56,7 @@ export function PublicarOportunidade() {
           <span className="publicar-ok-icone" aria-hidden="true">✓</span>
           <h3>Vaga enviada!</h3>
           <p className="suave">
-            A equipe do Fólium confere a empresa e publica em até 1 dia útil. Você recebe retorno no contato informado.
+            A equipe do Fólium confere a empresa e publica em até 1 dia útil. Acompanhe o status no seu painel.
           </p>
           <button className="botao botao-contorno" onClick={() => setEnviada(false)}>Enviar outra vaga</button>
         </div>
@@ -62,24 +68,27 @@ export function PublicarOportunidade() {
             const f = new FormData(e.currentTarget);
             const v = (k: string) => String(f.get(k) ?? "").trim();
             setErro("");
+            const prazo = v("prazo");
+            const nova = {
+              titulo: v("titulo"),
+              empresa: v("empresa"),
+              contato: contato.trim(),
+              tipo,
+              servico: v("servico"),
+              cidade: v("cidade") || "Bauru, SP",
+              orcamento: combinar ? "A combinar" : orcamento,
+              prazo: prazo ? `Até ${formatarData(prazo)}` : "",
+              descricao: v("descricao"),
+              destaque: premium && destaque,
+            };
             if (!bancoLigado) {
+              guardarVagaDemo(nova);
               setEnviada(true);
               return;
             }
-            const prazo = v("prazo");
             setEnviando(true);
             try {
-              await enviarOportunidade({
-                titulo: v("titulo"),
-                empresa: v("empresa"),
-                contato: contato.trim(),
-                tipo,
-                servico: v("servico"),
-                cidade: v("cidade") || "Bauru, SP",
-                orcamento: combinar ? "A combinar" : orcamento,
-                prazo: prazo ? `Até ${formatarData(prazo)}` : "",
-                descricao: v("descricao"),
-              });
+              await enviarOportunidade(nova);
               setEnviada(true);
             } catch (err) {
               setErro((err as Error).message);
@@ -142,11 +151,11 @@ export function PublicarOportunidade() {
           <div className="linha-dupla">
             <label className="campo">
               Empresa ou nome
-              <input name="empresa" required minLength={2} maxLength={80} placeholder="Ex.: Padaria Sol" />
+              <input name="empresa" required minLength={2} maxLength={80} placeholder="Ex.: Padaria Sol" defaultValue={conta?.empresa || conta?.nome || ""} />
             </label>
             <label className="campo">
               Cidade
-              <input name="cidade" maxLength={60} defaultValue="Bauru, SP" />
+              <input name="cidade" maxLength={60} defaultValue={conta?.cidade || "Bauru, SP"} />
             </label>
           </div>
           <label className="campo">
@@ -164,6 +173,13 @@ export function PublicarOportunidade() {
               }}
             />
           </label>
+
+          {premium && (
+            <label className="filtro-check publicar-destaque">
+              <input type="checkbox" checked={destaque} onChange={(e) => setDestaque(e.target.checked)} />
+              <span><strong>Destacar no topo do mural</strong> · incluído no Premium</span>
+            </label>
+          )}
 
           {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
           <button className="botao botao-verde" type="submit" disabled={enviando}>
