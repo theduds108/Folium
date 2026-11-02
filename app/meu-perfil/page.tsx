@@ -36,6 +36,7 @@ const CHAVE = "folium-rascunho-perfil";
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
 const MAX_TRABALHOS = 6;
 const MAX_GALERIA = 4;
+const MAX_DESCRICAO = 1000;
 const OUTRO = "__outro__";
 
 type TrabalhoRascunho = {
@@ -594,7 +595,11 @@ function Editor(props: PropsEditor) {
                       }}
                     />
                   )}
-              <textarea className="entrada" rows={2} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho e qual foi o resultado" maxLength={200} aria-label={`Descrição do trabalho ${i + 1}`} />
+              <label className="campo campo-pequeno">
+                Conte sobre o trabalho
+                <textarea className="entrada" rows={6} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho, o problema que resolve, como foi feito e qual foi o resultado" maxLength={MAX_DESCRICAO} />
+                <span className="ajuda">{t.descricao.length}/{MAX_DESCRICAO}. Pode usar parágrafos.</span>
+              </label>
               <details className="mais-detalhes" open={Boolean(t.cliente || t.ano || t.papel || t.link)}>
                 <summary>Mais detalhes (opcional): cliente, ano, sua parte, link</summary>
                 <div className="mais-detalhes-corpo">
