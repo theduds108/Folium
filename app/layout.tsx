@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { Cabecalho } from "@/components/Cabecalho";
 import { RegistrarSW } from "@/components/RegistrarSW";
+import { Revelar } from "@/components/animacoes/Revelar";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
 const mao = Caveat({ subsets: ["latin"], variable: "--fonte-mao", display: "swap" });
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         <RegistrarSW />
+        <Revelar />
       </body>
     </html>
   );

@@ -3,6 +3,8 @@ import { ALUNOS, SERVICOS } from "@/lib/data";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { Leque } from "@/components/Leque";
 import { Anotacao, Faixa, Ornamentos, PapelRasgado } from "@/components/Zine";
+import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
+import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
 
 export default function Inicio() {
   const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
@@ -11,6 +13,8 @@ export default function Inicio() {
   return (
     <>
       <section className="capa-zine">
+        <FolhasCaindo />
+        <EntradaCapa />
         <div className="container">
           <div className="rotulos">
             <span>Bem-vindo ao</span>
@@ -22,7 +26,7 @@ export default function Inicio() {
             <span aria-hidden="true">F</span>
             <span className="letra-folha" aria-hidden="true">
               <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="11" />
+                <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" strokeWidth="11" />
                 <path d="M28 72c0-26 16-42 44-44 0 28-16 44-44 44Z" fill="currentColor" />
                 <path d="M30 70 58 42" stroke="#F6F0E4" strokeWidth="4" strokeLinecap="round" />
               </svg>
@@ -66,11 +70,11 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
-          <div className="secao-titulo">
+          <div className="secao-titulo revelar">
             <h2>Disponíveis agora</h2>
             <Link href="/talentos" className="link-mao">ver todos →</Link>
           </div>
-          <div className="grade-alunos">
+          <div className="grade-alunos revelar-grupo">
             {destaques.map((a) => (
               <CartaoAluno key={a.slug} aluno={a} />
             ))}
@@ -80,8 +84,8 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
-          <h2>Como funciona</h2>
-          <div className="dois-lados" style={{ marginTop: 20 }}>
+          <h2 className="revelar">Como funciona</h2>
+          <div className="dois-lados revelar-grupo" style={{ marginTop: 20 }}>
             <div className="cartao lado">
               <h3>Para alunos</h3>
               <ol className="passos">
@@ -104,7 +108,7 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
-          <div className="faixa-confianca">
+          <div className="faixa-confianca revelar">
             <div>
               <h3>Espaço seguro</h3>
               <p>Só entra quem tem vínculo com a universidade, conferido pelo e-mail institucional.</p>

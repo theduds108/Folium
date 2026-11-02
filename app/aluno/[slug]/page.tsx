@@ -47,7 +47,7 @@ export default async function PerfilAluno({ params }: Props) {
       </div>
 
       <div className="perfil-topo">
-        <div className="perfil-ola">
+        <div className="perfil-ola revelar-grupo">
           <div className="moldura" aria-hidden="true">
             <span className="moldura-iniciais">{iniciais(aluno.nome)}</span>
             <i /><i /><i /><i />
@@ -73,7 +73,7 @@ export default async function PerfilAluno({ params }: Props) {
           </div>
         </div>
 
-        <aside className="cartao contato" aria-label="Contato">
+        <aside className="cartao contato revelar" aria-label="Contato">
           <span className={aluno.disponivel ? "disponivel" : "disponivel nao"}>
             {aluno.disponivel ? "Disponível para freelas" : "Agenda cheia no momento"}
           </span>
@@ -94,8 +94,8 @@ export default async function PerfilAluno({ params }: Props) {
       </div>
 
       <section className="secao" style={{ paddingTop: 40 }}>
-        <h2>Trabalhos</h2>
-        <div className="grade-trabalhos">
+        <h2 className="revelar-esquerda">Trabalhos</h2>
+        <div className="grade-trabalhos revelar-grupo">
           {aluno.trabalhos.map((t) => (
             <article key={t.titulo} className="trabalho">
               <div className="trabalho-capa" style={{ background: t.cor }}>

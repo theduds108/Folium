@@ -893,7 +893,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
   box-shadow: 0 10px 30px rgba(47, 62, 42, 0.25);
   border: 1px solid rgba(47, 62, 42, 0.15);
   transform-origin: 50% 160%;
-  transform: rotate(calc(var(--pos) * 15deg)) translateY(calc(var(--pos) * var(--pos) * 6px));
+  transform: translateY(calc((1 - var(--abre, 1)) * 170px)) rotate(calc(var(--pos) * var(--abre, 1) * 15deg)) translateY(calc(var(--pos) * var(--pos) * 6px));
   transition: transform 0.25s ease;
 }
 
@@ -1179,3 +1179,9 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
   .polaroide-foto { aspect-ratio: 16 / 9; }
   .leque { height: 200px; }
 }
+
+/* Animações */
+.capa-zine { position: relative; }
+.capa-zine > .container { position: relative; z-index: 1; }
+.folhas-3d { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.folhas-3d canvas { width: 100% !important; height: 100% !important; }

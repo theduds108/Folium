@@ -78,7 +78,7 @@ export function BuscaTalentos() {
       </p>
 
       {resultado.length > 0 ? (
-        <div className="grade-alunos">
+        <div className="grade-alunos revelar-grupo">
           {resultado.map((a) => (
             <CartaoAluno key={a.slug} aluno={a} />
           ))}
