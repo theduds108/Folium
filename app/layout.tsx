@@ -1,14 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo_Black, Caveat, Inter, Instrument_Serif } from "next/font/google";
+import { Archivo_Black, Caveat, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { Cabecalho } from "@/components/Cabecalho";
 import { RegistrarSW } from "@/components/RegistrarSW";
-import { Revelar } from "@/components/movimento/Revelar";
-import { ProvedorMovimento } from "@/components/movimento/Provedor";
+import { Revelar } from "@/components/animacoes/Revelar";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
-const serifa = Instrument_Serif({ weight: "400", style: ["normal", "italic"], subsets: ["latin"], variable: "--fonte-serifa", display: "swap" });
 const mao = Caveat({ subsets: ["latin"], variable: "--fonte-mao", display: "swap" });
 const texto = Inter({ subsets: ["latin"], variable: "--fonte-texto", display: "swap" });
 
@@ -29,11 +27,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${titulo.variable} ${texto.variable} ${mao.variable} ${serifa.variable}`}>
+    <html lang="pt-BR" className={`${titulo.variable} ${texto.variable} ${mao.variable}`}>
       <body>
-        <ProvedorMovimento>
-          <Cabecalho />
-          <main>{children}</main>
+        <Cabecalho />
+        <main>{children}</main>
         <footer className="rodape">
           <div className="container rodape-interno">
             <span>
@@ -46,9 +43,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
           </div>
         </footer>
-          <RegistrarSW />
-          <Revelar />
-        </ProvedorMovimento>
+        <RegistrarSW />
+        <Revelar />
       </body>
     </html>
   );
