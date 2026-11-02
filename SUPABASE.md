@@ -77,7 +77,7 @@ O arquivo `.env.local` não vai para o GitHub.
 
 ## 5. Testar
 
-1. Abra http://localhost:3000/entrar e coloque um e-mail `@unisagrado.edu.br`.
+1. Abra http://localhost:3000/entrar e coloque um e-mail do padrão `nome.RA@alunos.unisagrado.edu.br`.
 2. Abra o link que chegar no e-mail **no mesmo navegador**.
 3. Preencha o portfólio, envie uma foto e clique em **Salvar portfólio**.
 4. Veja seu cartão em **Talentos** e confira os dados em **Table Editor > perfis** no Supabase.

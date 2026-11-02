@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DOMINIOS_INSTITUCIONAIS, emailInstitucional } from "@/lib/config";
+import { DOMINIOS_INSTITUCIONAIS, EXEMPLO_EMAIL, emailInstitucional } from "@/lib/config";
 import { bancoLigado, supabase } from "@/lib/supabase";
 import { traduzirErro } from "@/lib/repositorio";
 import { useSessao } from "@/lib/sessao";
@@ -66,7 +66,7 @@ export default function Entrar() {
                   inputMode="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={`seu.nome@${DOMINIOS_INSTITUCIONAIS[0]}`}
+                  placeholder={EXEMPLO_EMAIL}
                   aria-invalid={!!erro}
                   aria-describedby="erro-email"
                   required
