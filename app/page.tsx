@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ALUNOS, SERVICOS } from "@/lib/data";
+import { DEPOIMENTOS, MISSAO, OPORTUNIDADES, VALORES } from "@/lib/conteudo";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { Leque } from "@/components/Leque";
 import { Anotacao, Faixa, Ornamentos, PapelRasgado } from "@/components/Zine";
@@ -84,6 +85,27 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
+          <div className="secao-titulo revelar">
+            <h2>Oportunidades recentes</h2>
+            <Link href="/oportunidades" className="link-mao">ver mural →</Link>
+          </div>
+          <div className="grade-vagas revelar-grupo">
+            {OPORTUNIDADES.slice(0, 3).map((o) => (
+              <Link key={o.id} href="/oportunidades" className="cartao vaga vaga-link">
+                <div className="vaga-topo">
+                  <span className={o.tipo === "Estágio" ? "etiqueta etiqueta-terra" : "etiqueta"}>{o.tipo}</span>
+                  <span className="suave vaga-data">{o.publicadaHa}</span>
+                </div>
+                <h3>{o.titulo}</h3>
+                <p className="suave vaga-empresa">{o.empresa} · {o.orcamento}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="secao">
+        <div className="container">
           <h2 className="revelar">Como funciona</h2>
           <div className="dois-lados revelar-grupo" style={{ marginTop: 20 }}>
             <div className="cartao lado">
@@ -102,6 +124,51 @@ export default function Inicio() {
                 <li>Fale direto com o aluno pelo WhatsApp ou e-mail.</li>
               </ol>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="secao">
+        <div className="container">
+          <div className="dois-lados revelar-grupo">
+            <Link href="/guia#precos" className="cartao lado atalho">
+              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
+              <h3>Não sabe quanto cobrar?</h3>
+              <p className="suave">Veja faixas de preço de referência para cada tipo de serviço.</p>
+            </Link>
+            <Link href="/guia#seguranca" className="cartao lado atalho">
+              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
+              <h3>Medo de golpe ou calote?</h3>
+              <p className="suave">Seis cuidados simples para fechar freelas com segurança.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="secao">
+        <div className="container">
+          <h2 className="revelar">Quem já usou</h2>
+          <div className="grade-depoimentos revelar-grupo">
+            {DEPOIMENTOS.map((d) => (
+              <figure key={d.autor} className="polaroide depoimento">
+                <blockquote>“{d.texto}”</blockquote>
+                <figcaption>{d.autor}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="suave" style={{ fontSize: "0.85rem", marginTop: 12 }}>Depoimentos ilustrativos do protótipo.</p>
+        </div>
+      </section>
+
+      <section className="secao">
+        <div className="container">
+          <div className="missao revelar">
+            <span className="rotulos"><span>Nossa missão</span></span>
+            <p>{MISSAO}</p>
+            <div className="etiquetas" style={{ justifyContent: "center" }}>
+              {VALORES.map((v) => <span key={v.titulo} className="etiqueta">{v.titulo}</span>)}
+            </div>
+            <Link href="/sobre" className="link-mao">conheça o Fólium →</Link>
           </div>
         </div>
       </section>

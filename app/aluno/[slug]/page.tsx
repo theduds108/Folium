@@ -5,6 +5,8 @@ import { ALUNOS, buscarAluno, iniciais, unsplash } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
 import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "./CopiarLink";
+import { Denunciar } from "./Denunciar";
+import { avaliacoesDe } from "@/lib/conteudo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -95,6 +97,7 @@ export default async function PerfilAluno({ params }: Props) {
           <div className="compartilhar">
             <CopiarLink />
           </div>
+          <Denunciar />
         </aside>
       </div>
 
@@ -117,6 +120,22 @@ export default async function PerfilAluno({ params }: Props) {
               </div>
               <p className="trabalho-desc">{t.descricao}</p>
             </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="secao" style={{ paddingTop: 0 }}>
+        <h2 className="revelar-esquerda">Avaliações</h2>
+        <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
+          {avaliacoesDe(aluno.slug).map((a) => (
+            <figure key={a.autor} className="cartao lado avaliacao">
+              <span className="estrelas" aria-label={`${a.nota} de 5 estrelas`}>
+                {"★".repeat(a.nota)}
+                <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
+              </span>
+              <blockquote>{a.texto}</blockquote>
+              <figcaption className="suave">{a.autor} · contratante verificado</figcaption>
+            </figure>
           ))}
         </div>
       </section>

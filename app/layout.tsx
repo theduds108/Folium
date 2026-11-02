@@ -38,7 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>
             </span>
             <span>
-              <Link href="/talentos">Talentos</Link> · <Link href="/entrar">Entrar</Link>
+              <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/guia">Guia</Link> ·{" "}
+              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link>
             </span>
           </div>
         </footer>
