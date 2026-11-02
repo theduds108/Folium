@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { CURSOS, SERVICOS, type Aluno } from "@/lib/data";
 import { CartaoAluno } from "@/components/CartaoAluno";
-import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
@@ -184,7 +183,7 @@ export default function MeuPerfil() {
           <button className="botao botao-primario" type="submit">Salvar rascunho</button>
           {salvo && (
             <span className="salvo" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <SalvoLottie />
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#4F7A3A" /><path d="m7 12.5 3.2 3.2L17 9" stroke="#F6F0E4" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
               Rascunho salvo neste aparelho
             </span>
           )}
