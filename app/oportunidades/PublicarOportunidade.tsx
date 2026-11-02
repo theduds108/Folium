@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { SERVICOS } from "@/lib/data";
-import { OpcoesServicos } from "@/components/OpcoesServicos";
+import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
+import { Seletor } from "@/components/Seletor";
 import { bancoLigado } from "@/lib/supabase";
 import { enviarOportunidade } from "@/lib/repositorio";
 import { formatarData, mascaraReais, mascaraTelefone } from "@/lib/formato";
@@ -23,6 +24,7 @@ export function PublicarOportunidade() {
   const [contato, setContato] = useState("");
   const [orcamento, setOrcamento] = useState("");
   const [combinar, setCombinar] = useState(false);
+  const [servico, setServico] = useState<string>(SERVICOS[0]);
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>("Freela");
 
   const hoje = new Date().toISOString().slice(0, 10);
@@ -103,12 +105,10 @@ export function PublicarOportunidade() {
             <input name="titulo" required minLength={3} maxLength={100} placeholder="Ex.: Logo para minha padaria" />
           </label>
 
-          <label className="campo">
+          <div className="campo">
             Serviço
-            <select name="servico" defaultValue={SERVICOS[0]}>
-              <OpcoesServicos />
-            </select>
-          </label>
+            <Seletor aria-label="Serviço" name="servico" valor={servico} onMudar={setServico} grupos={GRUPOS_SERVICOS} />
+          </div>
 
           <label className="campo">
             Descrição

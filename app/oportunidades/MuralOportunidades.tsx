@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
-import { OpcoesServicos } from "@/components/OpcoesServicos";
+import { GRUPOS_SERVICOS_FILTRO } from "@/components/OpcoesServicos";
+import { Seletor } from "@/components/Seletor";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { listarOportunidadesReais, marcarInteresse } from "@/lib/repositorio";
@@ -33,20 +34,14 @@ export function MuralOportunidades() {
   return (
     <>
       <div className="cartao filtros filtros-dois">
-        <label className="campo">
+        <div className="campo">
           Tipo
-          <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <option value="">Todos</option>
-            {TIPOS.map((t) => <option key={t}>{t}</option>)}
-          </select>
-        </label>
-        <label className="campo">
+          <Seletor aria-label="Tipo" valor={tipo} onMudar={setTipo} placeholder="Todos" grupos={[{ opcoes: [{ valor: "", rotulo: "Todos" }, ...TIPOS] }]} />
+        </div>
+        <div className="campo">
           Serviço
-          <select value={servico} onChange={(e) => setServico(e.target.value)}>
-            <option value="">Todos</option>
-            <OpcoesServicos />
-          </select>
-        </label>
+          <Seletor aria-label="Serviço" valor={servico} onMudar={setServico} placeholder="Todos" grupos={GRUPOS_SERVICOS_FILTRO} />
+        </div>
       </div>
 
       <p className="suave" aria-live="polite">

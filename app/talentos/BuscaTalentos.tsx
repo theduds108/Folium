@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ALUNOS, CURSOS, type Aluno } from "@/lib/data";
-import { OpcoesServicos } from "@/components/OpcoesServicos";
+import { GRUPOS_SERVICOS_FILTRO } from "@/components/OpcoesServicos";
+import { Seletor } from "@/components/Seletor";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { listarAlunosReais } from "@/lib/repositorio";
@@ -62,22 +63,20 @@ export function BuscaTalentos() {
             placeholder="Nome, habilidade, tipo de trabalho…"
           />
         </label>
-        <label className="campo">
+        <div className="campo">
           Curso
-          <select value={curso} onChange={(e) => setCurso(e.target.value)}>
-            <option value="">Todos</option>
-            {cursos.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
-        <label className="campo">
+          <Seletor
+            aria-label="Curso"
+            valor={curso}
+            onMudar={setCurso}
+            placeholder="Todos"
+            grupos={[{ opcoes: [{ valor: "", rotulo: "Todos" }, ...cursos] }]}
+          />
+        </div>
+        <div className="campo">
           Serviço
-          <select value={servico} onChange={(e) => setServico(e.target.value)}>
-            <option value="">Todos</option>
-            <OpcoesServicos />
-          </select>
-        </label>
+          <Seletor aria-label="Serviço" valor={servico} onMudar={setServico} placeholder="Todos" grupos={GRUPOS_SERVICOS_FILTRO} />
+        </div>
         <label className="filtro-check">
           <input type="checkbox" checked={soDisponiveis} onChange={(e) => setSoDisponiveis(e.target.checked)} />
           Só disponíveis

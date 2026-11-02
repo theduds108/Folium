@@ -24,7 +24,9 @@ import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil
 import { sair, useSessao } from "@/lib/sessao";
 import { formatarPeriodo, mascaraAno, mascaraTelefone, telefoneValido } from "@/lib/formato";
 import { CartaoAluno } from "@/components/CartaoAluno";
-import { OpcoesServicos } from "@/components/OpcoesServicos";
+import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
+import { Seletor } from "@/components/Seletor";
+import { Contador } from "@/components/Contador";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
@@ -459,27 +461,25 @@ function Editor(props: PropsEditor) {
           </label>
 
           <div className="linha-dupla">
-            <label className="campo">
+            <div className="campo">
               Curso
-              <select
-                value={cursoOutro ? OUTRO : r.curso}
-                onChange={(e) => {
-                  const v = e.target.value;
+              <Seletor
+                aria-label="Curso"
+                valor={cursoOutro ? OUTRO : r.curso}
+                onMudar={(v) => {
                   setCursoOutro(v === OUTRO);
                   mudar("curso", v === OUTRO ? "" : v);
                 }}
-              >
-                {CURSOS.map((c) => <option key={c}>{c}</option>)}
-                <option value={OUTRO}>Outro curso…</option>
-              </select>
+                grupos={[{ opcoes: CURSOS }, { opcoes: [{ valor: OUTRO, rotulo: "Outro curso…" }] }]}
+              />
               {cursoOutro && (
                 <input value={r.curso} onChange={(e) => mudar("curso", e.target.value)} placeholder="Nome do seu curso" maxLength={80} required aria-label="Nome do seu curso" />
               )}
-            </label>
-            <label className="campo">
-              Semestre
-              <input type="number" min={1} max={12} value={r.semestre} onChange={(e) => mudar("semestre", Math.min(12, Math.max(1, Number(e.target.value) || 1)))} />
-            </label>
+            </div>
+            <div className="campo">
+              Semestre atual
+              <Contador aria-label="Semestre" valor={r.semestre} onMudar={(n) => mudar("semestre", n)} min={1} max={12} sufixo="º" />
+            </div>
           </div>
 
           <div className="linha-dupla">
@@ -588,9 +588,7 @@ function Editor(props: PropsEditor) {
               </div>
               <div className="linha-dupla">
                 <input className="entrada" value={t.titulo} onChange={(e) => mudarTrabalho(i, { titulo: e.target.value })} placeholder="Título do trabalho" maxLength={80} aria-label={`Título do trabalho ${i + 1}`} />
-                <select className="entrada" value={t.tipo} onChange={(e) => mudarTrabalho(i, { tipo: e.target.value })} aria-label={`Tipo do trabalho ${i + 1}`}>
-                  <OpcoesServicos />
-                </select>
+                <Seletor aria-label={`Tipo do trabalho ${i + 1}`} valor={t.tipo} onMudar={(v) => mudarTrabalho(i, { tipo: v })} grupos={GRUPOS_SERVICOS} />
               </div>
               <div className="linha-dupla">
                 <input className="entrada" value={t.cliente} onChange={(e) => mudarTrabalho(i, { cliente: e.target.value })} placeholder="Cliente ou disciplina" maxLength={80} aria-label={`Cliente do trabalho ${i + 1}`} />
@@ -733,9 +731,7 @@ function Editor(props: PropsEditor) {
           {r.idiomas.map((x, i) => (
             <div key={i} className="linha-idioma">
               <input className="entrada" value={x.idioma} onChange={(e) => mudar("idiomas", trocar(r.idiomas, i, { idioma: e.target.value }))} placeholder="Idioma" maxLength={30} aria-label={`Idioma ${i + 1}`} />
-              <select className="entrada" value={x.nivel} onChange={(e) => mudar("idiomas", trocar(r.idiomas, i, { nivel: e.target.value }))} aria-label={`Nível do idioma ${i + 1}`}>
-                {NIVEIS_IDIOMA.map((n) => <option key={n}>{n}</option>)}
-              </select>
+              <Seletor aria-label={`Nível do idioma ${i + 1}`} valor={x.nivel} onMudar={(v) => mudar("idiomas", trocar(r.idiomas, i, { nivel: v }))} grupos={[{ opcoes: NIVEIS_IDIOMA }]} />
               <button type="button" className="link-denuncia" onClick={() => mudar("idiomas", r.idiomas.filter((_, j) => j !== i))}>Remover</button>
             </div>
           ))}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { denunciar } from "@/lib/repositorio";
+import { Seletor } from "@/components/Seletor";
 
 const MOTIVOS = ["Trabalho que não é do aluno", "Golpe ou cobrança indevida", "Conteúdo ofensivo", "Outro motivo"];
 
@@ -11,6 +12,7 @@ export function Denunciar({ alvo, tipo = "perfil" }: { alvo: string; tipo?: "per
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState("");
+  const [motivo, setMotivo] = useState("");
 
   if (enviado) return <p className="salvo" style={{ margin: 0 }}>Denúncia recebida. A equipe vai analisar.</p>;
 
@@ -40,13 +42,10 @@ export function Denunciar({ alvo, tipo = "perfil" }: { alvo: string; tipo?: "per
         }
       }}
     >
-      <label className="campo">
+      <div className="campo">
         Motivo
-        <select name="motivo" required defaultValue="">
-          <option value="" disabled>Escolha</option>
-          {MOTIVOS.map((m) => <option key={m}>{m}</option>)}
-        </select>
-      </label>
+        <Seletor aria-label="Motivo da denúncia" name="motivo" required valor={motivo} onMudar={setMotivo} placeholder="Escolha" grupos={[{ opcoes: MOTIVOS }]} />
+      </div>
       <label className="campo">
         Detalhes (opcional)
         <textarea name="detalhes" maxLength={600} rows={3} />
