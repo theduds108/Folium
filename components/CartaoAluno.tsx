@@ -25,6 +25,7 @@ export function CartaoAluno({ aluno }: { aluno: Aluno }) {
       </span>
       <span className="polaroide-corpo">
         <span className="polaroide-nome">{aluno.nome}</span>
+        {aluno.titulo && <span className="polaroide-titulo">{aluno.titulo}</span>}
         <span className="suave polaroide-sub">{aluno.semestre}º semestre · {aluno.cidade}</span>
         <span className="etiquetas">
           {aluno.servicos.map((s) => (

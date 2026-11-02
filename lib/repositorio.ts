@@ -1,7 +1,7 @@
 // Leitura e gravação no banco (Supabase). Tudo aqui roda no navegador.
 // No modo demonstração (sem .env.local) as funções devolvem listas vazias.
 
-import type { Aluno, Trabalho } from "./data";
+import type { Aluno, Certificado, Experiencia, Idioma, Links, Trabalho } from "./data";
 import type { Oportunidade } from "./conteudo";
 import { supabase } from "./supabase";
 
@@ -23,6 +23,16 @@ export type PerfilBanco = {
   foto_url: string | null;
   disponivel: boolean;
   publicado: boolean;
+  titulo: string;
+  sobre_longo: string;
+  conclusao: string;
+  modalidades: string[];
+  tipos_vaga: string[];
+  links: Links;
+  experiencias: Experiencia[];
+  certificados: Certificado[];
+  idiomas: Idioma[];
+  curriculo_url: string | null;
 };
 
 export type TrabalhoBanco = {
@@ -33,6 +43,11 @@ export type TrabalhoBanco = {
   descricao: string;
   imagem_url: string | null;
   ordem: number;
+  cliente: string;
+  ano: string;
+  link: string;
+  papel: string;
+  galeria: string[];
 };
 
 type PerfilComTrabalhos = PerfilBanco & { trabalhos: TrabalhoBanco[] | null };
@@ -53,6 +68,11 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
       descricao: t.descricao,
       cor: CORES[i % CORES.length]!,
       imagem: t.imagem_url ?? undefined,
+      galeria: t.galeria ?? [],
+      cliente: t.cliente ?? "",
+      ano: t.ano ?? "",
+      link: t.link ?? "",
+      papel: t.papel ?? "",
     }));
   return {
     slug: p.slug,
@@ -70,6 +90,16 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
     email: p.email_contato,
     trabalhos,
     real: true,
+    titulo: p.titulo ?? "",
+    sobre: p.sobre_longo ?? "",
+    conclusao: p.conclusao ?? "",
+    modalidades: p.modalidades ?? [],
+    tiposVaga: p.tipos_vaga ?? [],
+    links: p.links ?? {},
+    experiencias: p.experiencias ?? [],
+    certificados: p.certificados ?? [],
+    idiomas: p.idiomas ?? [],
+    curriculo: p.curriculo_url ?? undefined,
   };
 }
 
@@ -153,6 +183,11 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
           descricao: t.descricao,
           imagem_url: t.imagem_url,
           ordem: i,
+          cliente: t.cliente,
+          ano: t.ano,
+          link: t.link,
+          papel: t.papel,
+          galeria: t.galeria,
         }))
       );
     if (error) throw traduzirErro(error);
@@ -171,6 +206,18 @@ export async function enviarFoto(userId: string, arquivo: File) {
   const { error } = await sb.storage.from("fotos").upload(caminho, arquivo, { contentType: arquivo.type });
   if (error) throw traduzirErro(error);
   return sb.storage.from("fotos").getPublicUrl(caminho).data.publicUrl;
+}
+
+/** Envia o currículo em PDF para curriculos/<id do usuário>/ e devolve o endereço público. */
+export async function enviarCurriculo(userId: string, arquivo: File) {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  if (arquivo.type !== "application/pdf") throw new Error("O currículo precisa ser um PDF.");
+  if (arquivo.size > 3 * 1024 * 1024) throw new Error("O PDF precisa ter até 3 MB.");
+  const caminho = `${userId}/${crypto.randomUUID()}.pdf`;
+  const { error } = await sb.storage.from("curriculos").upload(caminho, arquivo, { contentType: "application/pdf" });
+  if (error) throw traduzirErro(error);
+  return sb.storage.from("curriculos").getPublicUrl(caminho).data.publicUrl;
 }
 
 type LinhaOportunidade = {

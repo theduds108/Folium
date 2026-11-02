@@ -15,8 +15,12 @@ Leva uns 10 minutos e só precisa ser feito uma vez.
 ## 2. Criar as tabelas
 
 1. No menu da esquerda, abra **SQL Editor** e clique em **New query**.
-2. Copie todo o conteúdo do arquivo `supabase/migrations/20261102000000_inicial.sql` deste repositório,
-   cole lá e clique em **Run**. Deve aparecer "Success. No rows returned".
+2. Rode, um de cada vez e nesta ordem, os arquivos da pasta `supabase/migrations/`
+   (copie o conteúdo, cole lá e clique em **Run**; deve aparecer "Success. No rows returned"):
+   - `20261102000000_inicial.sql`
+   - `20261102120000_portfolio_completo.sql` (título, sobre mim, experiências, cursos, idiomas, links, currículo em PDF)
+
+   Cada arquivo só precisa ser rodado uma vez. Quando aparecer um arquivo novo nessa pasta, rode só ele.
 
 Isso cria:
 
@@ -29,7 +33,7 @@ Isso cria:
 | `denuncias` | Denúncias de perfis e vagas |
 | `dominios_institucionais` | Domínios de e-mail aceitos (`unisagrado.edu.br`) |
 
-E a pasta `fotos` para as imagens. As regras de segurança já vêm prontas:
+E as pastas `fotos` (imagens) e `curriculos` (PDFs). As regras de segurança já vêm prontas:
 só quem entra com e-mail institucional cria portfólio, cada aluno só edita o próprio perfil e
 as próprias fotos, e ninguém de fora lê denúncias nem vagas ainda não aprovadas.
 

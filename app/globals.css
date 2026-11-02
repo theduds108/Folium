@@ -1462,3 +1462,85 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
   margin: 0;
 }
 .plano .etiqueta, .vaga .etiqueta, .atalho .etiqueta { align-self: flex-start; }
+
+/* Editor do portfólio em seções */
+.editor { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+@media (max-width: 960px) { .editor { grid-template-columns: 1fr; } .editor-previa { position: static; order: -1; } }
+.editor-form { padding: 0; gap: 20px; }
+.editor-topo, .secao-editor, .barra-salvar { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.secao-editor { scroll-margin-top: 90px; }
+.secao-editor h2 { font-size: 1.45rem; margin: 0; }
+.secao-editor h3 { font-size: 1.05rem; margin: 0; }
+.secao-editor fieldset { border: 0; padding: 0; margin: 0; }
+.secao-editor legend { margin-bottom: 6px; }
+.ajuda-secao { margin: -8px 0 0; font-size: 0.92rem; }
+.editor-indice { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.editor-indice a {
+  padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--linha);
+  font-size: 0.85rem; font-weight: 600; text-decoration: none; color: var(--verde-musgo);
+  background: var(--papel-claro);
+}
+.editor-indice a:hover { border-color: var(--verde-folio); }
+.item-lista {
+  display: grid; gap: 10px; padding: 14px; border-radius: 12px;
+  border: 1.5px dashed var(--linha); background: var(--creme-papel);
+}
+.item-lista-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.item-lista-acoes { display: flex; gap: 12px; }
+.botao-add { align-self: flex-start; }
+.botao-pequeno { min-height: 36px; padding: 4px 14px; }
+.linha-arquivo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.linha-idioma { display: grid; grid-template-columns: 1fr 160px auto; gap: 10px; align-items: center; }
+@media (max-width: 480px) { .linha-idioma { grid-template-columns: 1fr 1fr; } }
+.miniatura { width: 96px; height: 64px; object-fit: cover; border-radius: 8px; display: block; }
+.miniatura.redonda { width: 64px; height: 64px; border-radius: 50%; }
+.miniatura-caixa { position: relative; }
+.miniatura-capa {
+  position: absolute; left: 4px; bottom: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  background: var(--verde-musgo); color: var(--creme-papel); padding: 1px 6px; border-radius: 6px;
+}
+.miniatura-x {
+  position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; border-radius: 50%;
+  border: 0; background: var(--marrom-cobre, #b0673b); color: #fff; font-size: 1rem; line-height: 1; cursor: pointer;
+}
+.medidor { padding: 20px; }
+.medidor-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.medidor-barra { height: 10px; border-radius: 999px; background: var(--linha); overflow: hidden; }
+.medidor-barra span { display: block; height: 100%; background: var(--verde-folio); border-radius: inherit; transition: width 0.4s ease; }
+.medidor-dicas { margin: 12px 0 0; padding-left: 18px; font-size: 0.9rem; color: var(--verde-musgo); }
+.medidor-dicas li + li { margin-top: 4px; }
+
+/* Portfólio completo: novas seções do perfil público */
+.perfil-titulo {
+  margin: 4px 0 0;
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+  font-weight: 600;
+  color: var(--marrom-cobre);
+}
+.perfil-sobre { max-width: 46em; font-size: 1.05rem; line-height: 1.7; }
+.perfil-sobre p { margin: 12px 0 0; }
+.perfil-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.perfil-links a { font-weight: 600; color: var(--verde-folio-escuro); }
+.trabalho-galeria { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.trabalho-galeria img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; display: block; }
+.trabalho-meta {
+  margin: 10px 4px 0; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--texto-suave);
+}
+.trabalho-meta + .trabalho-desc { margin-top: 4px; }
+.trabalho-papel { margin: 6px 4px 0; font-size: 0.9rem; }
+.trabalho-link { display: inline-block; margin: 6px 4px 0; }
+.linha-tempo { list-style: none; margin: 20px 0 0; padding: 0 0 0 22px; border-left: 2px solid var(--linha); display: grid; gap: 22px; max-width: 46em; }
+.linha-tempo li { position: relative; }
+.linha-tempo li::before {
+  content: ""; position: absolute; left: -30px; top: 4px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--verde-folio); border: 3px solid var(--creme-papel);
+}
+.linha-tempo h3 { margin: 2px 0 0; font-size: 1.1rem; }
+.linha-tempo p { margin: 4px 0 0; }
+.linha-tempo-periodo { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--marrom-cobre); }
+.linha-tempo-lugar { font-weight: 600; }
+.titulo-bloco { font-size: 1.3rem; margin: 0 0 12px; }
+.lista-cursos { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lista-cursos li { display: flex; flex-direction: column; gap: 2px; }
+.polaroide-titulo { font-weight: 600; font-size: 0.92rem; color: var(--marrom-cobre); line-height: 1.3; }

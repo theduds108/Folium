@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { iniciais, unsplash, type Aluno } from "@/lib/data";
+import { REDES, iniciais, linkExterno, unsplash, type Aluno } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
 import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "@/components/CopiarLink";
@@ -10,6 +10,11 @@ import type { Avaliacao } from "@/lib/conteudo";
 export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliacoes?: Avaliacao[] }) {
   const primeiroNome = aluno.nome.split(" ")[0];
   const mensagem = encodeURIComponent(`Olá, ${primeiroNome}! Vi seu portfólio no Fólium e gostaria de conversar sobre um trabalho.`);
+  const links = REDES.filter((r) => aluno.links?.[r.chave]);
+  const experiencias = aluno.experiencias ?? [];
+  const certificados = aluno.certificados ?? [];
+  const idiomas = aluno.idiomas ?? [];
+  const interesses = [...(aluno.tiposVaga ?? []), ...(aluno.modalidades ?? [])];
 
   return (
     <div className="container">
@@ -23,7 +28,10 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
           <span>{aluno.cidade}</span>
         </div>
         <h1 className="perfil-nome">{aluno.nome}</h1>
-        <Anotacao className="anotacao-perfil">{aluno.semestre}º semestre, UNISAGRADO</Anotacao>
+        {aluno.titulo && <p className="perfil-titulo">{aluno.titulo}</p>}
+        <Anotacao className="anotacao-perfil">
+          {aluno.semestre}º semestre, UNISAGRADO{aluno.conclusao ? ` · forma em ${aluno.conclusao}` : ""}
+        </Anotacao>
       </div>
 
       <div className="perfil-topo">
@@ -64,12 +72,20 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
 
         <aside className="cartao contato revelar" aria-label="Contato">
           <span className={aluno.disponivel ? "disponivel" : "disponivel nao"}>
-            {aluno.disponivel ? "Disponível para freelas" : "Agenda cheia no momento"}
+            {aluno.disponivel ? "Disponível para novos trabalhos" : "Agenda cheia no momento"}
           </span>
           {aluno.valorReferencia && (
             <dl>
               <dt>Valor de referência</dt>
               <dd>{aluno.valorReferencia}</dd>
+            </dl>
+          )}
+          {interesses.length > 0 && (
+            <dl>
+              <dt>Aceita</dt>
+              <dd className="etiquetas" style={{ marginTop: 6 }}>
+                {interesses.map((i) => <span key={i} className="etiqueta">{i}</span>)}
+              </dd>
             </dl>
           )}
           {aluno.whatsapp && (
@@ -82,6 +98,22 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
               Enviar e-mail
             </a>
           )}
+          {aluno.curriculo && (
+            <a className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
+              Baixar currículo (PDF)
+            </a>
+          )}
+          {links.length > 0 && (
+            <ul className="perfil-links">
+              {links.map((r) => (
+                <li key={r.chave}>
+                  <a href={linkExterno(aluno.links![r.chave]!)} target="_blank" rel="noopener noreferrer nofollow">
+                    {r.rotulo} ↗
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="compartilhar">
             <CopiarLink />
           </div>
@@ -89,47 +121,130 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
         </aside>
       </div>
 
+      {aluno.sobre && (
+        <section className="secao" style={{ paddingTop: 40, paddingBottom: 0 }}>
+          <h2 className="revelar-esquerda">Sobre mim</h2>
+          <div className="perfil-sobre revelar">
+            {aluno.sobre.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)}
+          </div>
+        </section>
+      )}
+
       {aluno.trabalhos.length > 0 && (
-      <section className="secao" style={{ paddingTop: 40 }}>
-        <h2 className="revelar-esquerda">Trabalhos</h2>
-        <div className="grade-trabalhos revelar-grupo">
-          {aluno.trabalhos.map((t, i) => (
-            <article key={`${i}-${t.titulo}`} className="trabalho">
-              <div
-                className="trabalho-capa"
-                style={{
-                  backgroundColor: t.cor,
-                  backgroundImage: t.imagem
-                    ? `linear-gradient(180deg, rgba(47,62,42,.55) 0%, rgba(47,62,42,0) 35%, rgba(47,62,42,0) 50%, rgba(47,62,42,.8) 100%), url(${unsplash(t.imagem, 700)})`
-                    : undefined,
-                }}
-              >
-                <span>{t.tipo}</span>
-                <strong>{t.titulo}</strong>
+        <section className="secao" style={{ paddingTop: 40 }}>
+          <h2 className="revelar-esquerda">Trabalhos</h2>
+          <div className="grade-trabalhos revelar-grupo">
+            {aluno.trabalhos.map((t, i) => (
+              <article key={`${i}-${t.titulo}`} className="trabalho">
+                <div
+                  className="trabalho-capa"
+                  style={{
+                    backgroundColor: t.cor,
+                    backgroundImage: t.imagem
+                      ? `linear-gradient(180deg, rgba(47,62,42,.55) 0%, rgba(47,62,42,0) 35%, rgba(47,62,42,0) 50%, rgba(47,62,42,.8) 100%), url(${unsplash(t.imagem, 700)})`
+                      : undefined,
+                  }}
+                >
+                  <span>{t.tipo}</span>
+                  <strong>{t.titulo}</strong>
+                </div>
+                {(t.galeria?.length ?? 0) > 0 && (
+                  <div className="trabalho-galeria">
+                    {t.galeria!.map((g) => (
+                      <a key={g} href={unsplash(g, 1400)} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={unsplash(g, 300)} alt={`Mais uma imagem de ${t.titulo}`} loading="lazy" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {(t.cliente || t.ano) && (
+                  <p className="trabalho-meta">{[t.cliente, t.ano].filter(Boolean).join(" · ")}</p>
+                )}
+                <p className="trabalho-desc">{t.descricao}</p>
+                {t.papel && <p className="trabalho-papel"><strong>Minha parte:</strong> {t.papel}</p>}
+                {t.link && (
+                  <a className="link-mao trabalho-link" href={linkExterno(t.link)} target="_blank" rel="noopener noreferrer nofollow">
+                    ver projeto →
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {experiencias.length > 0 && (
+        <section className="secao" style={{ paddingTop: 0 }}>
+          <h2 className="revelar-esquerda">Experiência</h2>
+          <ol className="linha-tempo revelar-grupo">
+            {experiencias.map((x, i) => (
+              <li key={i}>
+                <span className="linha-tempo-periodo">{x.periodo}</span>
+                <h3>{x.cargo}</h3>
+                <p className="suave linha-tempo-lugar">{x.lugar}</p>
+                {x.descricao && <p>{x.descricao}</p>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {(certificados.length > 0 || idiomas.length > 0) && (
+        <section className="secao" style={{ paddingTop: 0 }}>
+          <div className="dois-lados revelar-grupo">
+            {certificados.length > 0 && (
+              <div className="cartao lado">
+                <h2 className="titulo-bloco">Cursos e certificados</h2>
+                <ul className="lista-cursos">
+                  {certificados.map((c, i) => (
+                    <li key={i}>
+                      <strong>
+                        {c.link ? (
+                          <a href={linkExterno(c.link)} target="_blank" rel="noopener noreferrer nofollow">{c.nome} ↗</a>
+                        ) : (
+                          c.nome
+                        )}
+                      </strong>
+                      <span className="suave">{[c.instituicao, c.ano].filter(Boolean).join(" · ")}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <p className="trabalho-desc">{t.descricao}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+            )}
+            {idiomas.length > 0 && (
+              <div className="cartao lado">
+                <h2 className="titulo-bloco">Idiomas</h2>
+                <ul className="lista-cursos">
+                  {idiomas.map((x, i) => (
+                    <li key={i}>
+                      <strong>{x.idioma}</strong>
+                      <span className="suave">{x.nivel}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {avaliacoes.length > 0 && (
-      <section className="secao" style={{ paddingTop: 0 }}>
-        <h2 className="revelar-esquerda">Avaliações</h2>
-        <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
-          {avaliacoes.map((a) => (
-            <figure key={a.autor} className="cartao lado avaliacao">
-              <span className="estrelas" aria-label={`${a.nota} de 5 estrelas`}>
-                {"★".repeat(a.nota)}
-                <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
-              </span>
-              <blockquote>{a.texto}</blockquote>
-              <figcaption className="suave">{a.autor} · contratante verificado</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
+        <section className="secao" style={{ paddingTop: 0 }}>
+          <h2 className="revelar-esquerda">Avaliações</h2>
+          <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
+            {avaliacoes.map((a) => (
+              <figure key={a.autor} className="cartao lado avaliacao">
+                <span className="estrelas" aria-label={`${a.nota} de 5 estrelas`}>
+                  {"★".repeat(a.nota)}
+                  <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
+                </span>
+                <blockquote>{a.texto}</blockquote>
+                <figcaption className="suave">{a.autor} · contratante verificado</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

@@ -34,7 +34,7 @@ export function BuscaTalentos() {
       if (soDisponiveis && !a.disponivel) return false;
       if (termos.length === 0) return true;
       const alvo = normalizar(
-        [a.nome, a.curso, a.bio, ...a.servicos, ...a.habilidades, ...a.trabalhos.map((t) => t.titulo)].join(" ")
+        [a.nome, a.titulo ?? "", a.curso, a.bio, ...a.servicos, ...a.habilidades, ...a.trabalhos.map((t) => t.titulo)].join(" ")
       );
       return termos.every((t) => alvo.includes(t));
     });

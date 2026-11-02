@@ -9,7 +9,21 @@ export type Trabalho = {
   cor: string;
   /** Imagem: id do Unsplash (demonstração) ou URL completa (enviada pelo aluno). */
   imagem?: string;
+  /** Imagens extras do mesmo trabalho (até 4). */
+  galeria?: string[];
+  /** Para quem foi feito (empresa, cliente, disciplina). */
+  cliente?: string;
+  ano?: string;
+  /** O que o aluno fez no trabalho, quando foi em grupo. */
+  papel?: string;
+  /** Link externo: Behance, site no ar, vídeo, matéria publicada. */
+  link?: string;
 };
+
+export type Experiencia = { cargo: string; lugar: string; periodo: string; descricao: string };
+export type Certificado = { nome: string; instituicao: string; ano: string; link?: string };
+export type Idioma = { idioma: string; nivel: string };
+export type Links = Partial<Record<(typeof REDES)[number]["chave"], string>>;
 
 export type Aluno = {
   slug: string;
@@ -26,6 +40,20 @@ export type Aluno = {
   foto?: string;
   /** Verdadeiro para perfis que vêm do banco (não são exemplos). */
   real?: boolean;
+  /** Título profissional curto, ex.: "Designer gráfica e ilustradora". */
+  titulo?: string;
+  /** Texto mais longo do "Sobre mim". */
+  sobre?: string;
+  /** Previsão de conclusão do curso, ex.: "Dez/2027". */
+  conclusao?: string;
+  modalidades?: string[];
+  tiposVaga?: string[];
+  links?: Links;
+  experiencias?: Experiencia[];
+  certificados?: Certificado[];
+  idiomas?: Idioma[];
+  /** Currículo em PDF (URL). */
+  curriculo?: string;
   whatsapp: string;
   email: string;
   trabalhos: Trabalho[];
@@ -52,7 +80,26 @@ export const SERVICOS = [
   "Projeto de interiores",
 ] as const;
 
-export const ALUNOS: Aluno[] = [
+export const MODALIDADES = ["Presencial", "Remoto", "Híbrido"] as const;
+export const TIPOS_VAGA = ["Freela", "Projeto", "Estágio"] as const;
+export const NIVEIS_IDIOMA = ["Básico", "Intermediário", "Avançado", "Fluente", "Nativo"] as const;
+
+export const REDES = [
+  { chave: "instagram", rotulo: "Instagram", exemplo: "instagram.com/seuperfil" },
+  { chave: "behance", rotulo: "Behance", exemplo: "behance.net/seuperfil" },
+  { chave: "linkedin", rotulo: "LinkedIn", exemplo: "linkedin.com/in/seuperfil" },
+  { chave: "github", rotulo: "GitHub", exemplo: "github.com/seuperfil" },
+  { chave: "site", rotulo: "Site ou outro link", exemplo: "seusite.com.br" },
+] as const;
+
+/** Garante https:// no começo do link digitado pelo aluno. */
+export function linkExterno(url: string) {
+  const u = url.trim();
+  if (!u) return "";
+  return /^https?:\/\//i.test(u) ? u : `https://${u.replace(/^@/, "instagram.com/")}`;
+}
+
+const BASE: Aluno[] = [
   {
     slug: "ana-ribeiro",
     nome: "Ana Ribeiro",
@@ -68,9 +115,9 @@ export const ALUNOS: Aluno[] = [
     whatsapp: "5514999990001",
     email: "ana.ribeiro@exemplo.com",
     trabalhos: [
-      { titulo: "Café Raiz", tipo: "Identidade visual", descricao: "Logo, paleta e embalagens para cafeteria de bairro.", cor: "#6B4A34", imagem: "1767515341199-451947d081ef" },
-      { titulo: "Ateliê Lume", tipo: "Social media", descricao: "Grade de 12 posts e guia de tom de voz.", cor: "#B0673B", imagem: "1603145733146-ae562a55031e" },
-      { titulo: "Feira Verde", tipo: "Identidade visual", descricao: "Marca para feira de produtores locais.", cor: "#4F7A3A", imagem: "1591586116988-62fe65164f8d" },
+      { titulo: "Café Raiz", tipo: "Identidade visual", descricao: "Logo, paleta e embalagens para cafeteria de bairro.", cliente: "Café Raiz", ano: "2025", papel: "Criação da marca e das embalagens", cor: "#6B4A34", imagem: "1767515341199-451947d081ef" },
+      { titulo: "Ateliê Lume", tipo: "Social media", descricao: "Grade de 12 posts e guia de tom de voz.", cliente: "Ateliê Lume", ano: "2025", cor: "#B0673B", imagem: "1603145733146-ae562a55031e" },
+      { titulo: "Feira Verde", tipo: "Identidade visual", descricao: "Marca para feira de produtores locais.", cliente: "Projeto de extensão UNISAGRADO", ano: "2024", papel: "Dupla com Henrique Dias, fiquei com logo e sinalização", cor: "#4F7A3A", imagem: "1591586116988-62fe65164f8d" },
     ],
   },
   {
@@ -89,7 +136,7 @@ export const ALUNOS: Aluno[] = [
     email: "bruno.matsuda@exemplo.com",
     trabalhos: [
       { titulo: "Linha Terra", tipo: "Fotografia", descricao: "Ensaio de cerâmicas artesanais para loja online.", cor: "#8A5A3C", imagem: "1631125915902-d8abe9225ff2" },
-      { titulo: "Formatura Jornalismo 2026", tipo: "Fotografia", descricao: "Cobertura completa do evento.", cor: "#2F3E2A", imagem: "1541339907198-e08756dedf3f" },
+      { titulo: "Formatura Jornalismo 2026", tipo: "Fotografia", descricao: "Cobertura completa do evento.", cliente: "Comissão de formatura", ano: "2026", cor: "#2F3E2A", imagem: "1541339907198-e08756dedf3f" },
       { titulo: "Bastidores Padaria Sol", tipo: "Vídeo e edição", descricao: "Reels de 30 segundos para Instagram.", cor: "#C98A4B", imagem: "1568254183919-78a4f43a2877" },
     ],
   },
@@ -108,7 +155,7 @@ export const ALUNOS: Aluno[] = [
     whatsapp: "5514999990003",
     email: "carla.souza@exemplo.com",
     trabalhos: [
-      { titulo: "Newsletter Bauru Cultural", tipo: "Redação e revisão", descricao: "Edição semanal com agenda da cidade.", cor: "#3E5C4A", imagem: "1504711434969-e33886168f5c" },
+      { titulo: "Newsletter Bauru Cultural", tipo: "Redação e revisão", descricao: "Edição semanal com agenda da cidade.", cliente: "Bauru Cultural", ano: "2025", link: "bauruculturalnews.com.br", cor: "#3E5C4A", imagem: "1504711434969-e33886168f5c" },
       { titulo: "Site Clínica Vida", tipo: "Redação e revisão", descricao: "Textos institucionais e páginas de serviço.", cor: "#7C8B5A", imagem: "1544474560-5b2a788d024a" },
     ],
   },
@@ -127,7 +174,7 @@ export const ALUNOS: Aluno[] = [
     whatsapp: "5514999990004",
     email: "diego.alves@exemplo.com",
     trabalhos: [
-      { titulo: "Agenda Barbearia 22", tipo: "Sites e sistemas", descricao: "Sistema de agendamento online.", cor: "#2F3E2A", imagem: "1511707171634-5f897ff02aa9" },
+      { titulo: "Agenda Barbearia 22", tipo: "Sites e sistemas", descricao: "Sistema de agendamento online.", cliente: "Barbearia 22", ano: "2025", link: "github.com/diegoalves/agenda", cor: "#2F3E2A", imagem: "1511707171634-5f897ff02aa9" },
       { titulo: "Site Escritório Lima", tipo: "Sites e sistemas", descricao: "Site institucional com blog.", cor: "#4F7A3A", imagem: "1678690832311-bb6e361989ca" },
       { titulo: "Cardápio digital", tipo: "Sites e sistemas", descricao: "Cardápio por QR code para restaurante.", cor: "#B0673B", imagem: "1767324672864-68a0f610ccbc" },
     ],
@@ -210,6 +257,117 @@ export const ALUNOS: Aluno[] = [
     ],
   },
 ];
+
+/** Informações extras dos alunos de exemplo, para mostrar o portfólio completo. */
+const EXTRAS: Record<string, Partial<Aluno>> = {
+  "ana-ribeiro": {
+    titulo: "Designer de marcas para pequenos negócios",
+    sobre:
+      "Comecei fazendo a identidade da padaria da minha tia e não parei mais. Hoje atendo cafés, ateliês e feiras da região, sempre partindo de uma conversa sobre a história do negócio. Gosto de entregar um guia simples, para o cliente conseguir usar a marca sozinho no dia a dia.",
+    conclusao: "Dez/2026",
+    modalidades: ["Presencial", "Remoto"],
+    tiposVaga: ["Freela", "Projeto"],
+    links: { instagram: "instagram.com/ana.ribeiro.design", behance: "behance.net/anaribeiro" },
+    experiencias: [
+      { cargo: "Estagiária de design", lugar: "Agência Ponte", periodo: "Fev/2025 – Dez/2025", descricao: "Peças para redes sociais e apoio em identidades de clientes locais." },
+      { cargo: "Diretora de arte", lugar: "Agência Júnior UNISAGRADO", periodo: "2024", descricao: "Coordenei 3 calouros na criação de campanhas para ONGs." },
+    ],
+    certificados: [
+      { nome: "Branding e identidade visual", instituicao: "Escola Britânica de Artes Criativas (EBAC)", ano: "2024" },
+      { nome: "Figma do zero ao protótipo", instituicao: "Alura", ano: "2023" },
+    ],
+    idiomas: [{ idioma: "Inglês", nivel: "Intermediário" }],
+  },
+  "bruno-matsuda": {
+    titulo: "Fotógrafo de produto e eventos",
+    sobre:
+      "Fotografo produto para lojas online e cubro eventos pequenos e médios. Tenho estúdio portátil com fundo infinito e entrego as fotos tratadas em até 5 dias.",
+    conclusao: "Jun/2028",
+    modalidades: ["Presencial"],
+    tiposVaga: ["Freela", "Estágio"],
+    links: { instagram: "instagram.com/brunomatsuda.foto" },
+    experiencias: [
+      { cargo: "Fotógrafo freelancer", lugar: "Autônomo", periodo: "2024 – atual", descricao: "Mais de 30 ensaios de produto e 12 eventos cobertos." },
+    ],
+    certificados: [{ nome: "Iluminação de estúdio", instituicao: "SENAC", ano: "2024" }],
+    idiomas: [{ idioma: "Japonês", nivel: "Intermediário" }, { idioma: "Inglês", nivel: "Básico" }],
+  },
+  "carla-souza": {
+    titulo: "Redatora e repórter",
+    sobre:
+      "Escrevo para web desde o primeiro semestre. Já fiz newsletter cultural, textos de site para clínicas e roteiros para vídeo. Trabalho com pauta, entrevista e checagem, e entrego o texto revisado e otimizado para busca.",
+    conclusao: "Dez/2026",
+    modalidades: ["Remoto", "Híbrido"],
+    tiposVaga: ["Freela", "Estágio"],
+    links: { linkedin: "linkedin.com/in/carlasouza", site: "carlasouza.com.br" },
+    experiencias: [
+      { cargo: "Repórter estagiária", lugar: "Jornal da Cidade", periodo: "Mar/2025 – atual", descricao: "Cobertura de cultura e cidades, com 40 matérias publicadas." },
+      { cargo: "Editora", lugar: "Revista laboratório do curso", periodo: "2024", descricao: "Edição de pautas e revisão de textos da turma." },
+    ],
+    certificados: [
+      { nome: "SEO para redatores", instituicao: "Rock Content", ano: "2024" },
+      { nome: "Jornalismo de dados", instituicao: "Abraji", ano: "2025" },
+    ],
+    idiomas: [{ idioma: "Inglês", nivel: "Avançado" }, { idioma: "Espanhol", nivel: "Intermediário" }],
+  },
+  "diego-alves": {
+    titulo: "Desenvolvedor web",
+    sobre:
+      "Construo sites rápidos e pequenos sistemas sob medida. Gosto de entender o processo do cliente antes de escrever código, para resolver o problema certo.",
+    conclusao: "Dez/2027",
+    modalidades: ["Remoto", "Híbrido"],
+    tiposVaga: ["Freela", "Projeto", "Estágio"],
+    links: { github: "github.com/diegoalves", linkedin: "linkedin.com/in/diegoalves" },
+    experiencias: [
+      { cargo: "Bolsista de iniciação científica", lugar: "UNISAGRADO", periodo: "2025", descricao: "Aplicativo de agendamento para a clínica-escola." },
+    ],
+    certificados: [{ nome: "React", instituicao: "Rocketseat", ano: "2024" }],
+    idiomas: [{ idioma: "Inglês", nivel: "Avançado" }],
+  },
+  "eduarda-lima": {
+    titulo: "Ilustradora",
+    conclusao: "Dez/2028",
+    modalidades: ["Remoto"],
+    tiposVaga: ["Freela", "Projeto"],
+    links: { instagram: "instagram.com/edu.desenha", behance: "behance.net/eduardalima" },
+    certificados: [{ nome: "Ilustração editorial", instituicao: "Domestika", ano: "2025" }],
+    idiomas: [{ idioma: "Inglês", nivel: "Intermediário" }],
+  },
+  "felipe-costa": {
+    titulo: "Projetos de interiores para espaços pequenos",
+    conclusao: "Dez/2026",
+    modalidades: ["Presencial", "Híbrido"],
+    tiposVaga: ["Freela", "Estágio"],
+    links: { instagram: "instagram.com/felipecosta.arq" },
+    experiencias: [
+      { cargo: "Estagiário", lugar: "Escritório Lima Arquitetura", periodo: "2025", descricao: "Detalhamento de marcenaria e renders." },
+    ],
+    idiomas: [{ idioma: "Inglês", nivel: "Intermediário" }],
+  },
+  "giulia-santos": {
+    titulo: "Comunicação e assessoria de imprensa",
+    conclusao: "Dez/2026",
+    modalidades: ["Presencial", "Remoto"],
+    tiposVaga: ["Projeto", "Estágio"],
+    links: { linkedin: "linkedin.com/in/giuliasantos" },
+    experiencias: [
+      { cargo: "Assessora voluntária", lugar: "ONG Abraço", periodo: "2024 – atual", descricao: "Releases e relacionamento com a imprensa local." },
+    ],
+    certificados: [{ nome: "Gestão de crise", instituicao: "Aberje", ano: "2025" }],
+    idiomas: [{ idioma: "Inglês", nivel: "Fluente" }],
+  },
+  "henrique-dias": {
+    titulo: "Editor de vídeo e motion",
+    conclusao: "Jun/2027",
+    modalidades: ["Remoto"],
+    tiposVaga: ["Freela"],
+    links: { instagram: "instagram.com/henrique.edita" },
+    certificados: [{ nome: "After Effects essencial", instituicao: "Udemy", ano: "2024" }],
+    idiomas: [{ idioma: "Inglês", nivel: "Intermediário" }],
+  },
+};
+
+export const ALUNOS: Aluno[] = BASE.map((a) => ({ ...a, ...EXTRAS[a.slug] }));
 
 /**
  * Imagens de demonstração do Unsplash (uso gratuito, sem atribuição obrigatória).
