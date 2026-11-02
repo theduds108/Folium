@@ -1,17 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { OPORTUNIDADES } from "@/lib/conteudo";
+import { useEffect, useState } from "react";
+import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
 import { SERVICOS } from "@/lib/data";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { bancoLigado } from "@/lib/supabase";
+import { listarOportunidadesReais, marcarInteresse } from "@/lib/repositorio";
+import { useSessao } from "@/lib/sessao";
+import { Denunciar } from "@/components/Denunciar";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
 
 export function MuralOportunidades() {
+  const { usuario } = useSessao();
   const [tipo, setTipo] = useState("");
   const [servico, setServico] = useState("");
   const [interesse, setInteresse] = useState<string[]>([]);
+  const [reais, setReais] = useState<Oportunidade[]>([]);
 
-  const lista = OPORTUNIDADES.filter((o) => (!tipo || o.tipo === tipo) && (!servico || o.servico === servico));
+  useEffect(() => {
+    listarOportunidadesReais().then(setReais);
+  }, []);
+
+  const todas = MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : reais;
+  const lista = todas.filter((o) => (!tipo || o.tipo === tipo) && (!servico || o.servico === servico));
+
+  const tenhoInteresse = (o: Oportunidade) => {
+    setInteresse((x) => (x.includes(o.id) ? x : [...x, o.id]));
+    if (o.real && usuario) marcarInteresse(o.id, usuario.id).catch(() => {});
+  };
 
   return (
     <>
@@ -52,13 +69,20 @@ export function MuralOportunidades() {
                 <div><dt>Orçamento</dt><dd>{o.orcamento}</dd></div>
                 <div><dt>Prazo</dt><dd>{o.prazo}</dd></div>
               </dl>
-              <button
-                type="button"
-                className={marcada ? "botao botao-contorno" : "botao botao-primario"}
-                onClick={() => setInteresse((x) => (marcada ? x.filter((i) => i !== o.id) : [...x, o.id]))}
-              >
-                {marcada ? "Interesse enviado ✓" : "Tenho interesse"}
-              </button>
+              {marcada && o.contato ? (
+                <p className="salvo" style={{ margin: 0 }}>
+                  Fale com a empresa: <strong>{o.contato}</strong>
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  className={marcada ? "botao botao-contorno" : "botao botao-primario"}
+                  onClick={() => (marcada ? setInteresse((x) => x.filter((i) => i !== o.id)) : tenhoInteresse(o))}
+                >
+                  {marcada ? "Interesse enviado ✓" : "Tenho interesse"}
+                </button>
+              )}
+              {o.real && <Denunciar alvo={o.id} tipo="oportunidade" />}
             </article>
           );
         })}

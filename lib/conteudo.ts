@@ -42,6 +42,10 @@ export type Oportunidade = {
   prazo: string;
   descricao: string;
   publicadaHa: string;
+  /** Contato da empresa (só nas vagas reais, aprovadas pela equipe). */
+  contato?: string;
+  /** Verdadeiro para vagas que vêm do banco. */
+  real?: boolean;
 };
 
 export const OPORTUNIDADES: Oportunidade[] = [

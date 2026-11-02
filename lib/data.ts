@@ -7,7 +7,7 @@ export type Trabalho = {
   descricao: string;
   /** Cor de fundo usada enquanto a imagem carrega (ou se não houver imagem). */
   cor: string;
-  /** Imagem de demonstração (Unsplash). */
+  /** Imagem: id do Unsplash (demonstração) ou URL completa (enviada pelo aluno). */
   imagem?: string;
 };
 
@@ -22,8 +22,10 @@ export type Aluno = {
   habilidades: string[];
   valorReferencia: string;
   disponivel: boolean;
-  /** Foto de demonstração (Unsplash). */
+  /** Foto: id do Unsplash (demonstração) ou URL completa (enviada pelo aluno). */
   foto?: string;
+  /** Verdadeiro para perfis que vêm do banco (não são exemplos). */
+  real?: boolean;
   whatsapp: string;
   email: string;
   trabalhos: Trabalho[];
@@ -214,7 +216,13 @@ export const ALUNOS: Aluno[] = [
  * Servem só para visualizar o layout; os alunos reais vão subir as próprias fotos.
  */
 export function unsplash(id: string, largura = 800) {
+  if (id.startsWith("http")) return id;
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${largura}&q=70`;
+}
+
+/** Endereço do perfil público: exemplos têm página própria; perfis reais abrem por parâmetro. */
+export function linkPerfil(a: Pick<Aluno, "slug" | "real">) {
+  return a.real ? `/perfil/?u=${encodeURIComponent(a.slug)}` : `/aluno/${a.slug}`;
 }
 
 export function buscarAluno(slug: string) {

@@ -2,22 +2,48 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DOMINIOS_INSTITUCIONAIS, emailInstitucional } from "@/lib/config";
+import { bancoLigado, supabase } from "@/lib/supabase";
+import { traduzirErro } from "@/lib/repositorio";
+import { useSessao } from "@/lib/sessao";
 
 export default function Entrar() {
   const router = useRouter();
+  const { usuario } = useSessao();
   const [email, setEmail] = useState("");
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
-  const enviar = (e: React.FormEvent) => {
+  // Quem já está logado vai direto para o portfólio.
+  useEffect(() => {
+    if (usuario) router.replace("/meu-perfil");
+  }, [usuario, router]);
+
+  const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailInstitucional(email)) {
+    const limpo = email.trim().toLowerCase();
+    if (!emailInstitucional(limpo)) {
       setErro(`Use seu e-mail institucional (termina em @${DOMINIOS_INSTITUCIONAIS[0]}).`);
       return;
     }
     setErro("");
+    const sb = supabase();
+    if (!sb) {
+      setEnviado(true);
+      return;
+    }
+    setEnviando(true);
+    const { error } = await sb.auth.signInWithOtp({
+      email: limpo,
+      options: { emailRedirectTo: `${window.location.origin}/meu-perfil/`, shouldCreateUser: true },
+    });
+    setEnviando(false);
+    if (error) {
+      setErro(traduzirErro(error).message);
+      return;
+    }
     setEnviado(true);
   };
 
@@ -47,7 +73,9 @@ export default function Entrar() {
                 />
                 {erro && <span id="erro-email" className="erro">{erro}</span>}
               </label>
-              <button className="botao botao-primario" type="submit">Receber link de acesso</button>
+              <button className="botao botao-primario" type="submit" disabled={enviando}>
+                {enviando ? "Enviando…" : "Receber link de acesso"}
+              </button>
             </form>
             <p className="suave" style={{ marginTop: 20, marginBottom: 0, fontSize: "0.92rem" }}>
               Quer contratar? Você não precisa de conta. <Link href="/talentos">Ver talentos</Link>
@@ -57,14 +85,23 @@ export default function Entrar() {
           <>
             <h1 style={{ fontSize: "1.9rem" }}>Confira seu e-mail</h1>
             <p className="suave">
-              Mandamos um link de acesso para <strong>{email}</strong>. Ele vale por 1 hora.
+              Mandamos um link de acesso para <strong>{email.trim().toLowerCase()}</strong>. Abra o link neste
+              aparelho para entrar. Se não chegar em alguns minutos, olhe a caixa de spam.
             </p>
-            <div className="aviso" style={{ marginBottom: 16 }}>
-              Versão de demonstração: o envio de e-mail entra quando o banco de dados for ligado.
-            </div>
-            <button className="botao botao-verde" style={{ width: "100%" }} onClick={() => router.push("/meu-perfil")}>
-              Continuar para meu portfólio
-            </button>
+            {bancoLigado ? (
+              <button className="botao botao-contorno" style={{ width: "100%" }} onClick={() => setEnviado(false)}>
+                Usar outro e-mail
+              </button>
+            ) : (
+              <>
+                <div className="aviso" style={{ marginBottom: 16 }}>
+                  Modo demonstração: o banco ainda não foi ligado, então nenhum e-mail foi enviado.
+                </div>
+                <button className="botao botao-verde" style={{ width: "100%" }} onClick={() => router.push("/meu-perfil")}>
+                  Continuar para meu portfólio
+                </button>
+              </>
+            )}
           </>
         )}
       </div>

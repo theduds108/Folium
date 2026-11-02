@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ALUNOS, CURSOS, SERVICOS } from "@/lib/data";
+import { ALUNOS, CURSOS, SERVICOS, type Aluno } from "@/lib/data";
 import { CartaoAluno } from "@/components/CartaoAluno";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { listarAlunosReais } from "@/lib/repositorio";
+import { bancoLigado } from "@/lib/supabase";
 
 function normalizar(s: string) {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -15,10 +18,17 @@ export function BuscaTalentos() {
   const [curso, setCurso] = useState("");
   const [servico, setServico] = useState("");
   const [soDisponiveis, setSoDisponiveis] = useState(false);
+  const [reais, setReais] = useState<Aluno[]>([]);
+
+  useEffect(() => {
+    listarAlunosReais().then(setReais);
+  }, []);
+
+  const todos = useMemo(() => (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...ALUNOS] : reais), [reais]);
 
   const resultado = useMemo(() => {
     const termos = normalizar(texto).split(/\s+/).filter(Boolean);
-    return ALUNOS.filter((a) => {
+    return todos.filter((a) => {
       if (curso && a.curso !== curso) return false;
       if (servico && !a.servicos.includes(servico)) return false;
       if (soDisponiveis && !a.disponivel) return false;
@@ -28,7 +38,7 @@ export function BuscaTalentos() {
       );
       return termos.every((t) => alvo.includes(t));
     });
-  }, [texto, curso, servico, soDisponiveis]);
+  }, [todos, texto, curso, servico, soDisponiveis]);
 
   const limpar = () => {
     setTexto("");
@@ -80,7 +90,7 @@ export function BuscaTalentos() {
       {resultado.length > 0 ? (
         <div className="grade-alunos revelar-grupo">
           {resultado.map((a) => (
-            <CartaoAluno key={a.slug} aluno={a} />
+            <CartaoAluno key={(a.real ? "r-" : "e-") + a.slug} aluno={a} />
           ))}
         </div>
       ) : (

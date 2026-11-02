@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Aluno } from "@/lib/data";
-import { iniciais, unsplash } from "@/lib/data";
+import { iniciais, linkPerfil, unsplash } from "@/lib/data";
 
 const FUNDOS = ["#2F3E2A", "#B0673B", "#4F7A3A", "#6B4A34"];
 
@@ -13,7 +13,7 @@ function corDe(slug: string) {
 /** Cartão do aluno em formato de polaroide. A "foto" mostra as iniciais até haver upload de imagem. */
 export function CartaoAluno({ aluno }: { aluno: Aluno }) {
   return (
-    <Link href={`/aluno/${aluno.slug}`} className="polaroide">
+    <Link href={linkPerfil(aluno)} className="polaroide">
       <span className="polaroide-foto" style={{ background: corDe(aluno.slug) }}>
         {aluno.foto ? (
           // eslint-disable-next-line @next/next/no-img-element

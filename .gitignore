@@ -3,3 +3,9 @@ node_modules
 out
 next-env.d.ts
 *.tsbuildinfo
+
+# variáveis locais (chaves do Supabase)
+.env*.local
+# arquivos temporários do Supabase local
+supabase/.branches
+supabase/.temp

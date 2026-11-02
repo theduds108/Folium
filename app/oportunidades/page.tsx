@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { MuralOportunidades } from "./MuralOportunidades";
+import { PublicarOportunidade } from "./PublicarOportunidade";
 
 export const metadata: Metadata = { title: "Oportunidades" };
 
@@ -17,9 +17,12 @@ export default function Oportunidades() {
           <strong>Tem um trabalho para oferecer?</strong>
           <span className="suave"> A primeira vaga é grátis.</span>
         </div>
-        <Link href="/planos" className="botao botao-verde">Publicar oportunidade</Link>
+        <a href="#publicar" className="botao botao-verde">Publicar oportunidade</a>
       </div>
       <MuralOportunidades />
+      <section className="secao" style={{ maxWidth: 720 }}>
+        <PublicarOportunidade />
+      </section>
     </div>
   );
 }

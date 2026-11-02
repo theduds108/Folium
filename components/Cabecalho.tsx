@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FolhaIcone } from "./Logo";
+import { useSessao } from "@/lib/sessao";
 
 const LINKS = [
   { href: "/", rotulo: "Início", icone: "M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" },
@@ -18,6 +19,8 @@ function ativo(pathname: string, href: string) {
 
 export function Cabecalho() {
   const pathname = usePathname();
+  const { usuario } = useSessao();
+  const entrar = usuario ? { href: "/meu-perfil", rotulo: "Meu portfólio" } : { href: "/entrar", rotulo: "Entrar" };
   return (
     <>
       <header className="cabecalho">
@@ -32,11 +35,11 @@ export function Cabecalho() {
             <Link href="/guia" className={ativo(pathname, "/guia") ? "ativo" : ""}>Guia</Link>
             <Link href="/sobre" className={ativo(pathname, "/sobre") ? "ativo" : ""}>Sobre</Link>
             <Link href="/planos" className={ativo(pathname, "/planos") ? "ativo" : ""}>Planos</Link>
-            <Link href="/meu-perfil" className={ativo(pathname, "/meu-perfil") ? "ativo" : ""}>Meu portfólio</Link>
-            <Link href="/entrar" className="botao botao-primario">Entrar</Link>
+            {!usuario && <Link href="/meu-perfil" className={ativo(pathname, "/meu-perfil") ? "ativo" : ""}>Meu portfólio</Link>}
+            <Link href={entrar.href} className="botao botao-primario">{entrar.rotulo}</Link>
           </nav>
-          <Link href="/entrar" className="botao botao-contorno barra-entrar" style={{ minHeight: 38, padding: "6px 14px" }}>
-            Entrar
+          <Link href={entrar.href} className="botao botao-contorno barra-entrar" style={{ minHeight: 38, padding: "6px 14px" }}>
+            {usuario ? "Meu perfil" : "Entrar"}
           </Link>
         </div>
       </header>
