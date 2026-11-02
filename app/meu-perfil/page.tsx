@@ -29,10 +29,13 @@ import { Seletor } from "@/components/Seletor";
 import { Contador } from "@/components/Contador";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 import { EnquadrarFoto } from "@/components/EnquadrarFoto";
+import { GuiaPrecos } from "@/components/GuiaPrecos";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
+/** Rascunho automático de quem está logado: guarda o que ainda não foi salvo no banco. */
+const CHAVE_AUTO = "folium-autosave-perfil";
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
 const MAX_TRABALHOS = 6;
 const MAX_GALERIA = 4;
@@ -245,11 +248,15 @@ function Editor(props: PropsEditor) {
   const [cursoOutro, setCursoOutro] = useState(false);
   const [passo, setPasso] = useState<Passo>("voce");
   const [enquadrando, setEnquadrando] = useState(false);
+  const [recuperado, setRecuperado] = useState(false);
+  /** Texto (JSON) do último estado salvo no banco: serve para saber se há algo ainda não salvo. */
+  const base = useRef("");
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const trocouPasso = useRef(false);
   const userId = props.modo === "banco" ? props.userId : "";
   const email = props.modo === "banco" ? props.email : "";
   const real = props.modo === "banco";
+  const chaveAuto = `${CHAVE_AUTO}-${userId}`;
 
   useEffect(() => {
     if (props.modo === "demo") {
@@ -424,6 +431,13 @@ function Editor(props: PropsEditor) {
         }))
       );
       setR((atual) => ({ ...atual, slug }));
+      base.current = JSON.stringify({ ...r, slug });
+      setRecuperado(false);
+      try {
+        localStorage.removeItem(chaveAuto);
+      } catch {
+        /* sem acesso ao armazenamento */
+      }
       setSalvo(true);
       cadastrarEmpresas(r.experiencias.map((x) => x.lugar)).catch(() => {});
     } catch (e) {
@@ -432,6 +446,50 @@ function Editor(props: PropsEditor) {
       setSalvando(false);
     }
   };
+
+  // Quando o perfil do banco termina de carregar: guarda como "base" e, se havia
+  // preenchimento não salvo (ex.: a pessoa saiu da página sem querer), traz de volta.
+  useEffect(() => {
+    if (!real || !pronto) return;
+    base.current = JSON.stringify(r);
+    try {
+      const guardado = localStorage.getItem(chaveAuto);
+      if (!guardado) return;
+      const g = JSON.parse(guardado) as { r: Rascunho; passo?: Passo };
+      if (JSON.stringify(g.r) === base.current) {
+        localStorage.removeItem(chaveAuto);
+        return;
+      }
+      setR({ ...VAZIO, ...g.r, trabalhos: (g.r.trabalhos ?? [TRABALHO_VAZIO]).map((t) => ({ ...TRABALHO_VAZIO, ...t })) });
+      if (g.passo && PASSOS.some((p) => p.id === g.passo)) setPasso(g.passo);
+      setRecuperado(true);
+    } catch {
+      /* sem acesso ao armazenamento: segue sem recuperar */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pronto, real]);
+
+  // Guarda automaticamente (neste aparelho) tudo o que ainda não foi salvo no banco.
+  useEffect(() => {
+    if (!real || !pronto || !base.current) return;
+    const atual = JSON.stringify(r);
+    try {
+      if (atual === base.current) localStorage.removeItem(chaveAuto);
+      else localStorage.setItem(chaveAuto, JSON.stringify({ r, passo }));
+    } catch {
+      /* sem espaço ou sem acesso: o botão Salvar continua funcionando */
+    }
+  }, [r, passo, pronto, real, chaveAuto]);
+
+  // Avisa antes de fechar a aba se houver algo não salvo.
+  useEffect(() => {
+    if (!real) return;
+    const aviso = (e: BeforeUnloadEvent) => {
+      if (base.current && JSON.stringify(r) !== base.current) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", aviso);
+    return () => window.removeEventListener("beforeunload", aviso);
+  }, [r, real]);
 
   // Ao trocar de ficha, leva o foco (e a rolagem) para o título da nova ficha.
   useEffect(() => {
@@ -470,6 +528,26 @@ function Editor(props: PropsEditor) {
             {real ? <>Você entrou como <strong>{email}</strong>. </> : null}
             Três fichas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
           </p>
+          {recuperado && (
+            <div className="aviso recuperado" role="status">
+              <span>Recuperamos o que você estava preenchendo e ainda não tinha salvo. Confira e clique em <strong>Salvar portfólio</strong>.</span>
+              <button
+                type="button"
+                className="link-denuncia"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem(chaveAuto);
+                  } catch {
+                    /* ok */
+                  }
+                  if (base.current) setR(JSON.parse(base.current) as Rascunho);
+                  setRecuperado(false);
+                }}
+              >
+                Descartar e voltar ao salvo
+              </button>
+            </div>
+          )}
           <Fichas atual={passo} feitas={feitas} onIr={irPara} />
         </div>
 
@@ -691,7 +769,7 @@ function Editor(props: PropsEditor) {
           <label className="campo">
             Valor de referência
             <input value={r.valorReferencia} onChange={(e) => mudar("valorReferencia", e.target.value)} placeholder="A partir de R$ 150" />
-            <span className="ajuda"><Link href="/guia#precos">Não sabe quanto cobrar? Veja o guia.</Link></span>
+            <span className="ajuda"><GuiaPrecos /></span>
           </label>
           <fieldset className="campo">
             <legend>Tenho interesse em</legend>
