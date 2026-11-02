@@ -2404,3 +2404,20 @@ html { scroll-padding-top: 84px; }
 }
 .enquadrar-quadro:active .enquadrar-dica { opacity: 0; transition: opacity var(--mov-rapido) ease-out; }
 .obra-desc { white-space: pre-line; }
+
+/* Barra de salvar: uma linha compacta; ações de conta alinhadas à direita */
+.editor-form .barra-salvar { padding: 14px 18px; gap: 10px; }
+.barra-salvar-linha { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.barra-salvar-extra { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.botao-sair { gap: 8px; color: var(--texto-suave); border-color: var(--linha); }
+.botao-sair:hover { color: var(--verde-musgo); border-color: var(--verde-musgo); }
+@media (max-width: 560px) {
+  .barra-salvar-linha .botao-primario { flex: 1 1 100%; }
+  .barra-salvar-extra { margin-left: 0; width: 100%; justify-content: space-between; }
+}
+.turbinar { margin: 0; }
+@media (max-width: 560px) {
+  .barra-salvar-extra { flex-wrap: nowrap; gap: 8px; }
+  .barra-salvar-extra .link-mao { font-size: 1.15rem; }
+  .barra-salvar-extra .botao-sair { padding: 4px 12px; white-space: nowrap; }
+}

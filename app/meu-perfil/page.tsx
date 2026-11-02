@@ -880,7 +880,7 @@ function Editor(props: PropsEditor) {
 
         <div className="cartao barra-salvar">
           {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div className="barra-salvar-linha">
             <button className="botao botao-primario" type="submit" disabled={salvando || enviando !== null}>
               {salvando ? "Salvando…" : real ? "Salvar portfólio" : "Salvar rascunho"}
             </button>
@@ -892,17 +892,22 @@ function Editor(props: PropsEditor) {
                 </span>
               )}
             </span>
+            {real && (
+              <span className="barra-salvar-extra">
+                {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio →</Link>}
+                <button type="button" className="botao botao-contorno botao-pequeno botao-sair" onClick={sair}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10 5l3 3-3 3M13 8H6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Sair da conta
+                </button>
+              </span>
+            )}
           </div>
           {salvo && essenciaisProntas && PASSOS[indice]?.essencial && (
             <p className="turbinar">
               Portfólio no ar! Quando quiser, <button type="button" className="link-mao" onClick={() => irPara("detalhes")}>turbine com mais fichas →</button>
             </p>
-          )}
-          {real && (
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-              {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio público →</Link>}
-              <button type="button" className="link-denuncia" onClick={sair}>Sair da conta</button>
-            </div>
           )}
         </div>
       </form>
