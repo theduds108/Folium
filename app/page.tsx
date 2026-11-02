@@ -1,44 +1,74 @@
 import Link from "next/link";
-import { ALUNOS } from "@/lib/data";
+import { ALUNOS, SERVICOS } from "@/lib/data";
 import { CartaoAluno } from "@/components/CartaoAluno";
+import { Leque } from "@/components/Leque";
+import { Anotacao, Faixa, Ornamentos, PapelRasgado } from "@/components/Zine";
 
 export default function Inicio() {
   const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
+  const leque = ALUNOS.slice(0, 5);
 
   return (
     <>
-      <section className="hero">
-        <div className="container hero-grade">
-          <div>
-            <span className="etiqueta etiqueta-terra">Começando na UNISAGRADO</span>
-            <h1 style={{ marginTop: 16 }}>Portfólios que viram oportunidade.</h1>
-            <p className="lead suave">
-              O Fólium é a vitrine de universitários da região de Bauru. Alunos mostram seus trabalhos,
-              e quem precisa de um freela encontra talento local, jovem e verificado pela instituição.
-            </p>
-            <form className="busca-rapida" action="/talentos" role="search">
-              <input
-                className="entrada"
-                type="search"
-                name="q"
-                placeholder="Ex.: identidade visual, fotografia…"
-                aria-label="Buscar talentos"
-              />
-              <button className="botao botao-verde" type="submit">Buscar</button>
-            </form>
-            <div className="hero-acoes">
-              <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
-              <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
-            </div>
+      <section className="capa-zine">
+        <div className="container">
+          <div className="rotulos">
+            <span>Bem-vindo ao</span>
+            <span>UNISAGRADO · 2026</span>
           </div>
+
+          <h1 className="marca-gigante" aria-label="Fólium">
+            <span className="bloco-cobre" aria-hidden="true" />
+            <span aria-hidden="true">F</span>
+            <span className="letra-folha" aria-hidden="true">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="11" />
+                <path d="M28 72c0-26 16-42 44-44 0 28-16 44-44 44Z" fill="currentColor" />
+                <path d="M30 70 58 42" stroke="#F6F0E4" strokeWidth="4" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span aria-hidden="true">LIUM</span>
+          </h1>
+
+          <div className="rotulos rotulos-baixo">
+            <span>Vitrine de universitários</span>
+            <Anotacao className="anotacao-capa">portfólios que viram oportunidade</Anotacao>
+            <span>Bauru · SP</span>
+          </div>
+
+          <div className="centro">
+            <Ornamentos />
+          </div>
+
+          <p className="lead-zine">
+            Alunos mostram seus trabalhos. Quem precisa de um freela encontra talento local, jovem e verificado pela
+            instituição.
+          </p>
+
+          <form className="busca-rapida" action="/talentos" role="search">
+            <input className="entrada" type="search" name="q" placeholder="Ex.: identidade visual, fotografia…" aria-label="Buscar talentos" />
+            <button className="botao botao-verde" type="submit">Buscar</button>
+          </form>
+          <div className="hero-acoes">
+            <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
+            <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
+          </div>
+
+          <Leque alunos={leque} />
         </div>
       </section>
+
+      <div className="bloco-escuro">
+        <PapelRasgado />
+        <Faixa itens={[...SERVICOS]} />
+        <PapelRasgado inverter />
+      </div>
 
       <section className="secao">
         <div className="container">
           <div className="secao-titulo">
-            <h2>Talentos disponíveis agora</h2>
-            <Link href="/talentos" className="suave">Ver todos →</Link>
+            <h2>Disponíveis agora</h2>
+            <Link href="/talentos" className="link-mao">ver todos →</Link>
           </div>
           <div className="grade-alunos">
             {destaques.map((a) => (
@@ -54,7 +84,7 @@ export default function Inicio() {
           <div className="dois-lados" style={{ marginTop: 20 }}>
             <div className="cartao lado">
               <h3>Para alunos</h3>
-              <ol>
+              <ol className="passos">
                 <li>Entre com seu e-mail institucional da UNISAGRADO.</li>
                 <li>Monte seu portfólio com trabalhos, áreas e valores de referência.</li>
                 <li>Compartilhe seu link e receba contatos de quem quer contratar.</li>
@@ -62,7 +92,7 @@ export default function Inicio() {
             </div>
             <div className="cartao lado">
               <h3>Para quem contrata</h3>
-              <ol>
+              <ol className="passos">
                 <li>Navegue sem precisar criar conta.</li>
                 <li>Filtre por curso, tipo de serviço e habilidade.</li>
                 <li>Fale direto com o aluno pelo WhatsApp ou e-mail.</li>

@@ -750,3 +750,432 @@ a:focus-visible {
   padding: 0;
   flex: none;
 }
+
+/* ===========================================================
+   Estilo "zine" (referências: portfólios de papel quadriculado,
+   tipografia pesada, papel rasgado, anotações à mão e leque de cartões)
+   =========================================================== */
+
+body {
+  background-color: var(--creme-papel);
+  background-image:
+    linear-gradient(rgba(47, 62, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 62, 42, 0.055) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+h1, h2, h3 {
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+h2 { font-size: clamp(1.7rem, 5vw, 2.6rem); }
+h3 { font-size: 1rem; letter-spacing: 0.01em; }
+
+.logo { text-transform: uppercase; font-size: 1.25rem; letter-spacing: 0.02em; }
+
+/* Rótulos pequenos nos cantos */
+.rotulos {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.capa-zine .rotulos > span:first-child { max-width: 9em; }
+
+.centro { display: flex; justify-content: center; }
+
+/* Topo da página inicial */
+.capa-zine {
+  padding: 40px 0 0;
+  overflow: hidden;
+}
+
+.marca-gigante {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 18px 0 10px;
+  font-size: clamp(4.2rem, 19vw, 13rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  color: var(--verde-musgo);
+}
+
+.marca-gigante > span { position: relative; z-index: 1; }
+
+.bloco-cobre {
+  position: absolute !important;
+  z-index: 0 !important;
+  left: 50%;
+  top: -18%;
+  width: 17%;
+  height: 136%;
+  transform: translateX(-50%);
+  background: var(--marrom-cobre);
+}
+
+.letra-folha {
+  display: inline-block;
+  width: 0.78em;
+  height: 0.78em;
+  margin: 0 0.02em;
+  color: var(--verde-folio);
+}
+
+.letra-folha svg { width: 100%; height: 100%; }
+
+.rotulos-baixo { align-items: center; margin-bottom: 12px; }
+
+.anotacao {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 2px;
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: var(--castanho-cafe);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.anotacao svg { flex: none; margin-top: -10px; }
+.anotacao span { padding-top: 14px; transform: rotate(-3deg); }
+
+.ornamentos { display: inline-flex; gap: 10px; margin: 8px 0 18px; }
+.ornamentos svg { width: 22px; height: 22px; }
+
+.lead-zine {
+  max-width: 34em;
+  margin: 0 auto 4px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--texto-suave);
+}
+
+.capa-zine .busca-rapida { margin: 20px auto 0; }
+.capa-zine .hero-acoes { justify-content: center; }
+
+@media (max-width: 640px) {
+  .rotulos-baixo { flex-wrap: wrap; justify-content: space-between; }
+  .rotulos-baixo .anotacao { order: 3; width: 100%; justify-content: center; }
+}
+
+/* Leque de fichas */
+.leque {
+  position: relative;
+  height: clamp(210px, 26vw, 300px);
+  margin-top: 28px;
+}
+
+.ficha {
+  --w: clamp(120px, 17vw, 200px);
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: var(--w);
+  aspect-ratio: 3 / 4.2;
+  margin-left: calc(var(--w) / -2);
+  padding: 12px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(47, 62, 42, 0.25);
+  border: 1px solid rgba(47, 62, 42, 0.15);
+  transform-origin: 50% 160%;
+  transform: rotate(calc(var(--pos) * 15deg)) translateY(calc(var(--pos) * var(--pos) * 6px));
+  transition: transform 0.25s ease;
+}
+
+.ficha:hover,
+.ficha:focus-visible {
+  transform: rotate(calc(var(--pos) * 15deg)) translateY(-26px);
+  z-index: 20 !important;
+}
+
+.ficha-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+.ficha-iniciais {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: calc(var(--w) * 0.36);
+  line-height: 1;
+}
+
+.ficha-nome {
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.ficha-servico {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.1rem;
+  line-height: 1.1;
+  opacity: 0.9;
+}
+
+/* Bloco escuro com papel rasgado e faixa de texto */
+.bloco-escuro { position: relative; z-index: 2; margin-top: -30px; }
+
+.papel-rasgado {
+  display: block;
+  width: 100%;
+  height: 26px;
+  margin-bottom: -1px;
+}
+
+.bloco-escuro .papel-rasgado:last-child { margin: -1px 0 0; }
+
+.faixa {
+  background: var(--verde-musgo);
+  color: var(--creme-papel);
+  overflow: hidden;
+  padding: 18px 0;
+}
+
+.faixa-trilho {
+  display: flex;
+  width: max-content;
+  animation: correr 38s linear infinite;
+}
+
+.faixa-trilho > div {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding-right: 28px;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.faixa-orn { color: var(--marrom-cobre); font-size: 0.7em; }
+
+@keyframes correr {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faixa-trilho { animation: none; }
+  .ficha { transition: none; }
+}
+
+.link-mao {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.4rem;
+  color: var(--castanho-cafe);
+}
+
+/* Cartão polaroide */
+.polaroide {
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+  padding: 10px 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--linha);
+  box-shadow: 0 1px 2px rgba(47, 62, 42, 0.08), 0 10px 24px rgba(47, 62, 42, 0.1);
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.grade-alunos .polaroide:nth-child(3n + 1) { transform: rotate(-1.2deg); }
+.grade-alunos .polaroide:nth-child(3n + 2) { transform: rotate(0.8deg); }
+.grade-alunos .polaroide:nth-child(3n) { transform: rotate(-0.4deg); }
+.grade-alunos .polaroide:hover { transform: rotate(0) translateY(-4px); }
+
+.polaroide-foto {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  color: var(--creme-papel);
+  border-radius: 3px;
+}
+
+.polaroide-iniciais {
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 3.6rem;
+  line-height: 1;
+}
+
+.polaroide-curso {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.polaroide-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 4px 0;
+}
+
+.polaroide-nome {
+  font-family: var(--fonte-titulo), sans-serif;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+  line-height: 1.05;
+}
+
+.polaroide-sub { font-size: 0.85rem; margin-top: -4px; }
+
+/* Passos numerados à mão */
+.passos { list-style: none; padding: 0 !important; counter-reset: passo; }
+.passos li { counter-increment: passo; position: relative; padding-left: 38px; }
+.passos li::before {
+  content: counter(passo);
+  position: absolute;
+  left: 4px;
+  top: -8px;
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.9rem;
+  color: var(--marrom-cobre);
+}
+
+.faixa-confianca h3 { font-size: 1.05rem; }
+
+/* Perfil do aluno */
+.perfil-cabeca { padding-top: 28px; }
+
+.perfil-nome {
+  font-size: clamp(2.6rem, 9vw, 6rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  margin: 14px 0 0;
+}
+
+.anotacao-perfil { margin-left: clamp(0px, 8vw, 120px); }
+
+.perfil-ola {
+  display: grid;
+  grid-template-columns: 170px 1fr 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .perfil-ola { grid-template-columns: 150px 1fr; }
+  .perfil-colunas { grid-column: 1 / -1; }
+}
+
+@media (max-width: 540px) {
+  .perfil-ola { grid-template-columns: 1fr; }
+}
+
+.moldura {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border: 1.5px solid var(--marrom-cobre);
+  padding: 6px;
+  max-width: 200px;
+}
+
+.moldura-iniciais {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--castanho-cafe);
+  color: var(--creme-papel);
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 3.4rem;
+}
+
+.moldura i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border: 1.5px solid var(--marrom-cobre);
+}
+
+.moldura i:nth-of-type(1) { left: -5px; top: -5px; }
+.moldura i:nth-of-type(2) { right: -5px; top: -5px; }
+.moldura i:nth-of-type(3) { left: -5px; bottom: -5px; }
+.moldura i:nth-of-type(4) { right: -5px; bottom: -5px; }
+
+.titulo-ola { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-bottom: 10px; }
+
+.perfil-bio { font-size: 1.05rem; max-width: 34em; }
+
+.perfil-colunas h3 { margin: 6px 0 10px; }
+.perfil-colunas .etiquetas { margin-bottom: 16px; }
+
+/* Trabalhos */
+.trabalho {
+  background: #fffdf8;
+  padding: 10px 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--linha);
+  box-shadow: 0 1px 2px rgba(47, 62, 42, 0.08), 0 10px 24px rgba(47, 62, 42, 0.1);
+}
+
+.trabalho-capa {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  color: var(--creme-papel);
+  border-radius: 3px;
+}
+
+.trabalho-capa span {
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.trabalho-capa strong {
+  font-family: var(--fonte-titulo), sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.trabalho-desc {
+  margin: 10px 4px 0;
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.3rem;
+  line-height: 1.15;
+  color: var(--castanho-cafe);
+}
+
+@media (max-width: 640px) {
+  .polaroide-foto { aspect-ratio: 16 / 9; }
+  .leque { height: 200px; }
+}

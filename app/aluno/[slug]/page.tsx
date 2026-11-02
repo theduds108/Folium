@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ALUNOS, buscarAluno, iniciais } from "@/lib/data";
-import { Capa } from "@/components/Capa";
+import { Anotacao } from "@/components/Zine";
 import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "./CopiarLink";
 
@@ -37,26 +37,39 @@ export default async function PerfilAluno({ params }: Props) {
         <Link href="/talentos" className="suave">← Voltar para talentos</Link>
       </p>
 
+      <div className="perfil-cabeca">
+        <div className="rotulos">
+          <span>Portfólio · {aluno.curso}</span>
+          <span>{aluno.cidade}</span>
+        </div>
+        <h1 className="perfil-nome">{aluno.nome}</h1>
+        <Anotacao className="anotacao-perfil">{aluno.semestre}º semestre, UNISAGRADO</Anotacao>
+      </div>
+
       <div className="perfil-topo">
-        <div>
-          <div className="perfil-identidade">
-            <div className="avatar" style={{ width: 96, height: 96, fontSize: "2rem" }}>{iniciais(aluno.nome)}</div>
-            <div>
-              <h1>{aluno.nome}</h1>
-              <p className="suave" style={{ margin: "0 0 8px" }}>
-                {aluno.curso} · {aluno.semestre}º semestre · {aluno.cidade}
-              </p>
-              <SeloVerificado />
-            </div>
+        <div className="perfil-ola">
+          <div className="moldura" aria-hidden="true">
+            <span className="moldura-iniciais">{iniciais(aluno.nome)}</span>
+            <i /><i /><i /><i />
           </div>
-          <p style={{ fontSize: "1.1rem", maxWidth: "38em" }}>{aluno.bio}</p>
-          <div className="etiquetas" style={{ marginBottom: 8 }}>
-            {aluno.servicos.map((s) => (
-              <span key={s} className="etiqueta">{s}</span>
-            ))}
-            {aluno.habilidades.map((h) => (
-              <span key={h} className="etiqueta etiqueta-terra">{h}</span>
-            ))}
+          <div>
+            <h2 className="titulo-ola">Olá</h2>
+            <p className="perfil-bio">{aluno.bio}</p>
+            <SeloVerificado />
+          </div>
+          <div className="perfil-colunas">
+            <h3>Serviços</h3>
+            <div className="etiquetas">
+              {aluno.servicos.map((s) => (
+                <span key={s} className="etiqueta">{s}</span>
+              ))}
+            </div>
+            <h3>Habilidades</h3>
+            <div className="etiquetas">
+              {aluno.habilidades.map((h) => (
+                <span key={h} className="etiqueta etiqueta-terra">{h}</span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -80,17 +93,16 @@ export default async function PerfilAluno({ params }: Props) {
         </aside>
       </div>
 
-      <section className="secao" style={{ paddingTop: 24 }}>
+      <section className="secao" style={{ paddingTop: 40 }}>
         <h2>Trabalhos</h2>
         <div className="grade-trabalhos">
           {aluno.trabalhos.map((t) => (
-            <article key={t.titulo} className="cartao trabalho">
-              <Capa cor={t.cor} titulo={t.titulo} semTexto />
-              <div className="trabalho-corpo">
-                <span className="etiqueta" style={{ marginBottom: 6 }}>{t.tipo}</span>
-                <h3>{t.titulo}</h3>
-                <p className="suave">{t.descricao}</p>
+            <article key={t.titulo} className="trabalho">
+              <div className="trabalho-capa" style={{ background: t.cor }}>
+                <span>{t.tipo}</span>
+                <strong>{t.titulo}</strong>
               </div>
+              <p className="trabalho-desc">{t.descricao}</p>
             </article>
           ))}
         </div>
