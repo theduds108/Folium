@@ -2,116 +2,178 @@
 
 import { useState } from "react";
 import { SERVICOS } from "@/lib/data";
+import { OpcoesServicos } from "@/components/OpcoesServicos";
 import { bancoLigado } from "@/lib/supabase";
 import { enviarOportunidade } from "@/lib/repositorio";
+import { formatarData, mascaraReais, mascaraTelefone } from "@/lib/formato";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
+
+const PASSOS = [
+  { titulo: "Conte o que precisa", texto: "Leva 2 minutos e não precisa criar conta." },
+  { titulo: "A equipe confere", texto: "Verificamos cada empresa antes de a vaga ir ao ar." },
+  { titulo: "Alunos te chamam", texto: "Quem tiver interesse fala direto com você." },
+];
 
 /** Formulário para empresas publicarem uma vaga. Ela entra como "pendente" até a equipe aprovar. */
 export function PublicarOportunidade() {
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada] = useState(false);
   const [erro, setErro] = useState("");
+  const [contato, setContato] = useState("");
+  const [orcamento, setOrcamento] = useState("");
+  const [combinar, setCombinar] = useState(false);
+  const [tipo, setTipo] = useState<(typeof TIPOS)[number]>("Freela");
 
-  if (enviada)
-    return (
-      <div className="cartao" id="publicar">
-        <h2 style={{ fontSize: "1.5rem" }}>Vaga enviada</h2>
-        <p className="suave" style={{ marginBottom: 12 }}>
-          A equipe do Fólium confere cada empresa antes de a vaga ir ao ar. Você recebe retorno no contato informado.
-        </p>
-        <button className="botao botao-contorno" onClick={() => setEnviada(false)}>Enviar outra vaga</button>
-      </div>
-    );
+  const hoje = new Date().toISOString().slice(0, 10);
 
   return (
-    <form
-      id="publicar"
-      className="cartao form"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const f = new FormData(e.currentTarget);
-        const v = (k: string) => String(f.get(k) ?? "").trim();
-        setErro("");
-        if (!bancoLigado) {
-          setEnviada(true);
-          return;
-        }
-        setEnviando(true);
-        try {
-          await enviarOportunidade({
-            titulo: v("titulo"),
-            empresa: v("empresa"),
-            contato: v("contato"),
-            tipo: v("tipo") as (typeof TIPOS)[number],
-            servico: v("servico"),
-            cidade: v("cidade") || "Bauru, SP",
-            orcamento: v("orcamento"),
-            prazo: v("prazo"),
-            descricao: v("descricao"),
-          });
-          setEnviada(true);
-        } catch (err) {
-          setErro((err as Error).message);
-        } finally {
-          setEnviando(false);
-        }
-      }}
-    >
-      <div>
-        <h2 style={{ fontSize: "1.5rem", marginBottom: 4 }}>Publicar oportunidade</h2>
-        <p className="suave" style={{ margin: 0 }}>Não precisa de conta. A primeira vaga é grátis.</p>
-      </div>
-      <label className="campo">
-        O que você precisa
-        <input name="titulo" required minLength={3} maxLength={100} placeholder="Ex.: Logo para minha padaria" />
-      </label>
-      <div className="linha-dupla">
-        <label className="campo">
-          Empresa ou nome
-          <input name="empresa" required minLength={2} maxLength={80} />
-        </label>
-        <label className="campo">
-          Contato (WhatsApp ou e-mail)
-          <input name="contato" required minLength={5} maxLength={120} />
-        </label>
-      </div>
-      <div className="linha-dupla">
-        <label className="campo">
-          Tipo
-          <select name="tipo" defaultValue="Freela">
-            {TIPOS.map((t) => <option key={t}>{t}</option>)}
-          </select>
-        </label>
-        <label className="campo">
-          Serviço
-          <select name="servico" defaultValue={SERVICOS[0]}>
-            {SERVICOS.map((s) => <option key={s}>{s}</option>)}
-          </select>
-        </label>
-      </div>
-      <div className="linha-dupla">
-        <label className="campo">
-          Orçamento
-          <input name="orcamento" maxLength={60} placeholder="Ex.: R$ 400" />
-        </label>
-        <label className="campo">
-          Prazo
-          <input name="prazo" maxLength={60} placeholder="Ex.: 2 semanas" />
-        </label>
-      </div>
-      <label className="campo">
-        Cidade
-        <input name="cidade" maxLength={60} defaultValue="Bauru, SP" />
-      </label>
-      <label className="campo">
-        Descrição
-        <textarea name="descricao" required maxLength={600} rows={4} placeholder="Conte o que precisa, para quando e qualquer detalhe importante." />
-      </label>
-      {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
-      <button className="botao botao-verde" type="submit" disabled={enviando}>
-        {enviando ? "Enviando…" : "Enviar para análise"}
-      </button>
-    </form>
+    <div className="publicar cartao" id="publicar">
+      <aside className="publicar-lado">
+        <span className="rotulos"><span>Para empresas</span></span>
+        <h2>Publique uma oportunidade</h2>
+        <p>A primeira vaga é grátis. Talento universitário da região, com selo da instituição.</p>
+        <ol className="publicar-passos">
+          {PASSOS.map((p) => (
+            <li key={p.titulo}>
+              <strong>{p.titulo}</strong>
+              <span>{p.texto}</span>
+            </li>
+          ))}
+        </ol>
+      </aside>
+
+      {enviada ? (
+        <div className="publicar-form publicar-ok">
+          <span className="publicar-ok-icone" aria-hidden="true">✓</span>
+          <h3>Vaga enviada!</h3>
+          <p className="suave">
+            A equipe do Fólium confere a empresa e publica em até 1 dia útil. Você recebe retorno no contato informado.
+          </p>
+          <button className="botao botao-contorno" onClick={() => setEnviada(false)}>Enviar outra vaga</button>
+        </div>
+      ) : (
+        <form
+          className="publicar-form form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const f = new FormData(e.currentTarget);
+            const v = (k: string) => String(f.get(k) ?? "").trim();
+            setErro("");
+            if (!bancoLigado) {
+              setEnviada(true);
+              return;
+            }
+            const prazo = v("prazo");
+            setEnviando(true);
+            try {
+              await enviarOportunidade({
+                titulo: v("titulo"),
+                empresa: v("empresa"),
+                contato: contato.trim(),
+                tipo,
+                servico: v("servico"),
+                cidade: v("cidade") || "Bauru, SP",
+                orcamento: combinar ? "A combinar" : orcamento,
+                prazo: prazo ? `Até ${formatarData(prazo)}` : "",
+                descricao: v("descricao"),
+              });
+              setEnviada(true);
+            } catch (err) {
+              setErro((err as Error).message);
+            } finally {
+              setEnviando(false);
+            }
+          }}
+        >
+          <fieldset className="campo">
+            <legend>Tipo de oportunidade</legend>
+            <div className="opcoes">
+              {TIPOS.map((t) => (
+                <label key={t} className="opcao">
+                  <input type="radio" name="tipo" checked={tipo === t} onChange={() => setTipo(t)} />
+                  {t}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <label className="campo">
+            O que você precisa
+            <input name="titulo" required minLength={3} maxLength={100} placeholder="Ex.: Logo para minha padaria" />
+          </label>
+
+          <label className="campo">
+            Serviço
+            <select name="servico" defaultValue={SERVICOS[0]}>
+              <OpcoesServicos />
+            </select>
+          </label>
+
+          <label className="campo">
+            Descrição
+            <textarea name="descricao" required maxLength={600} rows={4} placeholder="O que precisa ser feito, onde vai ser usado e qualquer detalhe importante." />
+          </label>
+
+          <div className="linha-dupla">
+            <label className="campo">
+              Orçamento
+              <input
+                inputMode="numeric"
+                value={combinar ? "" : orcamento}
+                disabled={combinar}
+                onChange={(e) => setOrcamento(mascaraReais(e.target.value))}
+                placeholder="R$ 0"
+              />
+              <span className="filtro-check" style={{ fontWeight: 500 }}>
+                <input type="checkbox" checked={combinar} onChange={(e) => setCombinar(e.target.checked)} />
+                A combinar
+              </span>
+            </label>
+            <label className="campo">
+              Entregar até
+              <input type="date" name="prazo" min={hoje} />
+              <span className="ajuda">Deixe em branco se não tiver data.</span>
+            </label>
+          </div>
+
+          <div className="publicar-divisor"><span>Sobre você</span></div>
+
+          <div className="linha-dupla">
+            <label className="campo">
+              Empresa ou nome
+              <input name="empresa" required minLength={2} maxLength={80} placeholder="Ex.: Padaria Sol" />
+            </label>
+            <label className="campo">
+              Cidade
+              <input name="cidade" maxLength={60} defaultValue="Bauru, SP" />
+            </label>
+          </div>
+          <label className="campo">
+            WhatsApp ou e-mail para contato
+            <input
+              required
+              minLength={5}
+              maxLength={120}
+              value={contato}
+              placeholder="(14) 99999-0000 ou contato@empresa.com"
+              onChange={(e) => {
+                const v = e.target.value;
+                // Só números: formata como telefone. Com letra ou @: deixa como e-mail.
+                setContato(/^[\d\s()+-]*$/.test(v) ? mascaraTelefone(v) : v);
+              }}
+            />
+          </label>
+
+          {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
+          <button className="botao botao-verde" type="submit" disabled={enviando}>
+            {enviando ? "Enviando…" : "Enviar para análise"}
+          </button>
+          <p className="ajuda" style={{ margin: 0, textAlign: "center" }}>
+            Ao enviar, você concorda em tratar os alunos com respeito e pagar o combinado.
+          </p>
+        </form>
+      )}
+    </div>
   );
 }

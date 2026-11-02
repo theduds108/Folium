@@ -5,6 +5,7 @@ import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
 import type { Avaliacao } from "@/lib/conteudo";
+import { formatarMes, formatarPeriodo } from "@/lib/formato";
 
 /** Página pública do portfólio, usada pelos exemplos e pelos perfis do banco. */
 export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliacoes?: Avaliacao[] }) {
@@ -30,7 +31,7 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
         <h1 className="perfil-nome">{aluno.nome}</h1>
         {aluno.titulo && <p className="perfil-titulo">{aluno.titulo}</p>}
         <Anotacao className="anotacao-perfil">
-          {aluno.semestre}º semestre, UNISAGRADO{aluno.conclusao ? ` · forma em ${aluno.conclusao}` : ""}
+          {aluno.semestre}º semestre, UNISAGRADO{aluno.conclusao ? ` · forma em ${formatarMes(aluno.conclusao)}` : ""}
         </Anotacao>
       </div>
 
@@ -180,7 +181,7 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
           <ol className="linha-tempo revelar-grupo">
             {experiencias.map((x, i) => (
               <li key={i}>
-                <span className="linha-tempo-periodo">{x.periodo}</span>
+                <span className="linha-tempo-periodo">{x.inicio || x.fim || x.atual ? formatarPeriodo(x.inicio, x.fim, x.atual) : x.periodo}</span>
                 <h3>{x.cargo}</h3>
                 <p className="suave linha-tempo-lugar">{x.lugar}</p>
                 {x.descricao && <p>{x.descricao}</p>}
@@ -207,6 +208,9 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
                         )}
                       </strong>
                       <span className="suave">{[c.instituicao, c.ano].filter(Boolean).join(" · ")}</span>
+                      {c.arquivo && (
+                        <a className="link-certificado" href={c.arquivo} target="_blank" rel="noopener noreferrer">ver certificado ↗</a>
+                      )}
                     </li>
                   ))}
                 </ul>

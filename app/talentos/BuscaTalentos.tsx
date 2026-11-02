@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ALUNOS, CURSOS, SERVICOS, type Aluno } from "@/lib/data";
+import { ALUNOS, CURSOS, type Aluno } from "@/lib/data";
+import { OpcoesServicos } from "@/components/OpcoesServicos";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { listarAlunosReais } from "@/lib/repositorio";
@@ -25,6 +26,8 @@ export function BuscaTalentos() {
   }, []);
 
   const todos = useMemo(() => (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...ALUNOS] : reais), [reais]);
+
+  const cursos = useMemo(() => [...new Set([...CURSOS, ...todos.map((a) => a.curso)])].sort((a, b) => a.localeCompare(b, "pt-BR")), [todos]);
 
   const resultado = useMemo(() => {
     const termos = normalizar(texto).split(/\s+/).filter(Boolean);
@@ -63,7 +66,7 @@ export function BuscaTalentos() {
           Curso
           <select value={curso} onChange={(e) => setCurso(e.target.value)}>
             <option value="">Todos</option>
-            {CURSOS.map((c) => (
+            {cursos.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
@@ -72,9 +75,7 @@ export function BuscaTalentos() {
           Serviço
           <select value={servico} onChange={(e) => setServico(e.target.value)}>
             <option value="">Todos</option>
-            {SERVICOS.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
+            <OpcoesServicos />
           </select>
         </label>
         <label className="filtro-check">

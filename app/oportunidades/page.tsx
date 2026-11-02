@@ -20,7 +20,7 @@ export default function Oportunidades() {
         <a href="#publicar" className="botao botao-verde">Publicar oportunidade</a>
       </div>
       <MuralOportunidades />
-      <section className="secao" style={{ maxWidth: 720 }}>
+      <section className="secao">
         <PublicarOportunidade />
       </section>
     </div>

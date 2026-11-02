@@ -19,6 +19,7 @@ Leva uns 10 minutos e só precisa ser feito uma vez.
    (copie o conteúdo, cole lá e clique em **Run**; deve aparecer "Success. No rows returned"):
    - `20261102000000_inicial.sql`
    - `20261102120000_portfolio_completo.sql` (título, sobre mim, experiências, cursos, idiomas, links, currículo em PDF)
+   - `20261102180000_empresas.sql` (catálogo de empresas para a busca no campo de experiência)
 
    Cada arquivo só precisa ser rodado uma vez. Quando aparecer um arquivo novo nessa pasta, rode só ele.
 
@@ -31,6 +32,7 @@ Isso cria:
 | `oportunidades` | Vagas enviadas pelas empresas. Entram como `pendente` |
 | `interesses` | Alunos que clicaram em "Tenho interesse" numa vaga |
 | `denuncias` | Denúncias de perfis e vagas |
+| `empresas` | Catálogo de empresas da busca de experiência; cresce sozinho quando alunos cadastram empresas novas |
 | `dominios_institucionais` | Domínios de e-mail aceitos (`unisagrado.edu.br`) |
 
 E as pastas `fotos` (imagens) e `curriculos` (PDFs). As regras de segurança já vêm prontas:

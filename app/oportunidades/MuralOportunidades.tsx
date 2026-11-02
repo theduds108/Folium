@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
-import { SERVICOS } from "@/lib/data";
+import { OpcoesServicos } from "@/components/OpcoesServicos";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { listarOportunidadesReais, marcarInteresse } from "@/lib/repositorio";
@@ -44,7 +44,7 @@ export function MuralOportunidades() {
           Serviço
           <select value={servico} onChange={(e) => setServico(e.target.value)}>
             <option value="">Todos</option>
-            {SERVICOS.map((s) => <option key={s}>{s}</option>)}
+            <OpcoesServicos />
           </select>
         </label>
       </div>

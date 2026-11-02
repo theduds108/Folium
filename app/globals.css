@@ -1544,3 +1544,55 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
 .lista-cursos { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .lista-cursos li { display: flex; flex-direction: column; gap: 2px; }
 .polaroide-titulo { font-weight: 600; font-size: 0.92rem; color: var(--marrom-cobre); line-height: 1.3; }
+.grupos-servicos { display: grid; gap: 14px; }
+.grupo-servicos-titulo { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--marrom-cobre); margin-bottom: 6px; }
+.link-certificado { font-size: 0.88rem; font-weight: 600; color: var(--verde-folio-escuro); }
+.campo-pequeno { font-size: 0.9rem; }
+
+/* Publicar oportunidade */
+.publicar { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); padding: 0; overflow: hidden; scroll-margin-top: 90px; }
+@media (max-width: 860px) { .publicar { grid-template-columns: 1fr; } }
+.publicar-lado {
+  background: var(--verde-musgo); color: var(--creme-papel); padding: 36px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.publicar-lado .rotulos span { color: rgba(246, 240, 228, 0.75); }
+.publicar-lado h2 { color: var(--creme-papel); font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0; line-height: 1.05; }
+.publicar-lado p { margin: 0; color: rgba(246, 240, 228, 0.85); }
+.publicar-passos { list-style: none; counter-reset: passo; margin: 12px 0 0; padding: 0; display: grid; gap: 18px; }
+.publicar-passos li { counter-increment: passo; display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; }
+.publicar-passos li::before {
+  content: counter(passo); grid-row: span 2; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 800; background: var(--marrom-cobre); color: #fff;
+}
+.publicar-passos strong { color: var(--creme-papel); }
+.publicar-passos span { font-size: 0.92rem; color: rgba(246, 240, 228, 0.75); }
+.publicar-form { padding: 32px; gap: 18px; }
+.publicar-form fieldset { border: 0; padding: 0; margin: 0; }
+.publicar-form legend { margin-bottom: 6px; }
+.publicar-divisor { display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--marrom-cobre); }
+.publicar-divisor::after { content: ""; flex: 1; height: 1px; background: var(--linha); }
+.publicar-ok { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px; }
+.publicar-ok h3 { font-size: 1.6rem; margin: 0; }
+.publicar-ok-icone { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--verde-folio); color: #fff; font-size: 1.6rem; font-weight: 800; }
+
+/* Busca de empresas (experiência) */
+.busca-empresa { position: relative; }
+.busca-empresa .entrada { width: 100%; }
+.busca-empresa-lista {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px);
+  list-style: none; margin: 0; padding: 6px; border-radius: 12px;
+  background: var(--papel-claro); border: 1px solid var(--linha); box-shadow: var(--sombra);
+  max-height: 280px; overflow-y: auto;
+}
+.busca-empresa-lista li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+.busca-empresa-lista li:hover, .busca-empresa-lista li.ativo { background: rgba(79, 122, 58, 0.1); }
+.busca-empresa-lista strong { display: block; font-size: 0.95rem; }
+.busca-empresa-lista small { display: block; color: var(--texto-suave); font-size: 0.8rem; }
+.busca-empresa-logo {
+  flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--verde-musgo); color: var(--creme-papel); font-weight: 800;
+}
+.busca-empresa-nova .busca-empresa-logo { background: var(--marrom-cobre); }

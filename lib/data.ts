@@ -20,8 +20,18 @@ export type Trabalho = {
   link?: string;
 };
 
-export type Experiencia = { cargo: string; lugar: string; periodo: string; descricao: string };
-export type Certificado = { nome: string; instituicao: string; ano: string; link?: string };
+export type Experiencia = {
+  cargo: string;
+  lugar: string;
+  /** Texto pronto para mostrar, ex.: "Mar/2025 – atual". */
+  periodo: string;
+  descricao: string;
+  /** Mês de início e fim no formato AAAA-MM (usados no editor). */
+  inicio?: string;
+  fim?: string;
+  atual?: boolean;
+};
+export type Certificado = { nome: string; instituicao: string; ano: string; link?: string; /** PDF ou imagem do certificado enviado pelo aluno. */ arquivo?: string };
 export type Idioma = { idioma: string; nivel: string };
 export type Links = Partial<Record<(typeof REDES)[number]["chave"], string>>;
 
@@ -59,26 +69,98 @@ export type Aluno = {
   trabalhos: Trabalho[];
 };
 
+/** Cursos de graduação (bacharelado, licenciatura e tecnólogo). Quem não achar o seu escolhe "Outro". */
 export const CURSOS = [
+  "Administração",
+  "Agronomia",
+  "Análise e Desenvolvimento de Sistemas",
   "Arquitetura e Urbanismo",
+  "Artes Visuais",
+  "Biomedicina",
   "Ciência da Computação",
+  "Ciências Biológicas",
+  "Ciências Contábeis",
+  "Ciências Econômicas",
+  "Cinema e Audiovisual",
   "Design",
+  "Design de Interiores",
+  "Design de Moda",
+  "Design Gráfico",
+  "Direito",
+  "Educação Física",
+  "Enfermagem",
+  "Engenharia Civil",
+  "Engenharia de Computação",
+  "Engenharia de Produção",
+  "Engenharia de Software",
+  "Engenharia Elétrica",
+  "Engenharia Mecânica",
+  "Engenharia Química",
+  "Estética e Cosmética",
+  "Farmácia",
+  "Filosofia",
+  "Fisioterapia",
+  "Fonoaudiologia",
   "Fotografia",
+  "Gastronomia",
+  "Gestão Comercial",
+  "Gestão de Recursos Humanos",
+  "Gestão Financeira",
+  "História",
+  "Jogos Digitais",
   "Jornalismo",
+  "Letras",
+  "Marketing",
+  "Matemática",
+  "Medicina",
+  "Medicina Veterinária",
+  "Música",
+  "Nutrição",
+  "Odontologia",
+  "Pedagogia",
+  "Psicologia",
   "Publicidade e Propaganda",
+  "Química",
+  "Radialismo",
+  "Relações Internacionais",
   "Relações Públicas",
+  "Sistemas de Informação",
+  "Teologia",
 ] as const;
 
-export const SERVICOS = [
-  "Identidade visual",
-  "Social media",
-  "Fotografia",
-  "Vídeo e edição",
-  "Redação e revisão",
-  "Sites e sistemas",
-  "Ilustração",
-  "Projeto de interiores",
+/** Serviços que os alunos oferecem, agrupados por área. */
+export const SERVICOS_POR_AREA = [
+  {
+    area: "Design e artes",
+    servicos: ["Identidade visual", "Design gráfico", "Design editorial", "Ilustração", "UX/UI design", "Design de embalagem", "Modelagem 3D", "Moda e figurino"],
+  },
+  {
+    area: "Foto, vídeo e áudio",
+    servicos: ["Fotografia", "Vídeo e edição", "Motion design e animação", "Locução e podcast", "Produção musical"],
+  },
+  {
+    area: "Comunicação e marketing",
+    servicos: ["Social media", "Marketing digital e tráfego pago", "Redação e revisão", "Assessoria de imprensa", "Roteiro", "Tradução", "Organização de eventos"],
+  },
+  {
+    area: "Tecnologia",
+    servicos: ["Sites e sistemas", "Aplicativos", "Automação e planilhas", "Análise de dados", "Suporte e manutenção de computadores", "Jogos digitais"],
+  },
+  {
+    area: "Arquitetura e engenharia",
+    servicos: ["Projeto de interiores", "Projeto arquitetônico", "Maquete e renderização", "Desenho técnico (CAD)"],
+  },
+  {
+    area: "Negócios",
+    servicos: ["Plano de negócios", "Pesquisa de mercado", "Consultoria financeira e contábil", "Gestão de redes e atendimento"],
+  },
+  {
+    area: "Educação",
+    servicos: ["Aulas particulares e reforço", "Aulas de idiomas", "Aulas de música"],
+  },
 ] as const;
+
+export const SERVICOS = SERVICOS_POR_AREA.flatMap((a) => a.servicos);
 
 export const MODALIDADES = ["Presencial", "Remoto", "Híbrido"] as const;
 export const TIPOS_VAGA = ["Freela", "Projeto", "Estágio"] as const;
@@ -374,7 +456,7 @@ export const ALUNOS: Aluno[] = BASE.map((a) => ({ ...a, ...EXTRAS[a.slug] }));
  * Servem só para visualizar o layout; os alunos reais vão subir as próprias fotos.
  */
 export function unsplash(id: string, largura = 800) {
-  if (id.startsWith("http")) return id;
+  if (/^(https?:|data:|blob:)/.test(id)) return id;
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${largura}&q=70`;
 }
 

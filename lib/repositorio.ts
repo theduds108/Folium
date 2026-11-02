@@ -304,3 +304,44 @@ export function traduzirErro(e: { message?: string; code?: string } | null | und
   if (/fetch|network/i.test(msg)) return new Error("Sem conexão com o servidor. Confira sua internet.");
   return new Error(msg || "Algo deu errado. Tente de novo.");
 }
+
+export type Empresa = { nome: string; cidade: string };
+
+/** Lista inicial usada no modo demonstração (no banco, a tabela "empresas" tem a mesma base). */
+const EMPRESAS_DEMO: Empresa[] = [
+  "UNISAGRADO|Bauru, SP", "Agência Júnior UNISAGRADO|Bauru, SP", "Prefeitura Municipal de Bauru|Bauru, SP",
+  "Jornal da Cidade|Bauru, SP", "TV TEM|Bauru, SP", "Tilibra|Bauru, SP", "Paschoalotto|Bauru, SP",
+  "Supermercados Confiança|Bauru, SP", "UNESP Bauru|Bauru, SP", "USP Bauru|Bauru, SP",
+  "Hospital Estadual de Bauru|Bauru, SP", "SENAC Bauru|Bauru, SP", "SEBRAE|Bauru, SP", "CIEE|", "Autônomo / freelancer|",
+].map((l) => {
+  const [nome, cidade] = l.split("|");
+  return { nome: nome!, cidade: cidade ?? "" };
+});
+
+function semAcento(s: string) {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/** Empresas cujo nome contém o texto digitado. */
+export async function buscarEmpresas(texto: string): Promise<Empresa[]> {
+  const q = texto.trim();
+  if (q.length < 2) return [];
+  const sb = supabase();
+  if (!sb) return EMPRESAS_DEMO.filter((e) => semAcento(e.nome).includes(semAcento(q))).slice(0, 8);
+  const { data, error } = await sb
+    .from("empresas")
+    .select("nome, cidade")
+    .ilike("chave", `%${q.toLowerCase().replace(/[%_]/g, "")}%`)
+    .order("nome")
+    .limit(8);
+  if (error) return [];
+  return data as Empresa[];
+}
+
+/** Adiciona ao catálogo as empresas novas digitadas nas experiências. Falhas são ignoradas. */
+export async function cadastrarEmpresas(nomes: string[]) {
+  const sb = supabase();
+  const limpos = [...new Set(nomes.map((n) => n.trim().replace(/\s+/g, " ")).filter((n) => n.length >= 2 && n.length <= 80))];
+  if (!sb || !limpos.length) return;
+  await sb.from("empresas").upsert(limpos.map((nome) => ({ nome })), { onConflict: "chave", ignoreDuplicates: true });
+}

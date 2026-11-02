@@ -8,6 +8,7 @@ import {
   NIVEIS_IDIOMA,
   REDES,
   SERVICOS,
+  SERVICOS_POR_AREA,
   TIPOS_VAGA,
   linkPerfil,
   unsplash,
@@ -19,15 +20,19 @@ import {
 } from "@/lib/data";
 import { emailInstitucional } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
-import { enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
+import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
 import { sair, useSessao } from "@/lib/sessao";
+import { formatarPeriodo, mascaraAno, mascaraTelefone, telefoneValido } from "@/lib/formato";
 import { CartaoAluno } from "@/components/CartaoAluno";
+import { OpcoesServicos } from "@/components/OpcoesServicos";
+import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
 const MAX_TRABALHOS = 6;
 const MAX_GALERIA = 4;
+const OUTRO = "__outro__";
 
 type TrabalhoRascunho = {
   titulo: string;
@@ -80,7 +85,7 @@ const TRABALHO_VAZIO: TrabalhoRascunho = {
   papel: "",
   link: "",
 };
-const EXPERIENCIA_VAZIA: Experiencia = { cargo: "", lugar: "", periodo: "", descricao: "" };
+const EXPERIENCIA_VAZIA: Experiencia = { cargo: "", lugar: "", periodo: "", descricao: "", inicio: "", fim: "", atual: false };
 const CERTIFICADO_VAZIO: Certificado = { nome: "", instituicao: "", ano: "", link: "" };
 const IDIOMA_VAZIO: Idioma = { idioma: "", nivel: NIVEIS_IDIOMA[1] };
 
@@ -213,6 +218,7 @@ function Editor(props: PropsEditor) {
   const [salvando, setSalvando] = useState(false);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
+  const [cursoOutro, setCursoOutro] = useState(false);
   const userId = props.modo === "banco" ? props.userId : "";
   const email = props.modo === "banco" ? props.email : "";
   const real = props.modo === "banco";
@@ -223,6 +229,7 @@ function Editor(props: PropsEditor) {
         const guardado = localStorage.getItem(CHAVE);
         if (guardado) {
           const g = JSON.parse(guardado);
+          setCursoOutro(Boolean(g.curso) && !(CURSOS as readonly string[]).includes(g.curso));
           setR({ ...VAZIO, ...g, trabalhos: (g.trabalhos ?? [TRABALHO_VAZIO]).map((t: TrabalhoRascunho) => ({ ...TRABALHO_VAZIO, ...t })) });
         }
       } catch {
@@ -233,6 +240,7 @@ function Editor(props: PropsEditor) {
     meuPerfil(userId)
       .then((p) => {
         if (p) {
+          setCursoOutro(!(CURSOS as readonly string[]).includes(p.curso));
           setR({
             slug: p.slug,
             nome: p.nome,
@@ -248,7 +256,7 @@ function Editor(props: PropsEditor) {
             valorReferencia: p.valor_referencia,
             modalidades: p.modalidades ?? [],
             tiposVaga: p.tipos_vaga ?? [],
-            whatsapp: p.whatsapp,
+            whatsapp: mascaraTelefone(p.whatsapp),
             emailContato: p.email_contato,
             links: p.links ?? {},
             foto: p.foto_url ?? "",
@@ -297,12 +305,14 @@ function Editor(props: PropsEditor) {
   };
 
   /** Sobe a imagem e devolve a URL, ou null se der erro (o erro aparece no formulário). */
-  const subir = async (arquivo: File | undefined, chave: string, tipo: "imagem" | "pdf" = "imagem") => {
-    if (!arquivo || !real) return null;
+  const subir = async (arquivo: File | undefined, chave: string, tipo: "imagem" | "pdf" | "documento" = "imagem") => {
+    if (!arquivo) return null;
     setErro("");
     setEnviando(chave);
     try {
-      return tipo === "pdf" ? await enviarCurriculo(userId, arquivo) : await enviarFoto(userId, arquivo);
+      if (!real) return await arquivoLocal(arquivo);
+      const pdf = tipo === "pdf" || (tipo === "documento" && arquivo.type === "application/pdf");
+      return pdf ? await enviarCurriculo(userId, arquivo) : await enviarFoto(userId, arquivo);
     } catch (e) {
       setErro((e as Error).message);
       return null;
@@ -318,9 +328,15 @@ function Editor(props: PropsEditor) {
       try {
         localStorage.setItem(CHAVE, JSON.stringify(r));
       } catch {
-        /* ignora */
+        setErro("O navegador não tem espaço para tantas imagens no modo demonstração. Remova algumas e tente de novo.");
+        return;
       }
       setSalvo(true);
+      return;
+    }
+    if (!telefoneValido(r.whatsapp)) {
+      setErro("Confira o WhatsApp: use DDD + número, ex.: (14) 99123-4567.");
+      document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     if (!r.whatsapp.trim() && !r.emailContato.trim()) {
@@ -355,7 +371,9 @@ function Editor(props: PropsEditor) {
           curriculo_url: r.curriculo || null,
           disponivel: r.disponivel,
           publicado: r.publicado,
-          experiencias: r.experiencias.filter((x) => x.cargo.trim()),
+          experiencias: r.experiencias
+            .filter((x) => x.cargo.trim())
+            .map((x) => ({ ...x, periodo: x.inicio || x.fim || x.atual ? formatarPeriodo(x.inicio, x.fim, x.atual) : x.periodo })),
           certificados: r.certificados.filter((x) => x.nome.trim()),
           idiomas: r.idiomas.filter((x) => x.idioma.trim()),
         },
@@ -374,6 +392,7 @@ function Editor(props: PropsEditor) {
       );
       setR((atual) => ({ ...atual, slug }));
       setSalvo(true);
+      cadastrarEmpresas(r.experiencias.map((x) => x.lugar)).catch(() => {});
     } catch (e) {
       setErro((e as Error).message);
     } finally {
@@ -407,7 +426,7 @@ function Editor(props: PropsEditor) {
         {/* Básico */}
         <section id="basico" className="cartao secao-editor">
           <h2>Básico</h2>
-          {real && (
+          {(
             <div className="campo">
               Foto de perfil
               <div className="linha-arquivo">
@@ -442,9 +461,20 @@ function Editor(props: PropsEditor) {
           <div className="linha-dupla">
             <label className="campo">
               Curso
-              <select value={r.curso} onChange={(e) => mudar("curso", e.target.value)}>
+              <select
+                value={cursoOutro ? OUTRO : r.curso}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCursoOutro(v === OUTRO);
+                  mudar("curso", v === OUTRO ? "" : v);
+                }}
+              >
                 {CURSOS.map((c) => <option key={c}>{c}</option>)}
+                <option value={OUTRO}>Outro curso…</option>
               </select>
+              {cursoOutro && (
+                <input value={r.curso} onChange={(e) => mudar("curso", e.target.value)} placeholder="Nome do seu curso" maxLength={80} required aria-label="Nome do seu curso" />
+              )}
             </label>
             <label className="campo">
               Semestre
@@ -455,7 +485,7 @@ function Editor(props: PropsEditor) {
           <div className="linha-dupla">
             <label className="campo">
               Previsão de formatura
-              <input value={r.conclusao} onChange={(e) => mudar("conclusao", e.target.value)} maxLength={20} placeholder="Ex.: Dez/2027" />
+              <input type="month" value={/^\d{4}-\d{2}$/.test(r.conclusao) ? r.conclusao : ""} onChange={(e) => mudar("conclusao", e.target.value)} min="2020-01" max="2040-12" />
             </label>
             <label className="campo">
               Cidade
@@ -480,12 +510,19 @@ function Editor(props: PropsEditor) {
 
           <fieldset className="campo">
             <legend>Serviços que você oferece</legend>
-            <div className="opcoes">
-              {SERVICOS.map((s) => (
-                <label key={s} className="opcao">
-                  <input type="checkbox" checked={r.servicos.includes(s)} onChange={() => alternar("servicos", s)} />
-                  {s}
-                </label>
+            <div className="grupos-servicos">
+              {SERVICOS_POR_AREA.map((g) => (
+                <div key={g.area}>
+                  <span className="grupo-servicos-titulo">{g.area}</span>
+                  <div className="opcoes">
+                    {g.servicos.map((s) => (
+                      <label key={s} className="opcao">
+                        <input type="checkbox" checked={r.servicos.includes(s)} onChange={() => alternar("servicos", s)} />
+                        {s}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </fieldset>
@@ -552,17 +589,17 @@ function Editor(props: PropsEditor) {
               <div className="linha-dupla">
                 <input className="entrada" value={t.titulo} onChange={(e) => mudarTrabalho(i, { titulo: e.target.value })} placeholder="Título do trabalho" maxLength={80} aria-label={`Título do trabalho ${i + 1}`} />
                 <select className="entrada" value={t.tipo} onChange={(e) => mudarTrabalho(i, { tipo: e.target.value })} aria-label={`Tipo do trabalho ${i + 1}`}>
-                  {SERVICOS.map((s) => <option key={s}>{s}</option>)}
+                  <OpcoesServicos />
                 </select>
               </div>
               <div className="linha-dupla">
                 <input className="entrada" value={t.cliente} onChange={(e) => mudarTrabalho(i, { cliente: e.target.value })} placeholder="Cliente ou disciplina" maxLength={80} aria-label={`Cliente do trabalho ${i + 1}`} />
-                <input className="entrada" value={t.ano} onChange={(e) => mudarTrabalho(i, { ano: e.target.value })} placeholder="Ano" maxLength={10} aria-label={`Ano do trabalho ${i + 1}`} />
+                <input className="entrada" value={t.ano} onChange={(e) => mudarTrabalho(i, { ano: mascaraAno(e.target.value) })} placeholder="Ano (ex.: 2025)" inputMode="numeric" aria-label={`Ano do trabalho ${i + 1}`} />
               </div>
               <textarea className="entrada" rows={2} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho e qual foi o resultado" maxLength={200} aria-label={`Descrição do trabalho ${i + 1}`} />
               <input className="entrada" value={t.papel} onChange={(e) => mudarTrabalho(i, { papel: e.target.value })} placeholder="Se foi em grupo: o que você fez?" maxLength={120} aria-label={`Seu papel no trabalho ${i + 1}`} />
               <input className="entrada" value={t.link} onChange={(e) => mudarTrabalho(i, { link: e.target.value })} placeholder="Link (Behance, site no ar, vídeo, matéria publicada)" maxLength={300} aria-label={`Link do trabalho ${i + 1}`} />
-              {real ? (
+              {(
                 <div className="linha-arquivo">
                   {[t.imagem, ...t.galeria].filter(Boolean).map((img, k) => (
                     <span key={img} className="miniatura-caixa">
@@ -600,8 +637,6 @@ function Editor(props: PropsEditor) {
                     />
                   )}
                 </div>
-              ) : (
-                <span className="ajuda">No modo demonstração as imagens não são enviadas.</span>
               )}
             </div>
           ))}
@@ -626,9 +661,22 @@ function Editor(props: PropsEditor) {
               </div>
               <div className="linha-dupla">
                 <input className="entrada" value={x.cargo} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { cargo: e.target.value }))} placeholder="Cargo ou função" maxLength={80} aria-label={`Cargo da experiência ${i + 1}`} />
-                <input className="entrada" value={x.lugar} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { lugar: e.target.value }))} placeholder="Empresa ou projeto" maxLength={80} aria-label={`Lugar da experiência ${i + 1}`} />
+                <BuscaEmpresa valor={x.lugar} onMudar={(nome) => mudar("experiencias", trocar(r.experiencias, i, { lugar: nome }))} rotulo={`Empresa da experiência ${i + 1}`} />
               </div>
-              <input className="entrada" value={x.periodo} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { periodo: e.target.value }))} placeholder="Período (ex.: Mar/2025 – atual)" maxLength={40} aria-label={`Período da experiência ${i + 1}`} />
+              <div className="linha-dupla">
+                <label className="campo campo-pequeno">
+                  Início
+                  <input type="month" value={x.inicio ?? ""} max={x.fim || undefined} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { inicio: e.target.value }))} />
+                </label>
+                <label className="campo campo-pequeno">
+                  Fim
+                  <input type="month" value={x.atual ? "" : x.fim ?? ""} min={x.inicio || undefined} disabled={x.atual} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { fim: e.target.value }))} />
+                </label>
+              </div>
+              <label className="filtro-check">
+                <input type="checkbox" checked={!!x.atual} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { atual: e.target.checked, fim: e.target.checked ? "" : x.fim }))} />
+                Ainda estou aqui
+              </label>
               <textarea className="entrada" rows={2} value={x.descricao} onChange={(e) => mudar("experiencias", trocar(r.experiencias, i, { descricao: e.target.value }))} placeholder="O que você fazia e o que aprendeu" maxLength={300} aria-label={`Descrição da experiência ${i + 1}`} />
             </div>
           ))}
@@ -653,9 +701,26 @@ function Editor(props: PropsEditor) {
                 <input className="entrada" value={c.instituicao} onChange={(e) => mudar("certificados", trocar(r.certificados, i, { instituicao: e.target.value }))} placeholder="Instituição" maxLength={80} aria-label={`Instituição do curso ${i + 1}`} />
               </div>
               <div className="linha-dupla">
-                <input className="entrada" value={c.ano} onChange={(e) => mudar("certificados", trocar(r.certificados, i, { ano: e.target.value }))} placeholder="Ano" maxLength={10} aria-label={`Ano do curso ${i + 1}`} />
+                <input className="entrada" value={c.ano} onChange={(e) => mudar("certificados", trocar(r.certificados, i, { ano: mascaraAno(e.target.value) }))} placeholder="Ano (ex.: 2024)" inputMode="numeric" aria-label={`Ano do curso ${i + 1}`} />
                 <input className="entrada" value={c.link ?? ""} onChange={(e) => mudar("certificados", trocar(r.certificados, i, { link: e.target.value }))} placeholder="Link do certificado (opcional)" maxLength={300} aria-label={`Link do certificado ${i + 1}`} />
               </div>
+              {(
+                <div className="linha-arquivo">
+                  {c.arquivo && <a href={c.arquivo} target="_blank" rel="noopener noreferrer">Ver certificado anexado</a>}
+                  <EscolherArquivo
+                    rotulo={c.arquivo ? "Trocar arquivo" : "Anexar certificado (PDF ou imagem)"}
+                    aceita="application/pdf,image/jpeg,image/png,image/webp"
+                    enviando={enviando === `c${i}`}
+                    onEscolher={async (f) => {
+                      const url = await subir(f, `c${i}`, "documento");
+                      if (url) setR((atual) => ({ ...atual, certificados: trocar(atual.certificados, i, { arquivo: url }) }));
+                    }}
+                  />
+                  {c.arquivo && (
+                    <button type="button" className="link-denuncia" onClick={() => mudar("certificados", trocar(r.certificados, i, { arquivo: "" }))}>Remover arquivo</button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           {r.certificados.length < 15 && (
@@ -687,7 +752,8 @@ function Editor(props: PropsEditor) {
           <div className="linha-dupla">
             <label className="campo">
               WhatsApp
-              <input type="tel" inputMode="tel" value={r.whatsapp} onChange={(e) => mudar("whatsapp", e.target.value)} placeholder="(14) 99999-0000" />
+              <input type="tel" inputMode="tel" value={r.whatsapp} onChange={(e) => mudar("whatsapp", mascaraTelefone(e.target.value))} placeholder="(14) 99999-0000" aria-invalid={!telefoneValido(r.whatsapp)} />
+              {!telefoneValido(r.whatsapp) && <span className="erro">Use DDD + número, ex.: (14) 99123-4567</span>}
             </label>
             <label className="campo">
               E-mail de contato
@@ -705,7 +771,7 @@ function Editor(props: PropsEditor) {
               />
             </label>
           ))}
-          {real && (
+          {(
             <div className="campo">
               Currículo em PDF (opcional)
               <div className="linha-arquivo">
@@ -778,6 +844,22 @@ function Editor(props: PropsEditor) {
       </aside>
     </div>
   );
+}
+
+/**
+ * Modo demonstração: guarda a imagem no próprio aparelho (reduzida para caber no navegador).
+ * PDFs abrem só nesta aba, porque não há onde guardar.
+ */
+async function arquivoLocal(arquivo: File): Promise<string> {
+  if (arquivo.type === "application/pdf") return URL.createObjectURL(arquivo);
+  if (!arquivo.type.startsWith("image/")) throw new Error("Use uma imagem JPG, PNG ou WebP.");
+  const bitmap = await createImageBitmap(arquivo);
+  const escala = Math.min(1, 900 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * escala);
+  canvas.height = Math.round(bitmap.height * escala);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.75);
 }
 
 function trocar<T>(lista: T[], i: number, mudanca: Partial<T>): T[] {
