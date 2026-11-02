@@ -9,7 +9,7 @@ O Supabase manda dois e-mails, e o site usa os dois (login sem senha):
 
 Como trocar: Supabase > Authentication > Emails (Email Templates) > escolha o template >
 cole o conteúdo do arquivo em **Message body** e o assunto em **Subject** > Save.
-Não apague `{{ .ConfirmationURL }}`: é o link de entrada.
+O único trecho `{{ .ConfirmationURL }}` fica dentro do `href` do botão: não mexa nele. Copie o arquivo cru (abra no Bloco de Notas e use Ctrl+A, Ctrl+C), nunca a página já aberta no navegador.
 
 Limites do envio padrão do Supabase: o remetente aparece como "Supabase Auth" e há poucos
 e-mails por hora. Para lançar de verdade, configure um SMTP próprio
