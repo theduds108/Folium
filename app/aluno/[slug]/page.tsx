@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ALUNOS, buscarAluno, iniciais } from "@/lib/data";
+import { ALUNOS, buscarAluno, iniciais, unsplash } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
 import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "./CopiarLink";
@@ -48,8 +48,13 @@ export default async function PerfilAluno({ params }: Props) {
 
       <div className="perfil-topo">
         <div className="perfil-ola revelar-grupo">
-          <div className="moldura" aria-hidden="true">
-            <span className="moldura-iniciais">{iniciais(aluno.nome)}</span>
+          <div className="moldura">
+            {aluno.foto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="foto-cobrir" src={unsplash(aluno.foto, 500)} alt={`Foto de ${aluno.nome}`} />
+            ) : (
+              <span className="moldura-iniciais" aria-hidden="true">{iniciais(aluno.nome)}</span>
+            )}
             <i /><i /><i /><i />
           </div>
           <div>
@@ -98,7 +103,15 @@ export default async function PerfilAluno({ params }: Props) {
         <div className="grade-trabalhos revelar-grupo">
           {aluno.trabalhos.map((t) => (
             <article key={t.titulo} className="trabalho">
-              <div className="trabalho-capa" style={{ background: t.cor }}>
+              <div
+                className="trabalho-capa"
+                style={{
+                  backgroundColor: t.cor,
+                  backgroundImage: t.imagem
+                    ? `linear-gradient(180deg, rgba(47,62,42,.55) 0%, rgba(47,62,42,0) 35%, rgba(47,62,42,0) 50%, rgba(47,62,42,.8) 100%), url(${unsplash(t.imagem, 700)})`
+                    : undefined,
+                }}
+              >
                 <span>{t.tipo}</span>
                 <strong>{t.titulo}</strong>
               </div>

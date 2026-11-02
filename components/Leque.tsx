@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Aluno } from "@/lib/data";
-import { iniciais } from "@/lib/data";
+import { iniciais, unsplash } from "@/lib/data";
 
 const FUNDOS = ["#2F3E2A", "#B0673B", "#F6F0E4", "#4F7A3A", "#6B4A34"];
 
@@ -29,7 +29,12 @@ export function Leque({ alunos }: { alunos: Aluno[] }) {
               <span>{a.curso.split(" ")[0]}</span>
               <span>{String(i + 1).padStart(2, "0")}</span>
             </span>
-            <span className="ficha-iniciais">{iniciais(a.nome)}</span>
+            {a.foto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="ficha-foto" src={unsplash(a.foto, 400)} alt="" loading="lazy" />
+            ) : (
+              <span className="ficha-iniciais">{iniciais(a.nome)}</span>
+            )}
             <span className="ficha-nome">{a.nome}</span>
             <span className="ficha-servico">{a.servicos[0]}</span>
           </Link>
