@@ -16,6 +16,7 @@ Os tempos ficam em variáveis CSS no topo de `app/globals.css`.
 - **Folhas 3D** (`FolhasCaindo`, Three.js): caem uma única vez na chegada (3–5s) e o WebGL é liberado. Só em telas a partir de 720px. Decorativo, `aria-hidden`.
 - **Reveal ao rolar** (`Revelar`, ScrollReveal): uma transição curta por seção abaixo da dobra, intervalo de 40ms em grupos. Não é usado nas listas que mudam com filtros.
 - **Leque**: hover/foco traz a ficha para a frente e sobe 4px sem mexer nas vizinhas. No celular vira fileira rolável.
+- **Troca de ficha no editor** (`meu-perfil`): a ficha nova entra uma vez (opacity + 10px, 400ms) e o foco vai para o título dela.
 - **Confirmações**: o estado aparece com ícone e texto (não só cor ou ✓) e é anunciado por `aria-live`. O Lottie de "salvo" toca em ~250ms.
 
 ## Removido
