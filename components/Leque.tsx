@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Aluno } from "@/lib/data";
 import { iniciais, linkPerfil, unsplash } from "@/lib/data";
+import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 
 // Cobre escuro no lugar do cobre puro: o nome em creme precisa de contraste AA.
 const FUNDOS = ["#2F3E2A", "#94532C", "#F6F0E4", "#4F7A3A", "#6B4A34"];
@@ -36,8 +37,7 @@ export function Leque({ alunos }: { alunos: Aluno[] }) {
                 <span>{String(i + 1).padStart(2, "0")}</span>
               </span>
               {a.foto ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="ficha-foto" src={unsplash(a.foto, 400)} alt="" width={400} height={300} loading="lazy" decoding="async" />
+                <FotoEnquadrada className="ficha-foto" src={unsplash(a.foto, 400)} width={400} height={300} loading="lazy" />
               ) : (
                 <span className="ficha-iniciais" aria-hidden="true">{iniciais(a.nome)}</span>
               )}

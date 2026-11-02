@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { REDES, iniciais, linkExterno, unsplash, type Aluno, type Trabalho } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
+import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 import { SeloVerificado } from "@/components/Logo";
 import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
@@ -92,8 +93,7 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
           <div className="perfil-apresenta">
             <div className="moldura">
               {aluno.foto ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="foto-cobrir" src={unsplash(aluno.foto, 500)} alt={`Foto de ${aluno.nome}`} width={500} height={667} decoding="async" />
+                <FotoEnquadrada className="foto-cobrir" src={unsplash(aluno.foto, 500)} alt={`Foto de ${aluno.nome}`} width={500} height={667} />
               ) : (
                 <span className="moldura-iniciais" aria-hidden="true">{iniciais(aluno.nome)}</span>
               )}

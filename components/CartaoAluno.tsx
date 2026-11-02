@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Aluno } from "@/lib/data";
 import { iniciais, linkPerfil, unsplash } from "@/lib/data";
+import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 
 const FUNDOS = ["#2F3E2A", "#B0673B", "#4F7A3A", "#6B4A34"];
 
@@ -25,15 +26,13 @@ export function CartaoAluno({ aluno }: { aluno: Aluno }) {
     <Link href={linkPerfil(aluno)} className="polaroide">
       <span className="polaroide-foto" style={{ background: corDe(aluno.slug) }}>
         {aluno.foto ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <FotoEnquadrada
             className="foto-cobrir"
             src={unsplash(aluno.foto, 600)}
             alt={`Foto de ${aluno.nome}`}
             width={600}
             height={450}
             loading="lazy"
-            decoding="async"
           />
         ) : (
           <span className="polaroide-iniciais" aria-hidden="true">{iniciais(aluno.nome)}</span>

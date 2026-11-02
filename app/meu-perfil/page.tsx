@@ -27,6 +27,8 @@ import { CartaoAluno } from "@/components/CartaoAluno";
 import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
 import { Seletor } from "@/components/Seletor";
 import { Contador } from "@/components/Contador";
+import { FotoEnquadrada } from "@/components/FotoEnquadrada";
+import { EnquadrarFoto } from "@/components/EnquadrarFoto";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
@@ -241,6 +243,7 @@ function Editor(props: PropsEditor) {
   const [erro, setErro] = useState("");
   const [cursoOutro, setCursoOutro] = useState(false);
   const [passo, setPasso] = useState<Passo>("voce");
+  const [enquadrando, setEnquadrando] = useState(false);
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const trocouPasso = useRef(false);
   const userId = props.modo === "banco" ? props.userId : "";
@@ -476,8 +479,7 @@ function Editor(props: PropsEditor) {
               Foto de perfil
               <div className="linha-arquivo">
                 {r.foto ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={unsplash(r.foto, 160)} alt="" width={64} height={64} className="miniatura redonda" />
+                  <FotoEnquadrada src={unsplash(r.foto, 160)} className="miniatura redonda" />
                 ) : null}
                 <EscolherArquivo
                   rotulo={r.foto ? "Trocar foto" : "Escolher foto"}
@@ -487,6 +489,11 @@ function Editor(props: PropsEditor) {
                     if (url) mudar("foto", url);
                   }}
                 />
+                {r.foto && (
+                  <button type="button" className="botao botao-contorno botao-pequeno" onClick={() => setEnquadrando(true)}>
+                    Ajustar enquadramento
+                  </button>
+                )}
                 {r.foto && <button type="button" className="link-denuncia" onClick={() => mudar("foto", "")}>Remover</button>}
               </div>
             </div>
@@ -844,6 +851,15 @@ function Editor(props: PropsEditor) {
             </div>
           )}
           </Ficha>
+        )}
+
+        {enquadrando && r.foto && (
+          <EnquadrarFoto
+            foto={r.foto}
+            exibir={(src) => unsplash(src, 900)}
+            onSalvar={(novo) => mudar("foto", novo)}
+            onFechar={() => setEnquadrando(false)}
+          />
         )}
 
         <nav className="fichas-nav" aria-label="Navegar entre as fichas">
