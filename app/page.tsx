@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { ALUNOS } from "@/lib/data";
 import { CartaoAluno } from "@/components/CartaoAluno";
-import { Capa } from "@/components/Capa";
 
 export default function Inicio() {
   const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
-  const mosaico = ALUNOS.flatMap((a) => a.trabalhos).slice(0, 4);
 
   return (
     <>
@@ -32,13 +30,6 @@ export default function Inicio() {
               <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
               <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
             </div>
-          </div>
-          <div className="hero-mosaico" aria-hidden="true">
-            {mosaico.map((t) => (
-              <div key={t.titulo} className="cartao" style={{ overflow: "hidden", aspectRatio: "4 / 5" }}>
-                <Capa cor={t.cor} titulo={t.titulo} />
-              </div>
-            ))}
           </div>
         </div>
       </section>
