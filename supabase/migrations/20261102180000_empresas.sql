@@ -1,6 +1,7 @@
 -- Fólium: catálogo de empresas para o campo de experiência (busca igual ao LinkedIn).
 
--- Rode este arquivo uma vez no SQL Editor do Supabase.
+-- Pode rodar mais de uma vez sem problema.
+-- Rode este arquivo no SQL Editor do Supabase.
 -- O catálogo cresce sozinho: quando um aluno salva uma experiência numa empresa nova, ela entra aqui.
 
 create extension if not exists pg_trgm with schema extensions;
@@ -18,8 +19,10 @@ create index if not exists empresas_busca on public.empresas using gin (chave ex
 
 alter table public.empresas enable row level security;
 
+drop policy if exists "todos buscam empresas" on public.empresas;
 create policy "todos buscam empresas" on public.empresas
   for select using (true);
+drop policy if exists "aluno institucional cadastra empresa" on public.empresas;
 create policy "aluno institucional cadastra empresa" on public.empresas
   for insert to authenticated with check (public.eh_aluno_institucional());
 

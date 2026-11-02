@@ -1,5 +1,6 @@
 -- Fólium: portfólio mais completo.
--- Rode este arquivo uma vez no SQL Editor do Supabase, depois do inicial.
+-- Pode rodar mais de uma vez sem problema.
+-- Rode este arquivo no SQL Editor do Supabase, depois do inicial.
 
 alter table public.perfis
   add column if not exists titulo text not null default '' check (length(titulo) <= 80),
@@ -13,6 +14,7 @@ alter table public.perfis
   add column if not exists idiomas jsonb not null default '[]'::jsonb,
   add column if not exists curriculo_url text;
 
+alter table public.perfis drop constraint if exists perfis_listas_validas;
 alter table public.perfis
   add constraint perfis_listas_validas check (
     jsonb_typeof(links) = 'object'
@@ -33,14 +35,18 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('curriculos', 'curriculos', true, 3145728, array['application/pdf'])
 on conflict (id) do nothing;
 
+drop policy if exists "todos veem curriculos" on storage.objects;
 create policy "todos veem curriculos" on storage.objects
   for select using (bucket_id = 'curriculos');
+drop policy if exists "aluno envia curriculo na propria pasta" on storage.objects;
 create policy "aluno envia curriculo na propria pasta" on storage.objects
   for insert to authenticated
   with check (bucket_id = 'curriculos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "aluno troca curriculo da propria pasta" on storage.objects;
 create policy "aluno troca curriculo da propria pasta" on storage.objects
   for update to authenticated
   using (bucket_id = 'curriculos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "aluno apaga curriculo da propria pasta" on storage.objects;
 create policy "aluno apaga curriculo da propria pasta" on storage.objects
   for delete to authenticated
   using (bucket_id = 'curriculos' and (storage.foldername(name))[1] = auth.uid()::text);
