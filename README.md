@@ -14,20 +14,25 @@ npm run dev
 
 Abra http://localhost:3000.
 
+Sem configurar nada, o site roda em **modo demonstração** (dados de exemplo, nada é salvo de verdade).
+Para ligar o banco, o login e o upload de fotos, siga o [SUPABASE.md](SUPABASE.md).
+
 ## Onde mexer
 
-- `lib/data.ts`: alunos, cursos e serviços de exemplo (vira o banco de dados depois)
-- `lib/config.ts`: domínio do e-mail institucional aceito no cadastro
+- `lib/data.ts`: alunos, cursos e serviços de exemplo
+- `lib/config.ts`: domínio do e-mail institucional e se mostra os exemplos junto com os perfis reais
+- `lib/supabase.ts`, `lib/repositorio.ts`, `lib/sessao.ts`: conexão com o banco, leituras/gravações e login
+- `supabase/migrations/`: tabelas e regras de segurança do banco
 - `app/globals.css`: cores da paleta "folha + papel + terra" e todo o visual
 - `app/page.tsx`: página inicial
 - `app/talentos/`: busca de talentos com filtros
-- `app/aluno/[slug]/`: portfólio público de cada aluno
+- `app/aluno/[slug]/`: portfólio dos alunos de exemplo
+- `app/perfil/`: portfólio dos alunos reais (`/perfil/?u=nome-do-aluno`)
+- `app/oportunidades/`: mural de vagas e formulário para empresas
 - `app/entrar/`: entrada com e-mail institucional
 - `app/meu-perfil/`: edição do portfólio com prévia ao vivo
 
 ## Ainda falta
 
-- Banco de dados e login de verdade (Supabase)
-- Upload de imagens dos trabalhos
 - Domínio próprio e hospedagem (Vercel)
-- Painel de administração
+- Painel de administração (por enquanto, aprovar vagas e ver denúncias pelo painel do Supabase)
