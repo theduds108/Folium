@@ -320,6 +320,9 @@ export function traduzirErro(e: { message?: string; code?: string } | null | und
     );
   if (e?.code === "over_request_rate_limit" || /rate limit|too many/i.test(msg))
     return new Error("Muitas tentativas seguidas deste aparelho. Espere alguns minutos e tente de novo.");
+  // Falha do servidor de e-mail (SMTP) ao mandar o link: problema de configuração nosso, não da pessoa.
+  if (/error sending .*email/i.test(msg))
+    return new Error("Não conseguimos enviar o e-mail de acesso agora. O problema é do nosso lado; tente de novo em alguns minutos.");
   if (/fetch|network/i.test(msg)) return new Error("Sem conexão com o servidor. Confira sua internet.");
   return new Error(msg || "Algo deu errado. Tente de novo.");
 }
