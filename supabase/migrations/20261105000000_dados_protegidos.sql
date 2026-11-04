@@ -29,10 +29,16 @@ drop policy if exists "logados veem oportunidades aprovadas" on public.oportunid
 create policy "logados veem oportunidades aprovadas" on public.oportunidades
   for select to authenticated using (status = 'aprovada' or autor_id = auth.uid());
 
-drop policy if exists "todos buscam empresas" on public.empresas;
-drop policy if exists "logados buscam empresas" on public.empresas;
-create policy "logados buscam empresas" on public.empresas
-  for select to authenticated using (true);
+-- A tabela empresas vem de 20261102180000_empresas.sql; se ela ainda não existir, pula.
+do $$
+begin
+  if to_regclass('public.empresas') is not null then
+    drop policy if exists "todos buscam empresas" on public.empresas;
+    drop policy if exists "logados buscam empresas" on public.empresas;
+    create policy "logados buscam empresas" on public.empresas
+      for select to authenticated using (true);
+  end if;
+end $$;
 
 -- 3. Denúncias: só quem tem conta (evita spam anônimo) ------------------------
 
@@ -44,12 +50,23 @@ create policy "logados denunciam" on public.denuncias
 -- 4. Visitante sem login não lê nenhuma tabela com dados de pessoas ----------
 -- (as políticas acima já bloqueiam; isto é uma segunda trava.)
 
-revoke select, insert, update, delete on
-  public.perfis, public.trabalhos, public.oportunidades, public.interesses, public.denuncias,
-  public.empresas, public.contas, public.salvos, public.jornal_materias, public.nomes_usuario
-from anon;
-
-revoke execute on function public.nome_usuario_livre(text) from anon;
+-- Só nas tabelas que existem no seu banco (pula as de migrações que ainda não rodaram).
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['perfis', 'trabalhos', 'oportunidades', 'interesses', 'denuncias',
+                           'empresas', 'contas', 'salvos', 'jornal_materias', 'nomes_usuario',
+                           'tentativas_login']
+  loop
+    if to_regclass('public.' || t) is not null then
+      execute format('revoke select, insert, update, delete on public.%I from anon', t);
+    end if;
+  end loop;
+  if to_regprocedure('public.nome_usuario_livre(text)') is not null then
+    revoke execute on function public.nome_usuario_livre(text) from anon;
+  end if;
+end $$;
 
 -- 5. Fotos, currículos e certificados em buckets privados ---------------------
 
