@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SENHA_MINIMA } from "@/lib/config";
 import { lerNomeUsuario, normalizarNomeUsuario, problemaNomeUsuario, problemaSenha, salvarLogin, sugerirNomeUsuario } from "@/lib/acesso";
 import { INICIO_DA_AREA, useConta } from "@/lib/conta";
+import { RegrasSenha } from "@/components/RegrasSenha";
 import { useSessao } from "@/lib/sessao";
 import { supabase } from "@/lib/supabase";
 
@@ -114,7 +114,7 @@ export default function Senha() {
                 <span className="ajuda">Letras minúsculas, números, ponto ou sublinhado. Ex.: ana.silva</span>
               </label>
               <label className="campo">
-                {temLogin ? "Senha nova (opcional)" : `Senha (mínimo ${SENHA_MINIMA} caracteres)`}
+                {temLogin ? "Senha nova (opcional)" : "Senha"}
                 <input
                   type={verSenha ? "text" : "password"}
                   autoComplete="new-password"
@@ -123,6 +123,7 @@ export default function Senha() {
                   required={!temLogin}
                 />
               </label>
+              {(!temLogin || senha) && <RegrasSenha senha={senha} />}
               <label className="campo">
                 Repita a senha
                 <input

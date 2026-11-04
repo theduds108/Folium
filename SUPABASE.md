@@ -114,4 +114,14 @@ nome de usuário e senha em `/senha` e passa a entrar com eles, sem e-mail nenhu
 1. SQL Editor: rode `supabase/migrations/20261104220000_nome_usuario.sql`.
 2. Authentication > URL Configuration > Redirect URLs: inclua `https://folium-phi.vercel.app/**`
    (os links do primeiro acesso e do "Esqueci a senha" voltam para `/senha/`).
-3. Authentication > Sign In / Providers > Email: deixe "Email" ligado (é ele que permite senha).
+3. Authentication > Sign In / Providers > Email: deixe "Email" ligado (é ele que permite senha) e, em
+   **Minimum password length**, ponha `8`; em **Password Requirements**, escolha
+   "Lowercase, uppercase letters, digits and symbols". É isso que recusa senha fraca no servidor
+   (a lista na tela é só ajuda visual).
+4. SQL Editor: rode `supabase/migrations/20261104230000_login_seguro.sql`. Ele troca a função de login
+   por uma que só devolve o e-mail quando a senha está certa e trava o nome de usuário por 15 minutos
+   depois de 5 erros.
+
+Onde ficam os dados: a senha é guardada só pelo Supabase Auth, como hash bcrypt (não dá para
+ler de volta); nenhuma tabela nossa nem o navegador guardam a senha. O navegador guarda apenas a
+sessão (um token que expira), que é o mesmo que qualquer site de login guarda.

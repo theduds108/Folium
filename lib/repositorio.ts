@@ -311,7 +311,10 @@ export function traduzirErro(e: { message?: string; code?: string } | null | und
   if (e?.code === "invalid_credentials" || /invalid login credentials/i.test(msg))
     return new Error("Usuário ou senha incorretos. Se você ainda não criou sua senha, use “Esqueci a senha”.");
   if (e?.code === "same_password" || /different from the old/i.test(msg)) return new Error("A senha nova precisa ser diferente da atual.");
-  if (e?.code === "weak_password" || /password should/i.test(msg)) return new Error("Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.");
+  if (e?.code === "weak_password" || /password should/i.test(msg))
+    return new Error("Senha fraca. Ela precisa ter pelo menos 8 caracteres, com letra maiúscula, letra minúscula, número e caractere especial.");
+  if (/muitas_tentativas/.test(msg))
+    return new Error("Muitas tentativas erradas com esse usuário. Espere 15 minutos, entre com o e-mail no lugar do usuário ou use “Esqueci a senha”.");
   if (/nomes_usuario|email_para_login|nome_usuario_livre/.test(msg))
     return new Error("O login por nome de usuário ainda não foi ligado no banco. Avise a equipe do Fólium.");
   if (e?.code === "signup_disabled") return new Error("Novos cadastros estão fechados no momento.");

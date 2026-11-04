@@ -2766,3 +2766,25 @@ html { scroll-padding-top: 84px; }
 }
 .faixa-senha p { margin: 0; }
 .faixa-senha .botao { min-height: 36px; padding: 4px 14px; }
+.regras-senha {
+  list-style: none;
+  margin: -4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+.regras-senha li span[aria-hidden] { display: inline-block; width: 1.2em; }
+.regras-senha li.ok { color: var(--verde-musgo); }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
