@@ -35,8 +35,22 @@ export function problemaNomeUsuario(nome: string) {
   return "";
 }
 
+/**
+ * Regras da senha. Aqui é só para mostrar na tela enquanto a pessoa digita: quem garante
+ * de verdade é o Supabase Auth (Password requirements = letras minúsculas, maiúsculas,
+ * números e símbolos; mínimo 8), que recusa a senha fraca no servidor.
+ */
+export const REGRAS_SENHA: { texto: string; ok: (s: string) => boolean }[] = [
+  { texto: `Pelo menos ${SENHA_MINIMA} caracteres`, ok: (s) => s.length >= SENHA_MINIMA },
+  { texto: "Uma letra maiúscula", ok: (s) => /[A-Z]/.test(s) },
+  { texto: "Uma letra minúscula", ok: (s) => /[a-z]/.test(s) },
+  { texto: "Um número", ok: (s) => /[0-9]/.test(s) },
+  { texto: "Um caractere especial (ex.: ! @ # $ %)", ok: (s) => /[!@#$%^&*()_+\-=[\]{};':"|<>?,./`~]/.test(s) },
+];
+
 export function problemaSenha(senha: string, repetida: string) {
-  if (senha.length < SENHA_MINIMA) return `A senha precisa ter pelo menos ${SENHA_MINIMA} caracteres.`;
+  const faltando = REGRAS_SENHA.filter((r) => !r.ok(senha));
+  if (faltando.length) return `A senha ainda precisa de: ${faltando.map((r) => r.texto.toLowerCase()).join(", ")}.`;
   if (senha !== repetida) return "As duas senhas não são iguais.";
   return "";
 }
@@ -47,7 +61,8 @@ export async function entrarComSenha(login: string, senha: string) {
   if (!sb) throw new Error("Banco não configurado");
   let email = login.trim().toLowerCase();
   if (!email.includes("@")) {
-    const { data, error } = await sb.rpc("email_para_login", { p_usuario: email });
+    // O banco só devolve o e-mail se a senha estiver certa, e trava o nome depois de 5 erros.
+    const { data, error } = await sb.rpc("email_para_login", { p_usuario: email, p_senha: senha });
     if (error) throw traduzirErro(error);
     // Mesma mensagem de senha errada, para não revelar quais nomes existem.
     if (!data) throw new Error("Usuário ou senha incorretos.");
