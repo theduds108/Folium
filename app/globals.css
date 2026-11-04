@@ -1814,42 +1814,76 @@ html { scroll-padding-top: 84px; }
   .leque-legenda .anotacao { display: none; }
 }
 
-/* Índice de serviços (antes letreiro infinito): bloco estático com links */
-.faixa { padding: 26px 0 30px; }
+/* Índice de serviços: sumário em colunas, cada serviço abre a busca já filtrada */
+.faixa { padding: 30px 0 34px; }
+.faixa-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(246, 240, 228, 0.25);
+}
 .faixa-rotulo {
-  display: block;
-  margin-bottom: 12px;
   font-family: var(--fonte-titulo), sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(246, 240, 228, 0.75);
+  color: var(--creme-papel);
+}
+.faixa-nota {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.25rem;
+  color: #e0a77c;
 }
 .faixa-lista {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 0;
-  font-family: var(--fonte-titulo), sans-serif;
-  font-size: clamp(1rem, 2.6vw, 1.75rem);
-  line-height: 1.15;
-  text-transform: uppercase;
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 48px;
 }
-.faixa-lista li { display: inline-flex; align-items: center; }
-.faixa-lista li + li::before { content: "✦"; color: var(--marrom-cobre); font-size: 0.6em; margin: 0 14px; }
+@media (min-width: 720px) {
+  .faixa-lista { grid-template-columns: repeat(2, 1fr); }
+}
 .faixa-lista a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 2px 10px;
+  border-bottom: 1px dashed rgba(246, 240, 228, 0.22);
   color: var(--creme-papel);
   text-decoration: none;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  border-bottom: 2px solid transparent;
-  transition: border-color var(--mov-rapido) ease-out, color var(--mov-rapido) ease-out;
+  transition: color var(--mov-rapido) ease-out, border-color var(--mov-rapido) ease-out;
 }
-.faixa-lista a:hover { border-color: var(--marrom-cobre); }
+.faixa-num {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.2rem;
+  color: #e0a77c;
+  min-width: 1.6em;
+}
+.faixa-nome {
+  flex: 1;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.faixa-seta {
+  color: #e0a77c;
+  opacity: 0.6;
+  transition: transform var(--mov-rapido) ease-out, opacity var(--mov-rapido) ease-out;
+}
+.faixa-lista a:hover { border-bottom-color: #e0a77c; }
+.faixa-lista a:hover .faixa-seta { opacity: 1; transform: translateX(4px); }
 .faixa-lista a:focus-visible { outline-color: var(--creme-papel); }
+@media (prefers-reduced-motion: reduce) {
+  .faixa-lista a:hover .faixa-seta { transform: none; }
+}
 
 /* Coreografia de entrada da capa (ver EntradaCapa.tsx). Só para quem não pediu menos movimento. */
 @keyframes entrar {
