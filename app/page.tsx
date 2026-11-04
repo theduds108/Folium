@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { ALUNOS } from "@/lib/data";
 import { DEPOIMENTOS, MISSAO, OPORTUNIDADES, VALORES } from "@/lib/conteudo";
-import { CartaoAluno } from "@/components/CartaoAluno";
-import { Leque } from "@/components/Leque";
-import { Anotacao, Faixa, PapelRasgado } from "@/components/Zine";
+import { DestaquesInicio, LequeInicio } from "@/components/VitrineInicio";
+import { Faixa, PapelRasgado } from "@/components/Zine";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
 
@@ -22,9 +20,6 @@ const INDICE = [
 ];
 
 export default function Inicio() {
-  const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
-  const leque = ALUNOS.slice(0, 5);
-
   return (
     <>
       <section className="capa-zine" aria-labelledby="capa-marca">
@@ -82,12 +77,7 @@ export default function Inicio() {
             </ul>
           </div>
 
-          <div className="leque-legenda">
-            <span className="rotulos"><span>Do arquivo · {leque.length} fichas</span></span>
-            <Anotacao className="anotacao-capa">abra uma ficha</Anotacao>
-            <Link href="/talentos" className="link-mao">ver todos →</Link>
-          </div>
-          <Leque alunos={leque} />
+          <LequeInicio />
         </EntradaCapa>
       </section>
 
@@ -103,11 +93,7 @@ export default function Inicio() {
             <h2>Disponíveis agora</h2>
             <Link href="/talentos" className="link-mao">ver todos →</Link>
           </div>
-          <div className="grade-alunos revelar-grupo">
-            {destaques.map((a) => (
-              <CartaoAluno key={a.slug} aluno={a} />
-            ))}
-          </div>
+          <DestaquesInicio />
         </div>
       </section>
 

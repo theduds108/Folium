@@ -12,7 +12,14 @@ export function emailInstitucional(email: string) {
 }
 
 /**
- * Mostra os perfis e vagas de exemplo junto com os reais.
- * Quando houver alunos de verdade suficientes, troque para false.
+ * Mostra as vagas de exemplo junto com as reais.
+ * Quando houver vagas de verdade suficientes, troque para false.
  */
 export const MOSTRAR_EXEMPLOS = true;
+
+/**
+ * Mostra os alunos fictícios (Ana Ribeiro, Bruno Matsuda…) junto com os perfis reais.
+ * Desligado: a vitrine só mostra quem se cadastrou de verdade. Para trazê-los de volta, troque para true.
+ * Sem banco ligado (rodando local sem .env.local), os exemplos aparecem de qualquer jeito.
+ */
+export const MOSTRAR_ALUNOS_EXEMPLO = false;

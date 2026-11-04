@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Area, SeloPlano, TravaPremium } from "@/components/Area";
 import { CartaoAluno } from "@/components/CartaoAluno";
-import { ALUNOS, type Aluno } from "@/lib/data";
+import { ALUNOS_VITRINE, type Aluno } from "@/lib/data";
 import { RECURSOS, salvarDadosConta, type Conta } from "@/lib/conta";
 import { listarAlunosReais, listarSalvos, minhasVagas, type MinhaVaga } from "@/lib/repositorio";
 import { mascaraTelefone, telefoneValido } from "@/lib/formato";
@@ -33,7 +33,7 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
   useEffect(() => {
     if (!premium) return;
     Promise.all([listarSalvos(), listarAlunosReais()]).then(([slugs, reais]) => {
-      const todos = [...reais, ...ALUNOS];
+      const todos = [...reais, ...ALUNOS_VITRINE];
       setSalvos(slugs.map((s) => todos.find((a) => a.slug === s)).filter((a): a is Aluno => !!a));
     });
   }, [premium]);
