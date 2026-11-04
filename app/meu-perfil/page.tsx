@@ -593,6 +593,15 @@ function Editor(props: PropsEditor) {
                 )}
                 {r.foto && <button type="button" className="link-denuncia" onClick={() => mudar("foto", "")}>Remover</button>}
               </div>
+              <div className="dicas-foto">
+                <span className="dicas-foto-titulo">Dicas para a foto</span>
+                <ul>
+                  <li>Prefira uma foto que mostre bem o seu rosto, para quem contrata reconhecer você.</li>
+                  <li>Evite fotos no espelho, com filtro ou de longe.</li>
+                  <li>Use luz natural e um fundo simples.</li>
+                  <li>Apareça só você na foto, sem óculos escuros ou boné cobrindo o rosto.</li>
+                </ul>
+              </div>
             </div>
           )}
           <label className="campo">

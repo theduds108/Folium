@@ -2817,3 +2817,19 @@ html { scroll-padding-top: 84px; }
   flex: 1;
   border-top: 1px dashed var(--linha);
 }
+.dicas-foto {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px dashed var(--linha);
+  border-radius: 10px;
+  background: #fbf3dd;
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+.dicas-foto-titulo {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.15rem;
+  color: var(--castanho-cafe);
+}
+.dicas-foto ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; }
