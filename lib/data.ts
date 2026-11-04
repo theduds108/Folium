@@ -1,3 +1,5 @@
+import { MOSTRAR_ALUNOS_EXEMPLO } from "@/lib/config";
+import { bancoLigado } from "@/lib/supabase";
 // Dados de exemplo. Quando o banco (Supabase) entrar, estas listas viram
 // consultas ao banco, e o resto do código continua igual.
 
@@ -451,6 +453,9 @@ const EXTRAS: Record<string, Partial<Aluno>> = {
 
 export const ALUNOS: Aluno[] = BASE.map((a) => ({ ...a, ...EXTRAS[a.slug] }));
 
+/** Alunos de exemplo que entram na vitrine (vazio quando os fictícios estão desligados). */
+export const ALUNOS_VITRINE: Aluno[] = MOSTRAR_ALUNOS_EXEMPLO || !bancoLigado ? ALUNOS : [];
+
 /**
  * Imagens de demonstração do Unsplash (uso gratuito, sem atribuição obrigatória).
  * Servem só para visualizar o layout; os alunos reais vão subir as próprias fotos.
@@ -466,7 +471,7 @@ export function linkPerfil(a: Pick<Aluno, "slug" | "real">) {
 }
 
 export function buscarAluno(slug: string) {
-  return ALUNOS.find((a) => a.slug === slug);
+  return ALUNOS_VITRINE.find((a) => a.slug === slug);
 }
 
 export function iniciais(nome: string) {
