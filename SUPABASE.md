@@ -105,3 +105,13 @@ Enquanto não existe um painel de administração próprio, tudo é feito em **T
   `linha_fina`, `texto` (parágrafos separados por uma linha em branco), `editoria`, `autor` e
   `publico` (`todos`, `colaborador` ou `contratante`), e marque `publicada`. Só assinantes Premium
   leem. Enquanto não houver matéria publicada, o jornal mostra três matérias de exemplo.
+
+## Login com nome de usuário e senha
+
+O primeiro acesso é pelo link no e-mail (garante que é aluno UNISAGRADO). Depois a pessoa cria
+nome de usuário e senha em `/senha` e passa a entrar com eles, sem e-mail nenhum.
+
+1. SQL Editor: rode `supabase/migrations/20261104220000_nome_usuario.sql`.
+2. Authentication > URL Configuration > Redirect URLs: inclua `https://folium-phi.vercel.app/**`
+   (os links do primeiro acesso e do "Esqueci a senha" voltam para `/senha/`).
+3. Authentication > Sign In / Providers > Email: deixe "Email" ligado (é ele que permite senha).

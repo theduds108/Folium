@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Caveat, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { VisaoDemo } from "@/components/VisaoDemo";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${titulo.variable} ${texto.variable} ${mao.variable}`}>
       <body>
         <Cabecalho />
+        <AvisoSenha />
         <main>{children}</main>
         <footer className="rodape">
           <div className="container rodape-interno">

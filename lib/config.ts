@@ -16,3 +16,6 @@ export function emailInstitucional(email: string) {
  * Quando houver alunos de verdade suficientes, troque para false.
  */
 export const MOSTRAR_EXEMPLOS = true;
+
+/** Tamanho mínimo da senha da conta (o Supabase exige pelo menos 6). */
+export const SENHA_MINIMA = 8;

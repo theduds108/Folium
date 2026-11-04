@@ -211,7 +211,7 @@ export default function MeuPerfil() {
   if (!usuario)
     return (
       <Aviso titulo="Entre para montar seu portfólio">
-        <p className="suave">Use seu e-mail institucional. Mandamos um link de acesso, sem senha.</p>
+        <p className="suave">Entre com seu nome de usuário e senha. No primeiro acesso, use o e-mail institucional.</p>
         <Link href="/entrar" className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
       </Aviso>
     );
@@ -994,6 +994,7 @@ function Editor(props: PropsEditor) {
             {real && (
               <span className="barra-salvar-extra">
                 {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio →</Link>}
+                <Link href="/senha" className="link-texto" style={{ fontSize: "0.9rem" }}>usuário e senha</Link>
                 <button type="button" className="botao botao-contorno botao-pequeno botao-sair" onClick={sair}>
                   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10 5l3 3-3 3M13 8H6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />

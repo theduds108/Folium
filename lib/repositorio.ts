@@ -308,15 +308,22 @@ export async function denunciar(alvoTipo: "perfil" | "oportunidade", alvo: strin
 export function traduzirErro(e: { message?: string; code?: string } | null | undefined): Error {
   const msg = e?.message ?? "";
   if (/row-level security/i.test(msg)) return new Error("Sua conta não tem permissão para isso. Confira se entrou com o e-mail certo.");
+  if (e?.code === "invalid_credentials" || /invalid login credentials/i.test(msg))
+    return new Error("Usuário ou senha incorretos. Se você ainda não criou sua senha, use “Esqueci a senha”.");
+  if (e?.code === "same_password" || /different from the old/i.test(msg)) return new Error("A senha nova precisa ser diferente da atual.");
+  if (e?.code === "weak_password" || /password should/i.test(msg)) return new Error("Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.");
+  if (/nomes_usuario|email_para_login|nome_usuario_livre/.test(msg))
+    return new Error("O login por nome de usuário ainda não foi ligado no banco. Avise a equipe do Fólium.");
+  if (e?.code === "signup_disabled") return new Error("Novos cadastros estão fechados no momento.");
   if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos. Com o Premium não há limite.");
   if (/Limite de 1 vaga/.test(msg)) return new Error("O plano grátis permite 1 vaga por mês. Com o Premium as vagas são ilimitadas.");
   // Mesmo e-mail pedindo de novo antes do intervalo mínimo ("you can only request this after 42 seconds").
   const espera = msg.match(/after (\d+) seconds?/i);
-  if (espera) return new Error(`Já mandamos um link para este e-mail agora há pouco. Espere ${espera[1]} segundos para pedir outro, ou confira a caixa de entrada e o spam.`);
+  if (espera) return new Error(`Já mandamos um e-mail para este endereço agora há pouco. Espere ${espera[1]} segundos para pedir outro, ou confira a caixa de entrada e o spam.`);
   // Limite de e-mails do projeto (o envio padrão do Supabase manda só poucos por hora no projeto todo).
   if (e?.code === "over_email_send_rate_limit" || /email rate limit/i.test(msg))
     return new Error(
-      "Muita gente pediu link de acesso nesta última hora e o envio de e-mails chegou ao limite. Tente de novo daqui a pouco. Se já recebeu um link antes, ele ainda funciona: abra o e-mail e clique nele."
+      "O envio de e-mails do Fólium chegou ao limite desta hora. Tente de novo daqui a pouco. Se você já criou usuário e senha, entre com eles, que não depende de e-mail."
     );
   if (e?.code === "over_request_rate_limit" || /rate limit|too many/i.test(msg))
     return new Error("Muitas tentativas seguidas deste aparelho. Espere alguns minutos e tente de novo.");

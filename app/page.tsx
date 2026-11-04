@@ -63,7 +63,7 @@ export default function Inicio() {
 
             <div className="hero-acoes">
               <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
-              <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
+              <Link href="/entrar?modo=primeiro" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
             </div>
 
             <ul className="provas" aria-label="Por que confiar">

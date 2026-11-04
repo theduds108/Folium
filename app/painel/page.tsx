@@ -190,6 +190,7 @@ function DadosContratante({ conta }: { conta: Conta }) {
         </div>
         <p className="ajuda" style={{ margin: 0 }}>
           Conta: {conta.email} ·{" "}
+          <Link href="/senha" className="link-denuncia">Usuário e senha</Link> ·{" "}
           <button type="button" className="link-denuncia" onClick={sair}>Sair da conta</button>
         </p>
         {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
