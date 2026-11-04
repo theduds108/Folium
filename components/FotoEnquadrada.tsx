@@ -1,4 +1,5 @@
 import { lerFoto } from "@/lib/foto";
+import { ImgSegura } from "@/lib/arquivos";
 
 /**
  * Foto que respeita o enquadramento escolhido pelo aluno (ponto de foco + zoom).
@@ -26,8 +27,7 @@ export function FotoEnquadrada({
       className={`foto-enq ${className}`.trim()}
       style={{ ["--fx" as string]: `${enq.x}%`, ["--fy" as string]: `${enq.y}%`, ["--fz" as string]: enq.z }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imagem} alt={alt} width={width} height={height} loading={loading} decoding="async" />
+      <ImgSegura src={imagem} alt={alt} width={width} height={height} loading={loading} decoding="async" />
     </span>
   );
 }

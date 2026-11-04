@@ -2,6 +2,7 @@ import Link from "next/link";
 import { REDES, iniciais, linkExterno, unsplash, type Aluno, type Trabalho } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
+import { ImgSegura, LinkSeguro } from "@/lib/arquivos";
 import { SeloVerificado } from "@/components/Logo";
 import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
@@ -20,8 +21,7 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
     <figure className={destaque ? "obra obra-destaque" : "obra"}>
       <div className="obra-quadro" style={{ backgroundColor: t.cor }}>
         {t.imagem ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ImgSegura
             src={unsplash(t.imagem, largura)}
             alt={`${t.tipo}: ${t.titulo}`}
             width={largura}
@@ -41,10 +41,9 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
         {(t.galeria?.length ?? 0) > 0 && (
           <div className="trabalho-galeria">
             {t.galeria!.map((g, i) => (
-              <a key={g} href={unsplash(g, 1400)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir imagem ${i + 2} de ${t.titulo}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={unsplash(g, 300)} alt="" width={300} height={300} loading="lazy" decoding="async" />
-              </a>
+              <LinkSeguro key={g} href={unsplash(g, 1400)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir imagem ${i + 2} de ${t.titulo}`}>
+                <ImgSegura src={unsplash(g, 300)} alt="" width={300} height={300} loading="lazy" decoding="async" />
+              </LinkSeguro>
             ))}
           </div>
         )}
@@ -138,9 +137,9 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
             </a>
           )}
           {aluno.curriculo && (
-            <a className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
+            <LinkSeguro className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
               Baixar currículo (PDF)
-            </a>
+            </LinkSeguro>
           )}
           <SalvarTalento slug={aluno.slug} />
           <div className="compartilhar">
@@ -209,7 +208,7 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
                           </span>
                           <span className="suave">{[c.instituicao, c.ano].filter(Boolean).join(" · ")}</span>
                           {c.arquivo && (
-                            <a className="link-certificado" href={c.arquivo} target="_blank" rel="noopener noreferrer">ver certificado ↗</a>
+                            <LinkSeguro className="link-certificado" href={c.arquivo} target="_blank" rel="noopener noreferrer">ver certificado ↗</LinkSeguro>
                           )}
                         </li>
                       ))}

@@ -8,7 +8,7 @@ import { Leque } from "@/components/Leque";
 import { Anotacao } from "@/components/Zine";
 import { ALUNOS_VITRINE, type Aluno } from "@/lib/data";
 import { listarAlunosReais } from "@/lib/repositorio";
-import { bancoLigado } from "@/lib/supabase";
+import { useConta } from "@/lib/conta";
 
 /** Perfis reais publicados + exemplos (quando ligados), compartilhados entre o leque e os destaques. */
 let cache: Promise<Aluno[]> | null = null;
@@ -17,19 +17,28 @@ function carregarVitrine() {
   return cache;
 }
 
+/** Portfólios só aparecem para quem entrou: visitante não carrega nada. */
 function useVitrine() {
-  const [alunos, setAlunos] = useState<Aluno[]>(bancoLigado ? [] : ALUNOS_VITRINE);
-  const [carregando, setCarregando] = useState(bancoLigado);
+  const { logado, carregando: carregandoConta } = useConta();
+  const [alunos, setAlunos] = useState<Aluno[]>([]);
+  const [carregando, setCarregando] = useState(true);
   useEffect(() => {
+    if (carregandoConta) return;
+    if (!logado) {
+      setAlunos([]);
+      setCarregando(false);
+      return;
+    }
     let ativo = true;
+    setCarregando(true);
     carregarVitrine()
       .then((a) => ativo && setAlunos(a))
       .finally(() => ativo && setCarregando(false));
     return () => {
       ativo = false;
     };
-  }, []);
-  return { alunos, carregando };
+  }, [logado, carregandoConta]);
+  return { alunos, carregando, logado };
 }
 
 /** Leque de fichas da capa. Some quando ainda não há nenhum portfólio publicado. */
@@ -51,13 +60,22 @@ export function LequeInicio() {
 
 /** Seção "Disponíveis agora" da página inicial. */
 export function DestaquesInicio() {
-  const { alunos, carregando } = useVitrine();
+  const { alunos, carregando, logado } = useVitrine();
   const destaques = alunos.filter((a) => a.disponivel).slice(0, 3);
 
   if (carregando) {
     return (
       <div className="grade-alunos">
         {[0, 1, 2].map((i) => <EsqueletoPolaroide key={i} />)}
+      </div>
+    );
+  }
+  if (!logado) {
+    return (
+      <div className="cartao vazio">
+        <h3>Entre para ver quem está disponível</h3>
+        <p className="suave">Os portfólios ficam visíveis só para quem tem conta no Fólium. A conta é grátis.</p>
+        <Link href="/entrar" className="botao botao-contorno">Entrar</Link>
       </div>
     );
   }
