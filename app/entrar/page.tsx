@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { emailInstitucional } from "@/lib/config";
@@ -12,12 +11,12 @@ import { INICIO_DA_AREA, definirContaDemo, guardarTipoPretendido, useConta, type
 const TEXTO: Record<TipoConta, { aba: string; intro: string; campo: string }> = {
   colaborador: {
     aba: "Sou aluno",
-    intro: "Para manter o espaço seguro, só alunos com e-mail institucional podem criar portfólio. O primeiro acesso é por um link no seu e-mail; nele você cria seu nome de usuário e senha.",
+    intro: "Só alunos com e-mail institucional podem criar portfólio. Mandamos um link para o seu e-mail e, nele, você cria seu usuário e senha.",
     campo: "E-mail institucional",
   },
   contratante: {
     aba: "Vou contratar",
-    intro: "Para ver portfólios e chamar alguém, não precisa de conta. Com a conta grátis você publica vagas e acompanha quem se interessou. Qualquer e-mail serve. O primeiro acesso é por um link no seu e-mail.",
+    intro: "Com a conta grátis você vê os portfólios, publica vagas e acompanha quem se interessou. Qualquer e-mail serve: mandamos um link e, nele, você cria seu usuário e senha.",
     campo: "Seu e-mail",
   },
 };
@@ -210,10 +209,10 @@ function FormEntrar() {
         )}
         <h1 style={{ fontSize: "1.9rem" }}>{TITULO[modo]}</h1>
         <p className="suave">
-          {modo === "entrar" && "Entre com o nome de usuário e a senha que você criou. Também dá para usar o e-mail no lugar do usuário."}
+          {modo === "entrar" && "Que bom te ver de novo. Use seu usuário (ou e-mail) e sua senha."}
           {modo === "primeiro" && TEXTO[tipo].intro}
           {modo === "recuperar" &&
-            "Esqueceu a senha, ou já tinha conta e ainda não criou usuário e senha? Mandamos um link para o seu e-mail e você cria na hora."}
+            "Mandamos um link para o seu e-mail e você cria uma senha nova na hora. Serve também para quem já tinha conta e ainda não criou usuário e senha."}
         </p>
         <form className="form" onSubmit={enviar} noValidate>
           {modo === "entrar" ? (
@@ -239,10 +238,13 @@ function FormEntrar() {
                   required
                 />
               </label>
-              <label className="ajuda" style={{ display: "inline-flex", alignItems: "center", gap: 8, margin: 0 }}>
-                <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} />
-                Mostrar senha
-              </label>
+<div className="linha-senha">
+                <label className="ajuda" style={{ display: "inline-flex", alignItems: "center", gap: 8, margin: 0 }}>
+                  <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} />
+                  Mostrar senha
+                </label>
+                <button type="button" className="link-texto" onClick={() => trocarModo("recuperar")}>Esqueci ou não tenho senha</button>
+              </div>
             </>
           ) : (
             <label className="campo">
@@ -262,27 +264,22 @@ function FormEntrar() {
             {enviando ? BOTAO[modo][1] : BOTAO[modo][0]}
           </button>
         </form>
-        <div className="suave" style={{ marginTop: 20, fontSize: "0.92rem", display: "grid", gap: 8 }}>
+        <div className="entrar-alternativa">
+          <span className="entrar-ou">{modo === "entrar" ? "primeira vez no Fólium?" : "já tem usuário e senha?"}</span>
           {modo === "entrar" ? (
-            <>
-              <span>
-                Primeira vez no Fólium?{" "}
-                <button type="button" className="link-texto" onClick={() => trocarModo("primeiro")}>Fazer o primeiro acesso</button>
-              </span>
-              <span>
-                Esqueceu a senha ou ainda não criou uma?{" "}
-                <button type="button" className="link-texto" onClick={() => trocarModo("recuperar")}>Esqueci a senha</button>
-              </span>
-            </>
+            <button type="button" className="botao botao-contorno" onClick={() => trocarModo("primeiro")}>
+              Fazer o primeiro acesso
+            </button>
           ) : (
-            <span>
-              Já tem usuário e senha?{" "}
-              <button type="button" className="link-texto" onClick={() => trocarModo("entrar")}>Entrar</button>
-            </span>
+            <button type="button" className="botao botao-contorno" onClick={() => trocarModo("entrar")}>
+              Entrar com usuário e senha
+            </button>
           )}
-          <span>
-            Só quer olhar? <Link href="/talentos">Ver talentos sem conta</Link>
-          </span>
+          {modo === "entrar" && (
+            <p className="ajuda" style={{ margin: 0, textAlign: "center" }}>
+              Aluno usa o e-mail institucional. Empresa ou contratante usa qualquer e-mail.
+            </p>
+          )}
         </div>
       </div>
     </div>

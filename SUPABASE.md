@@ -125,3 +125,11 @@ nome de usuário e senha em `/senha` e passa a entrar com eles, sem e-mail nenhu
 Onde ficam os dados: a senha é guardada só pelo Supabase Auth, como hash bcrypt (não dá para
 ler de volta); nenhuma tabela nossa nem o navegador guardam a senha. O navegador guarda apenas a
 sessão (um token que expira), que é o mesmo que qualquer site de login guarda.
+
+## Dados só para quem tem conta
+
+Rode `supabase/migrations/20261105000000_dados_protegidos.sql` no SQL Editor. Depois dele:
+- sem login, o banco não entrega portfólios, trabalhos, vagas, empresas nem denúncias;
+- os buckets `fotos` e `curriculos` ficam privados: o site pede links assinados (6 horas) para
+  quem está logado (ver `lib/arquivos.tsx`). Links antigos de foto ou currículo copiados para fora
+  do site param de abrir, de propósito.

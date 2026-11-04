@@ -2788,3 +2788,32 @@ html { scroll-padding-top: 84px; }
   white-space: nowrap;
   border: 0;
 }
+.linha-senha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+  font-size: 0.9rem;
+}
+.entrar-alternativa {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+.entrar-alternativa .botao { width: 100%; }
+.entrar-ou {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.3rem;
+  color: var(--castanho-cafe);
+}
+.entrar-ou::before,
+.entrar-ou::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--linha);
+}

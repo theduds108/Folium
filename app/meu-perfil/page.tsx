@@ -20,6 +20,7 @@ import {
 } from "@/lib/data";
 import { emailInstitucional } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
+import { ImgSegura, LinkSeguro } from "@/lib/arquivos";
 import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
 import { sair, useSessao } from "@/lib/sessao";
 import { RECURSOS, useConta } from "@/lib/conta";
@@ -656,8 +657,7 @@ function Editor(props: PropsEditor) {
               <div className="linha-arquivo">
                   {[t.imagem, ...t.galeria].filter(Boolean).map((img, k) => (
                     <span key={img} className="miniatura-caixa">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={unsplash(img, 240)} alt="" className="miniatura" />
+                      <ImgSegura src={unsplash(img, 240)} alt="" className="miniatura" />
                       {k === 0 && <span className="miniatura-capa">capa</span>}
                       <button
                         type="button"
@@ -883,7 +883,7 @@ function Editor(props: PropsEditor) {
               </div>
               {(
                 <div className="linha-arquivo">
-                  {c.arquivo && <a href={c.arquivo} target="_blank" rel="noopener noreferrer">Ver certificado anexado</a>}
+                  {c.arquivo && <LinkSeguro href={c.arquivo} target="_blank" rel="noopener noreferrer">Ver certificado anexado</LinkSeguro>}
                   <EscolherArquivo
                     rotulo={c.arquivo ? "Trocar arquivo" : "Anexar certificado (PDF ou imagem)"}
                     aceita="application/pdf,image/jpeg,image/png,image/webp"
@@ -939,7 +939,7 @@ function Editor(props: PropsEditor) {
             <div className="campo">
               Currículo em PDF (opcional)
               <div className="linha-arquivo">
-                {r.curriculo && <a href={r.curriculo} target="_blank" rel="noopener noreferrer">Ver currículo enviado</a>}
+                {r.curriculo && <LinkSeguro href={r.curriculo} target="_blank" rel="noopener noreferrer">Ver currículo enviado</LinkSeguro>}
                 <EscolherArquivo
                   rotulo={r.curriculo ? "Trocar PDF" : "Enviar PDF"}
                   aceita="application/pdf"
