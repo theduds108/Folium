@@ -40,6 +40,7 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
   },
   colaborador: {
     topo: [
+      { href: "/talentos", rotulo: "Talentos" },
       { href: "/oportunidades", rotulo: "Oportunidades" },
       { href: "/jornal", rotulo: "Jornal" },
       { href: "/guia", rotulo: "Guia" },
@@ -49,8 +50,8 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
     barra: [
       { href: "/", rotulo: "Início", icone: "inicio" },
       { href: "/oportunidades", rotulo: "Vagas", icone: "vagas" },
+      { href: "/talentos", rotulo: "Talentos", icone: "talentos" },
       { href: "/jornal", rotulo: "Jornal", icone: "jornal" },
-      { href: "/guia", rotulo: "Guia", icone: "guia" },
       { href: "/meu-perfil", rotulo: "Portfólio", icone: "perfil" },
     ],
   },
