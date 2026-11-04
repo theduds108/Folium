@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { emailInstitucional } from "./config";
 import { supabase } from "./supabase";
@@ -194,6 +194,7 @@ export function useConta(): EstadoConta {
   const [conta, setConta] = useState<Conta | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [versao, setVersao] = useState(0);
+  const contaDe = useRef<string | null>(null);
 
   useEffect(() => {
     const aoMudar = () => setVersao((v) => v + 1);
@@ -209,12 +210,15 @@ export function useConta(): EstadoConta {
     }
     if (carregandoSessao) return;
     if (!usuario) {
+      contaDe.current = null;
       setConta(null);
       setCarregando(false);
       return;
     }
     let ativo = true;
-    setCarregando(true);
+    // Só mostra "carregando" na primeira vez. Quando o Supabase renova o login sozinho
+    // (ao voltar para a aba, a cada hora), a conta continua na tela enquanto confere.
+    if (contaDe.current !== usuario.id) setCarregando(true);
     let promessa = cache.get(usuario.id);
     if (!promessa) {
       promessa = carregarConta(usuario);
@@ -222,13 +226,16 @@ export function useConta(): EstadoConta {
     }
     promessa.then((c) => {
       if (!ativo) return;
+      contaDe.current = usuario.id;
       setConta(c);
       setCarregando(false);
     });
     return () => {
       ativo = false;
     };
-  }, [demo, usuario, carregandoSessao, versao]);
+    // Depende do id, não do objeto: cada renovação do login traz um objeto novo do mesmo usuário.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demo, usuario?.id, carregandoSessao, versao]);
 
   const plano = conta ? planoEmVigor(conta) : "gratis";
   return {

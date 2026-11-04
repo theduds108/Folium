@@ -7,6 +7,8 @@ import { CartaoAviso } from "./Area";
 /** Mostra o conteúdo só para quem entrou (qualquer tipo de conta); visitante vê o convite para entrar. */
 export function SoComConta({ titulo, texto, children }: { titulo: string; texto: string; children: React.ReactNode }) {
   const { logado, carregando } = useConta();
+  // Quem já entrou continua vendo a página mesmo enquanto a conta é conferida de novo.
+  if (logado) return <>{children}</>;
   if (carregando)
     return (
       <div className="container">
