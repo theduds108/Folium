@@ -36,8 +36,9 @@ export function Faixa({ itens, rotulo = "Índice de serviços" }: { itens: strin
       <div className="container">
         <div className="faixa-topo">
           <span className="faixa-rotulo">{rotulo}</span>
-          <span className="faixa-nota">escolha um e veja quem faz</span>
+          <span className="faixa-nota">arraste para o lado e escolha um</span>
         </div>
+        <div className="faixa-rolagem">
         <ol className="faixa-lista">
           {itens.map((t, i) => (
             <li key={t}>
@@ -49,6 +50,7 @@ export function Faixa({ itens, rotulo = "Índice de serviços" }: { itens: strin
             </li>
           ))}
         </ol>
+        </div>
       </div>
     </nav>
   );

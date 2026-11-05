@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
+import { InstalarApp } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { VisaoDemo } from "@/components/VisaoDemo";
 import { Revelar } from "@/components/animacoes/Revelar";
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "Vitrine segura de portfólios de universitários da UNISAGRADO. Encontre talentos locais para seu próximo freela.",
   appleWebApp: { capable: true, title: "Fólium", statusBarStyle: "default" },
-  icons: { icon: "/icons/icon.svg", apple: "/icons/icon-192.png" },
+  icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             <span>
               <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
-              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link>
+              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> <InstalarApp />
             </span>
           </div>
         </footer>
