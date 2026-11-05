@@ -148,14 +148,16 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
+          <div className="secao-titulo revelar">
+            <h2>Guia do aluno</h2>
+            <Link href="/guia" className="link-mao">ver guia completo →</Link>
+          </div>
           <div className="dois-lados revelar-grupo">
             <Link href="/guia#precos" className="cartao lado atalho">
-              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
               <h3>Não sabe quanto cobrar?</h3>
               <p className="suave">Veja faixas de preço de referência para cada tipo de serviço.</p>
             </Link>
             <Link href="/guia#seguranca" className="cartao lado atalho">
-              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
               <h3>Medo de golpe ou calote?</h3>
               <p className="suave">Seis cuidados simples para fechar freelas com segurança.</p>
             </Link>

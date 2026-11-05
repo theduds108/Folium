@@ -2884,6 +2884,8 @@ html { scroll-padding-top: 84px; }
    do próprio rodapé, e os links dele não somem atrás da barra. */
 @media (max-width: 1000px) {
   main { padding-bottom: 0; }
+  /* Seções mais juntas no celular: 48px em cima e embaixo davam ~100px de vão entre módulos. */
+  .secao { padding: 24px 0; }
   main .secao:last-child { padding-bottom: 16px; }
   .rodape {
     margin-top: 24px;
