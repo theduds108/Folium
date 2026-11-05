@@ -7,6 +7,7 @@ import { Cabecalho } from "@/components/Cabecalho";
 import { InstalarApp } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { VisaoDemo } from "@/components/VisaoDemo";
+import { Abertura } from "@/components/animacoes/Abertura";
 import { Revelar } from "@/components/animacoes/Revelar";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
@@ -30,8 +31,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${titulo.variable} ${texto.variable} ${mao.variable}`}>
+    <html lang="pt-BR" suppressHydrationWarning className={`${titulo.variable} ${texto.variable} ${mao.variable}`}>
       <body>
+        <Abertura />
         <Cabecalho />
         <AvisoSenha />
         <main>{children}</main>

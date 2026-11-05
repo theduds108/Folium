@@ -2890,3 +2890,91 @@ html { scroll-padding-top: 84px; }
     padding-bottom: calc(32px + 72px + env(safe-area-inset-bottom));
   }
 }
+
+/* ---------- Abertura do app (ver components/animacoes/Abertura.tsx) ----------
+   ~1,15s, uma vez por sessão. A folha se desenha, o nome aparece e o papel sobe
+   como uma página virando, com uma faixa cobre atrás. Não bloqueia toques. */
+.abertura { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.sem-abertura) .abertura {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+    animation: abertura-fim 1200ms step-end forwards;
+  }
+  .abertura-faixa,
+  .abertura-papel {
+    position: absolute;
+    inset: 0;
+    animation: abertura-virar 340ms cubic-bezier(0.7, 0, 0.2, 1) both;
+  }
+  .abertura-faixa { background: var(--marrom-cobre); animation-delay: 840ms; }
+  .abertura-papel {
+    display: grid;
+    place-items: center;
+    background: var(--creme-papel);
+    animation-delay: 780ms;
+  }
+  .abertura-marca {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: abertura-sair 300ms cubic-bezier(0.7, 0, 0.2, 1) 760ms both;
+  }
+  .abertura-folha { width: clamp(84px, 22vw, 120px); height: auto; overflow: visible; }
+  .abertura-anel {
+    fill: none;
+    stroke: var(--verde-folio);
+    stroke-width: 11;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    animation: abertura-tracar 520ms var(--ease-saida) both;
+  }
+  .abertura-limbo {
+    fill: var(--verde-folio);
+    transform-box: view-box;
+    transform-origin: 28px 72px;
+    animation: abertura-brotar 480ms cubic-bezier(0.34, 1.56, 0.64, 1) 140ms both;
+  }
+  .abertura-nervura {
+    fill: none;
+    stroke: var(--creme-papel);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    animation: abertura-tracar 260ms var(--ease-saida) 440ms both;
+  }
+  .abertura-nome {
+    font-family: var(--fonte-titulo), sans-serif;
+    font-size: clamp(1.6rem, 6vw, 2.2rem);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--verde-musgo);
+    animation: abertura-escrever 400ms var(--ease-saida) 300ms both;
+  }
+  /* A capa só entra depois que a página vira, para a coreografia não acontecer escondida. */
+  html:not(.sem-abertura) .entrada-capa .marca-gigante,
+  html:not(.sem-abertura) .entrada-capa .capa-rotulos { animation-delay: 900ms; }
+  html:not(.sem-abertura) .entrada-capa .capa-conteudo { animation-delay: 1020ms; }
+  html:not(.sem-abertura) .entrada-capa .ficha { animation-delay: 1180ms; }
+}
+@keyframes abertura-tracar { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes abertura-brotar {
+  from { transform: scale(0) rotate(-40deg); }
+  to { transform: scale(1) rotate(0deg); }
+}
+@keyframes abertura-escrever {
+  from { clip-path: inset(0 100% 0 0); transform: translateY(6px); }
+  to { clip-path: inset(0 0 0 0); transform: none; }
+}
+@keyframes abertura-sair { to { opacity: 0; transform: translateY(-28px) scale(0.96); } }
+@keyframes abertura-virar {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 100% 0); }
+}
+@keyframes abertura-fim { to { visibility: hidden; } }
