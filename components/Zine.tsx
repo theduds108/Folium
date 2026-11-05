@@ -34,14 +34,23 @@ export function Faixa({ itens, rotulo = "Índice de serviços" }: { itens: strin
   return (
     <nav className="faixa" aria-label={rotulo}>
       <div className="container">
-        <span className="faixa-rotulo">{rotulo}</span>
-        <ul className="faixa-lista">
-          {itens.map((t) => (
+        <div className="faixa-topo">
+          <span className="faixa-rotulo">{rotulo}</span>
+          <span className="faixa-nota">arraste para o lado e escolha um</span>
+        </div>
+        <div className="faixa-rolagem">
+        <ol className="faixa-lista">
+          {itens.map((t, i) => (
             <li key={t}>
-              <Link href={`/talentos/?servico=${encodeURIComponent(t)}`}>{t}</Link>
+              <Link href={`/talentos/?servico=${encodeURIComponent(t)}`}>
+                <span className="faixa-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                <span className="faixa-nome">{t}</span>
+                <span className="faixa-seta" aria-hidden="true">→</span>
+              </Link>
             </li>
           ))}
-        </ul>
+        </ol>
+        </div>
       </div>
     </nav>
   );
