@@ -38,8 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="rodape">
           <div className="container rodape-interno">
             <span>
-              Fólium · projeto de empreendedorismo, em parceria com a UNISAGRADO. Fotos de demonstração:{" "}
-              <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>
+              Fólium · projeto de empreendedorismo, em parceria com a UNISAGRADO.
             </span>
             <span>
               <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
