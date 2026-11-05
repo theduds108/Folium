@@ -2,10 +2,10 @@
  * Abertura do app: a folha do Fólium se desenha e a página "vira" para cima.
  *
  * Objetivo: um momento curto de marca na primeira vez que a pessoa abre o Fólium
- * (no navegador ou no app instalado), sem atrasar o uso. Coreografia (~1,2s, só CSS):
+ * (no navegador ou no app instalado), sem atrasar o uso. Coreografia (~1,6s, só CSS):
  *   1. o anel se desenha e a folha brota do talo, com um leve balanço (0–650ms);
- *   2. o nome "Fólium" aparece da esquerda para a direita (300–700ms);
- *   3. o papel creme sobe como uma página virando, com uma faixa cobre logo atrás (780–1200ms).
+ *   2. o nome "Fólium" aparece e a frase "Seu trabalho, reconhecido." se escreve à mão, em Caveat (300–1080ms);
+ *   3. o papel creme sobe como uma página virando, com uma faixa cobre logo atrás (1200–1610ms).
  * Não bloqueia toques (pointer-events: none) e roda desde a primeira pintura, sem JS.
  * Aparece uma vez por sessão: o script abaixo marca <html class="sem-abertura"> nas visitas
  * seguintes. Com prefers-reduced-motion: reduce, não aparece.
@@ -26,6 +26,7 @@ export function Abertura() {
               <path className="abertura-nervura" d="M30 70 58 42" pathLength="1" />
             </svg>
             <span className="abertura-nome">Fólium</span>
+            <span className="abertura-frase">Seu trabalho, reconhecido.</span>
           </div>
         </div>
       </div>

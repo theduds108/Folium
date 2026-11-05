@@ -1480,7 +1480,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 .missao p {
   font-family: var(--fonte-titulo), sans-serif;
@@ -1572,7 +1572,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
 .lista-cursos { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .lista-cursos li { display: flex; flex-direction: column; gap: 2px; }
 .polaroide-titulo { font-weight: 600; font-size: 0.92rem; color: var(--cobre-texto); line-height: 1.3; }
-.grupos-servicos { display: grid; gap: 14px; }
+.grupos-servicos { display: grid; gap: 16px; }
 .grupo-servicos-titulo { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--cobre-texto); margin-bottom: 6px; }
 .link-certificado { font-size: 0.88rem; font-weight: 600; color: var(--verde-folio-escuro); }
 .campo-pequeno { font-size: 0.9rem; }
@@ -1582,7 +1582,7 @@ h3 { font-size: 1rem; letter-spacing: 0.01em; }
 @media (max-width: 860px) { .publicar { grid-template-columns: 1fr; } }
 .publicar-lado {
   background: var(--verde-musgo); color: var(--creme-papel); padding: 36px 32px;
-  display: flex; flex-direction: column; gap: 14px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 .publicar-lado .rotulos span { color: rgba(246, 240, 228, 0.75); }
 .publicar-lado h2 { color: var(--creme-papel); font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0; line-height: 1.05; }
@@ -1935,8 +1935,8 @@ html { scroll-padding-top: 84px; }
   min-height: 44px;
   padding: 0 4px;
 }
-.mesa-form { display: grid; gap: 14px; }
-.mesa-extra-interno { display: grid; gap: 14px; min-height: 0; }
+.mesa-form { display: grid; gap: 16px; }
+.mesa-extra-interno { display: grid; gap: 16px; min-height: 0; }
 .mesa-tipos { border: 0; padding: 0; margin: 0; min-width: 0; }
 .mesa-tipos legend { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; padding: 0; }
 .mesa-tipos .opcao { min-height: 44px; }
@@ -2416,7 +2416,7 @@ html { scroll-padding-top: 84px; }
 @media (max-width: 560px) {
   .enquadrar { padding: 18px; }
   .enquadrar-grade { grid-template-columns: 1fr; }
-  .enquadrar-previas { grid-template-columns: repeat(3, auto); justify-content: start; gap: 14px; }
+  .enquadrar-previas { grid-template-columns: repeat(3, auto); justify-content: start; gap: 16px; }
   .enquadrar-previas figure { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 .enquadrar-acoes { position: sticky; bottom: -24px; margin-inline: -4px; padding: 12px 4px; background: var(--papel-claro); border-top: 1px solid var(--linha); }
@@ -2444,7 +2444,7 @@ html { scroll-padding-top: 84px; }
 /* Barra de salvar: uma linha compacta; ações de conta alinhadas à direita */
 .editor-form .barra-salvar { padding: 14px 18px; gap: 10px; }
 .barra-salvar-linha { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.barra-salvar-extra { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.barra-salvar-extra { display: inline-flex; align-items: center; gap: 16px; margin-left: auto; flex-wrap: wrap; }
 .botao-sair { gap: 8px; color: var(--texto-suave); border-color: var(--linha); }
 .botao-sair:hover { color: var(--verde-musgo); border-color: var(--verde-musgo); }
 @media (max-width: 560px) {
@@ -2465,7 +2465,7 @@ html { scroll-padding-top: 84px; }
 .guia-abas { display: flex; gap: 4px; border-bottom: 1px solid var(--linha); margin-bottom: 14px; overflow-x: auto; }
 .guia-abas button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px; min-height: 44px; font: inherit; font-weight: 600; color: var(--texto-suave); cursor: pointer; white-space: nowrap; }
 .guia-abas button.atual { color: var(--verde-folio-escuro); border-bottom-color: var(--verde-folio); }
-.guia-calc { display: grid; gap: 14px; }
+.guia-calc { display: grid; gap: 16px; }
 .guia-calc .campo { margin: 0; }
 .guia-calc select { width: 100%; }
 .guia-resultado { border: 1.5px solid var(--verde-folio); background: var(--creme-papel); padding: 16px; border-radius: 4px; display: grid; gap: 4px; }
@@ -2494,8 +2494,8 @@ html { scroll-padding-top: 84px; }
 .sb-duas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); }
 .sb-duas > div { padding: 32px 32px 36px 0; }
 .sb-duas > div + div { padding-left: 32px; padding-right: 0; border-left: 1px solid var(--linha); }
-.sb-valores { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.sb-valores li { display: flex; gap: 14px; align-items: baseline; font-size: 1.1rem; line-height: 1.5; }
+.sb-valores { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.sb-valores li { display: flex; gap: 16px; align-items: baseline; font-size: 1.1rem; line-height: 1.5; }
 .sb-valor-num { font-family: var(--fonte-mao), cursive; font-size: 1.5rem; color: var(--marrom-cobre); flex: none; }
 .sb-valores strong { font-size: 1.25rem; }
 .sb-secao { padding: 56px 0 8px; }
@@ -2613,10 +2613,10 @@ html { scroll-padding-top: 84px; }
 .trava-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* Painel do contratante */
-.painel-titulo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.painel-titulo { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .painel-titulo .titulo-pagina { margin-bottom: 0; }
 .painel-titulo .selo-plano, .editor-topo-linha .selo-plano { align-self: center; }
-.painel-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.painel-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .atalho-painel {
   display: flex;
   flex-direction: column;
@@ -2892,7 +2892,7 @@ html { scroll-padding-top: 84px; }
 }
 
 /* ---------- Abertura do app (ver components/animacoes/Abertura.tsx) ----------
-   ~1,15s, uma vez por sessão. A folha se desenha, o nome aparece e o papel sobe
+   ~1,6s, uma vez por sessão. A folha se desenha, o nome e a frase manuscrita aparecem e o papel sobe
    como uma página virando, com uma faixa cobre atrás. Não bloqueia toques. */
 .abertura { display: none; }
 @media (prefers-reduced-motion: no-preference) {
@@ -2902,7 +2902,7 @@ html { scroll-padding-top: 84px; }
     inset: 0;
     z-index: 1000;
     pointer-events: none;
-    animation: abertura-fim 1200ms step-end forwards;
+    animation: abertura-fim 1610ms step-end forwards;
   }
   .abertura-faixa,
   .abertura-papel {
@@ -2910,21 +2910,21 @@ html { scroll-padding-top: 84px; }
     inset: 0;
     animation: abertura-virar 340ms cubic-bezier(0.7, 0, 0.2, 1) both;
   }
-  .abertura-faixa { background: var(--marrom-cobre); animation-delay: 840ms; }
+  .abertura-faixa { background: var(--marrom-cobre); animation-delay: 1260ms; }
   .abertura-papel {
     display: grid;
     place-items: center;
     background: var(--creme-papel);
-    animation-delay: 780ms;
+    animation-delay: 1200ms;
   }
   .abertura-marca {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
-    animation: abertura-sair 300ms cubic-bezier(0.7, 0, 0.2, 1) 760ms both;
+    gap: 16px;
+    animation: abertura-sair 300ms cubic-bezier(0.7, 0, 0.2, 1) 1180ms both;
   }
-  .abertura-folha { width: clamp(84px, 22vw, 120px); height: auto; overflow: visible; }
+  .abertura-folha { width: clamp(120px, 34vw, 172px); height: auto; overflow: visible; }
   .abertura-anel {
     fill: none;
     stroke: var(--verde-folio);
@@ -2951,17 +2951,35 @@ html { scroll-padding-top: 84px; }
   }
   .abertura-nome {
     font-family: var(--fonte-titulo), sans-serif;
-    font-size: clamp(1.6rem, 6vw, 2.2rem);
+    font-size: clamp(2.5rem, 11vw, 3.8rem);
+    line-height: 1;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--verde-musgo);
     animation: abertura-escrever 400ms var(--ease-saida) 300ms both;
   }
+  .abertura-frase {
+    margin-top: -2px;
+    font-family: var(--fonte-mao), cursive;
+    font-size: clamp(1.7rem, 7.5vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--cobre-texto);
+    rotate: -3deg;
+    /* Escrita à mão: a frase se revela da esquerda para a direita num ritmo de caneta,
+       com a borda da máscara suave, como tinta chegando. */
+    -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent 55%);
+    mask-image: linear-gradient(90deg, #000 45%, transparent 55%);
+    -webkit-mask-size: 220% 100%;
+    mask-size: 220% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: abertura-caneta 600ms cubic-bezier(0.45, 0.1, 0.55, 0.9) 480ms both;
+  }
   /* A capa só entra depois que a página vira, para a coreografia não acontecer escondida. */
   html:not(.sem-abertura) .entrada-capa .marca-gigante,
-  html:not(.sem-abertura) .entrada-capa .capa-rotulos { animation-delay: 900ms; }
-  html:not(.sem-abertura) .entrada-capa .capa-conteudo { animation-delay: 1020ms; }
-  html:not(.sem-abertura) .entrada-capa .ficha { animation-delay: 1180ms; }
+  html:not(.sem-abertura) .entrada-capa .capa-rotulos { animation-delay: 1320ms; }
+  html:not(.sem-abertura) .entrada-capa .capa-conteudo { animation-delay: 1440ms; }
+  html:not(.sem-abertura) .entrada-capa .ficha { animation-delay: 1600ms; }
 }
 @keyframes abertura-tracar { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes abertura-brotar {
@@ -2971,6 +2989,10 @@ html { scroll-padding-top: 84px; }
 @keyframes abertura-escrever {
   from { clip-path: inset(0 100% 0 0); transform: translateY(6px); }
   to { clip-path: inset(0 0 0 0); transform: none; }
+}
+@keyframes abertura-caneta {
+  from { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  to { -webkit-mask-position: 0 0; mask-position: 0 0; }
 }
 @keyframes abertura-sair { to { opacity: 0; transform: translateY(-28px) scale(0.96); } }
 @keyframes abertura-virar {
