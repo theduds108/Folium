@@ -444,6 +444,14 @@ a:focus-visible {
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
 }
+/* "Disponíveis agora" na capa: poucos cartões, sempre centralizados na linha. */
+.grade-destaques {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+.grade-destaques > * { flex: 0 1 320px; min-width: 0; }
 
 .cartao-aluno {
   display: flex;
