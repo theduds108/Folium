@@ -3011,3 +3011,12 @@ html { scroll-padding-top: 84px; }
 .importar-lista .opcao > span { display: grid; gap: 2px; min-width: 0; }
 .importar-valor { overflow-wrap: anywhere; font-size: 0.92rem; }
 .importar-aviso { font-size: 0.82rem; color: var(--cobre-texto); }
+
+/* Cursos e certificados no perfil: lista limpa, nome em destaque e instituição, ano e certificado numa linha só */
+.ficha-sublista { gap: 0; margin-top: 14px; }
+.ficha-sublista li { gap: 2px; padding: 10px 0 10px 12px; border-left: 3px solid var(--linha); }
+.ficha-sublista li + li { margin-top: 2px; }
+.ficha-sublista .curso-nome { font-weight: 600; line-height: 1.35; }
+.ficha-sublista .curso-nome a { color: inherit; }
+.ficha-sublista .curso-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font-size: 0.88rem; color: var(--texto-suave); }
+.ficha-sublista .link-certificado { font-size: 0.82rem; }

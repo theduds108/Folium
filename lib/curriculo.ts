@@ -356,7 +356,7 @@ function lerExperiencias(linhas: string[]): Experiencia[] {
     if (!cargo && !lugar) continue;
     lista.push(cortarDescricao({ cargo, lugar, periodo: "", descricao, inicio: periodo.inicio, fim: periodo.fim, atual: periodo.atual }));
   }
-  return lista.slice(0, 10);
+  return lista.filter((x, i) => !lista.slice(0, i).some((y) => mesmoTexto(y.cargo, x.cargo) && (mesmoTexto(y.lugar, x.lugar) || y.inicio === x.inicio))).slice(0, 10);
 }
 
 const juntar = (a: string, b: string) => (!b ? a : !a ? b : /[.!?;:]$/.test(a) ? `${a} ${b}` : `${a}. ${b}`);
@@ -369,42 +369,63 @@ function cortar(texto: string, max: number) {
   return ponto > max * 0.5 ? corte.slice(0, ponto + 1) : corte.replace(/\s+\S*$/, "") + "…";
 }
 
+/** Compara dois textos ignorando acento, maiúsculas e pontuação; um contido no outro (10+ letras) também conta como o mesmo. */
+export function mesmoTexto(a: string, b: string) {
+  const x = norm(a).replace(/[^a-z0-9]+/g, " ").trim();
+  const y = norm(b).replace(/[^a-z0-9]+/g, " ").trim();
+  if (!x || !y) return false;
+  return x === y || (Math.min(x.length, y.length) >= 10 && (x.includes(y) || y.includes(x)));
+}
+
+/** Datas soltas ("Nov/2026", "11/2026", "2026", "concluído em 2026") que não fazem parte do nome. */
+const DATA_SOLTA = new RegExp(String.raw`(?:\b(?:conclu[ií]d[oa]|finalizad[oa]|emitid[oa]|realizad[oa]|em|de)\s+)?\(?${DATA}\)?`, "gi");
+
 function lerCertificados(linhas: string[]): Certificado[] {
   const lista: Certificado[] = [];
+  const ruido = /^(?:carga hor[aá]ria|certificado\s*(?:n|id|c[oó]digo)|c[oó]digo|id\b|credencial|validar|verifique|https?:|www\.)/i;
   for (const bruta of linhas) {
     const l = limparMarcador(bruta);
-    if (l.length < 3) continue;
+    if (l.length < 3 || ruido.test(norm(l)) || /\b\d+\s*(h|hs|horas?)\s*$/i.test(l) && l.split(" ").length <= 3) continue;
+    // Frase de descrição, não de curso.
+    if (l.length > 110 || (/^[a-zà-ú]/.test(l) && !temPalavra(l, PALAVRAS_LUGAR)) || /[.]$/.test(l) && l.split(" ").length >= 6) continue;
     const ano = /\b((?:19|20)\d{2})\b/.exec(l)?.[1] ?? "";
     const partes = l
       .replace(/\(([^)]*)\)/g, " | $1 | ")
-      .split(/\s+[|–—-]\s+|\s*\|\s*|\s*;\s*/)
-      .map((s) => s.trim().replace(/^[-–—\s]+/, "").replace(/[.,:]+$/, ""))
-      .filter(
-        (s) =>
-          s &&
-          !/^(?:\d{1,2}\/)?(?:19|20)\d{2}$/.test(s) &&
-          !/^(?:carga hor[aá]ria:?\s*)?\d+\s*(h|hs|horas?)\b/i.test(s) &&
-          !/^(conclu[ií]do|em andamento|cursando)$/i.test(s)
-      );
+      .split(/\s+[|–—-]\s+|\s*\|\s*|\s*;\s*|\s+·\s+/)
+      .map((s) =>
+        s
+          .replace(DATA_SOLTA, " ")
+          .replace(/\b\d+\s*(h|hs|horas?)\b/gi, " ")
+          .replace(/\b(conclu[ií]d[oa]|em andamento|cursando)\b/gi, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/^[-–—,:.\s]+|[-–—,:.\s]+$/g, "")
+      )
+      .filter((s) => s.length > 1);
+    if (!partes[0]) continue;
     const anterior = lista[lista.length - 1];
-    // Linha só com instituição/ano logo abaixo do nome do curso: completa o anterior.
-    if (anterior && !anterior.instituicao && (partes.length <= 1) && (temPalavra(l, PALAVRAS_LUGAR) || (ano && partes.length === 0))) {
-      if (partes[0]) anterior.instituicao = partes[0].slice(0, 80);
+    // Linha só com instituição e/ou data logo abaixo do nome do curso: completa o anterior.
+    if (anterior && !anterior.instituicao && partes.length === 1 && partes[0].split(" ").length <= 5 && !temPalavra(partes[0], PALAVRAS_CURSO) && (temPalavra(partes[0], PALAVRAS_LUGAR) || ano)) {
+      anterior.instituicao = partes[0].slice(0, 80);
       if (ano && !anterior.ano) anterior.ano = ano;
       continue;
     }
-    if (!partes[0]) continue;
     let nome = partes[0];
     let instituicao = partes[1] ?? "";
-    const em = /^(.+?)\s+(?:pela|pelo|na|no|-)\s+(.+)$/i.exec(nome);
+    const em = /^(.+?)\s+(?:pela|pelo|na|no|na|em)\s+(.+)$/i.exec(nome);
     if (!instituicao && em && temPalavra(em[2]!, PALAVRAS_LUGAR)) {
       nome = em[1]!;
       instituicao = em[2]!;
     }
+    // "Alura Nov/2026" já perdeu a data acima; garante que o nome não é só a data ou o ano.
+    if (/^(?:19|20)\d{2}$/.test(nome)) continue;
+    if (lista.some((c) => mesmoTexto(c.nome, nome))) continue;
     lista.push({ nome: nome.slice(0, 100), instituicao: instituicao.slice(0, 80), ano, link: "" });
   }
   return lista.slice(0, 15);
 }
+
+const PALAVRAS_CURSO = ["curso", "imersao", "nano", "introducao", "formacao", "bootcamp", "workshop", "treinamento", "certificacao", "especializacao", "excel", "python", "ingles", "java"];
 
 const IDIOMAS: [RegExp, string][] = [
   [/\bingl[eê]s\b|\benglish\b/i, "Inglês"],

@@ -35,7 +35,7 @@ import { EnquadrarFoto } from "@/components/EnquadrarFoto";
 import { GuiaPrecos } from "@/components/GuiaPrecos";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { ImportarCurriculo } from "@/components/ImportarCurriculo";
-import type { DadosCurriculo } from "@/lib/curriculo";
+import { mesmoTexto, type DadosCurriculo } from "@/lib/curriculo";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
@@ -536,16 +536,15 @@ function Editor(props: PropsEditor) {
         if (ok.has(`link-${rede.chave}`) && v) n.links[rede.chave] = v;
       }
       if (ok.has("habilidades") && d.habilidades.length) n.habilidades = d.habilidades.join(", ");
-      const chave = (s: string) => s.trim().toLowerCase();
       if (ok.has("experiencias"))
         n.experiencias = [
           ...a.experiencias,
-          ...d.experiencias.filter((x) => !a.experiencias.some((y) => chave(y.cargo) === chave(x.cargo) && chave(y.lugar) === chave(x.lugar))),
+          ...d.experiencias.filter((x) => !a.experiencias.some((y) => mesmoTexto(y.cargo, x.cargo) && (mesmoTexto(y.lugar, x.lugar) || !y.lugar.trim() || !x.lugar.trim()))),
         ].slice(0, 10);
       if (ok.has("certificados"))
-        n.certificados = [...a.certificados, ...d.certificados.filter((x) => !a.certificados.some((y) => chave(y.nome) === chave(x.nome)))].slice(0, 15);
+        n.certificados = [...a.certificados, ...d.certificados.filter((x) => !a.certificados.some((y) => mesmoTexto(y.nome, x.nome)))].slice(0, 15);
       if (ok.has("idiomas"))
-        n.idiomas = [...a.idiomas, ...d.idiomas.filter((x) => !a.idiomas.some((y) => chave(y.idioma) === chave(x.idioma)))].slice(0, 8);
+        n.idiomas = [...a.idiomas, ...d.idiomas.filter((x) => !a.idiomas.some((y) => mesmoTexto(y.idioma, x.idioma)))].slice(0, 8);
       return n;
     });
     setCursoOutro(Boolean(d.curso) && ok.has("curso") ? !(CURSOS as readonly string[]).includes(d.curso!) : cursoOutro);
