@@ -2877,3 +2877,16 @@ html { scroll-padding-top: 84px; }
 .janela { width: 100%; max-width: 420px; margin-bottom: env(safe-area-inset-bottom); }
 .passos-instalar { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 8px; }
 .rodape .link-texto { color: inherit; font-size: inherit; }
+
+/* ===== Celular: rodapé colado ao conteúdo, sem vão antes dele =====
+   A barra inferior é fixa; em vez de empurrar o <main> (o que criava um
+   vão grande entre o último card e o rodapé), o espaço dela fica no fim
+   do próprio rodapé, e os links dele não somem atrás da barra. */
+@media (max-width: 1000px) {
+  main { padding-bottom: 0; }
+  main .secao:last-child { padding-bottom: 16px; }
+  .rodape {
+    margin-top: 24px;
+    padding-bottom: calc(32px + 72px + env(safe-area-inset-bottom));
+  }
+}
