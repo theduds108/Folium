@@ -3002,3 +3002,12 @@ html { scroll-padding-top: 84px; }
   to { clip-path: inset(0 0 100% 0); }
 }
 @keyframes abertura-fim { to { visibility: hidden; } }
+
+/* Importar currículo */
+.importar-faixa { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 12px 0; }
+.importar-curriculo { width: min(680px, calc(100vw - 24px)); }
+.importar-lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.importar-lista .opcao { align-items: flex-start; border-radius: 12px; width: 100%; }
+.importar-lista .opcao > span { display: grid; gap: 2px; min-width: 0; }
+.importar-valor { overflow-wrap: anywhere; font-size: 0.92rem; }
+.importar-aviso { font-size: 0.82rem; color: var(--cobre-texto); }
