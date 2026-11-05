@@ -1818,88 +1818,58 @@ html { scroll-padding-top: 84px; }
   .leque-legenda .anotacao { display: none; }
 }
 
-/* Índice de serviços: sumário em colunas, cada serviço abre a busca já filtrada */
-.faixa { padding: 30px 0 34px; }
-.faixa-topo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-  padding-bottom: 12px;
-  margin-bottom: 6px;
-  border-bottom: 1px solid rgba(246, 240, 228, 0.25);
-}
+/* Índice de serviços: letreiro em loop infinito (pedido da Duda em 05/11/2026) */
+.faixa { padding: 26px 0 30px; }
 .faixa-rotulo {
+  display: block;
+  margin-bottom: 12px;
   font-family: var(--fonte-titulo), sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--creme-papel);
+  color: rgba(246, 240, 228, 0.75);
 }
-.faixa-nota {
-  font-family: var(--fonte-mao), cursive;
-  font-size: 1.25rem;
-  color: #e0a77c;
+.faixa-letreiro { overflow: hidden; }
+.faixa-trilho {
+  display: flex;
+  width: max-content;
+  animation: faixa-rolar calc(var(--qtd, 10) * 4s) linear infinite;
 }
-/* Fileira com rolagem para o lado (arrastar no celular, rodinha/trackpad no computador). */
-.faixa-rolagem { position: relative; margin: 0 -16px; }
-.faixa-rolagem::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 48px;
-  pointer-events: none;
-  background: linear-gradient(to right, rgba(47, 62, 42, 0), var(--verde-musgo));
+.faixa-letreiro:hover .faixa-trilho,
+.faixa-letreiro:focus-within .faixa-trilho { animation-play-state: paused; }
+@keyframes faixa-rolar {
+  to { transform: translateX(-50%); }
 }
 .faixa-lista {
   list-style: none;
   margin: 0;
-  padding: 10px 16px 14px;
+  padding: 0;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scroll-padding: 0 16px;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(246, 240, 228, 0.35) transparent;
+  flex-wrap: nowrap;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-size: clamp(1.25rem, 3vw, 2.1rem);
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-.faixa-lista li { flex: 0 0 auto; scroll-snap-align: start; }
-.faixa-lista li:last-child { padding-right: 32px; }
+.faixa-lista li { display: inline-flex; align-items: center; }
+.faixa-lista li::after { content: "✦"; color: var(--marrom-cobre); font-size: 0.6em; margin: 0 18px; }
 .faixa-lista a {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 8px 16px 8px 12px;
-  border: 1px solid rgba(246, 240, 228, 0.3);
-  border-radius: 999px;
   color: var(--creme-papel);
   text-decoration: none;
-  white-space: nowrap;
-  transition: background-color var(--mov-rapido) ease-out, border-color var(--mov-rapido) ease-out;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: border-color var(--mov-rapido) ease-out;
 }
-.faixa-num {
-  font-family: var(--fonte-mao), cursive;
-  font-size: 1.15rem;
-  line-height: 1;
-  color: #e0a77c;
-}
-.faixa-nome {
-  font-family: var(--fonte-titulo), sans-serif;
-  font-size: 0.85rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-.faixa-seta { color: #e0a77c; opacity: 0.7; transition: transform var(--mov-rapido) ease-out; }
-.faixa-lista a:hover { background: rgba(246, 240, 228, 0.08); border-color: #e0a77c; }
-.faixa-lista a:hover .faixa-seta { transform: translateX(3px); }
-.faixa-lista a:focus-visible { outline: 2px solid var(--creme-papel); outline-offset: 2px; }
+.faixa-lista a:hover { border-color: var(--marrom-cobre); }
+.faixa-lista a:focus-visible { outline-color: var(--creme-papel); }
+/* Menos movimento: lista parada, quebrando linha dentro da página. */
 @media (prefers-reduced-motion: reduce) {
-  .faixa-lista a:hover .faixa-seta { transform: none; }
+  .faixa-trilho { animation: none; width: auto; padding: 0 16px; max-width: 1200px; margin: 0 auto; }
+  .faixa-trilho .faixa-lista { flex-wrap: wrap; white-space: normal; }
+  .faixa-trilho .faixa-lista[aria-hidden] { display: none; }
 }
 
 /* Coreografia de entrada da capa (ver EntradaCapa.tsx). Só para quem não pediu menos movimento. */
