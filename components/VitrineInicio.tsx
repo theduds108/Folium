@@ -65,7 +65,7 @@ export function DestaquesInicio() {
 
   if (carregando) {
     return (
-      <div className="grade-alunos">
+      <div className="grade-alunos grade-destaques">
         {[0, 1, 2].map((i) => <EsqueletoPolaroide key={i} />)}
       </div>
     );
@@ -89,7 +89,7 @@ export function DestaquesInicio() {
     );
   }
   return (
-    <div className="grade-alunos">
+    <div className="grade-alunos grade-destaques">
       {destaques.map((a) => (
         <CartaoAluno key={(a.real ? "r-" : "e-") + a.slug} aluno={a} />
       ))}
