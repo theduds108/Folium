@@ -34,6 +34,8 @@ import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 import { EnquadrarFoto } from "@/components/EnquadrarFoto";
 import { GuiaPrecos } from "@/components/GuiaPrecos";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
+import { ImportarCurriculo } from "@/components/ImportarCurriculo";
+import { mesmoTexto, type DadosCurriculo } from "@/lib/curriculo";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
@@ -262,6 +264,7 @@ function Editor(props: PropsEditor) {
   const [passo, setPasso] = useState<Passo>("voce");
   const [enquadrando, setEnquadrando] = useState(false);
   const [recuperado, setRecuperado] = useState(false);
+  const [importado, setImportado] = useState(false);
   /** Texto (JSON) do último estado salvo no banco: serve para saber se há algo ainda não salvo. */
   const base = useRef("");
   const tituloRef = useRef<HTMLHeadingElement>(null);
@@ -514,6 +517,42 @@ function Editor(props: PropsEditor) {
     h.closest(".editor-form")?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
   }, [passo]);
 
+  /** Aplica no rascunho o que o aluno marcou na leitura do currículo. Não salva: ele revisa e clica em Salvar. */
+  const aplicarCurriculo = (d: DadosCurriculo, ok: Set<string>) => {
+    setR((a) => {
+      const n: Rascunho = { ...a, links: { ...a.links } };
+      if (ok.has("nome") && d.nome) n.nome = d.nome;
+      if (ok.has("titulo") && d.titulo) n.titulo = d.titulo.slice(0, 80);
+      if (ok.has("curso") && d.curso) n.curso = d.curso;
+      if (ok.has("semestre") && d.semestre) n.semestre = d.semestre;
+      if (ok.has("conclusao") && d.conclusao) n.conclusao = d.conclusao;
+      if (ok.has("cidade") && d.cidade) n.cidade = d.cidade;
+      if (ok.has("bio") && d.bio) n.bio = d.bio.slice(0, 280);
+      if (ok.has("sobre") && d.sobre) n.sobre = d.sobre.slice(0, 1500);
+      if (ok.has("whatsapp") && d.whatsapp) n.whatsapp = d.whatsapp;
+      if (ok.has("email") && d.email) n.emailContato = d.email;
+      for (const rede of REDES) {
+        const v = d.links[rede.chave];
+        if (ok.has(`link-${rede.chave}`) && v) n.links[rede.chave] = v;
+      }
+      if (ok.has("habilidades") && d.habilidades.length) n.habilidades = d.habilidades.join(", ");
+      if (ok.has("experiencias"))
+        n.experiencias = [
+          ...a.experiencias,
+          ...d.experiencias.filter((x) => !a.experiencias.some((y) => mesmoTexto(y.cargo, x.cargo) && (mesmoTexto(y.lugar, x.lugar) || !y.lugar.trim() || !x.lugar.trim()))),
+        ].slice(0, 10);
+      if (ok.has("certificados"))
+        n.certificados = [...a.certificados, ...d.certificados.filter((x) => !a.certificados.some((y) => mesmoTexto(y.nome, x.nome)))].slice(0, 15);
+      if (ok.has("idiomas"))
+        n.idiomas = [...a.idiomas, ...d.idiomas.filter((x) => !a.idiomas.some((y) => mesmoTexto(y.idioma, x.idioma)))].slice(0, 8);
+      return n;
+    });
+    setCursoOutro(Boolean(d.curso) && ok.has("curso") ? !(CURSOS as readonly string[]).includes(d.curso!) : cursoOutro);
+    setSalvo(false);
+    setImportado(true);
+    irPara("voce");
+  };
+
   const irPara = (id: Passo) => {
     trocouPasso.current = true;
     setPasso(id);
@@ -564,6 +603,23 @@ function Editor(props: PropsEditor) {
               >
                 Descartar e voltar ao salvo
               </button>
+            </div>
+          )}
+          <div className="importar-faixa">
+            <ImportarCurriculo
+              atual={{
+                nome: r.nome, titulo: r.titulo, curso: r.curso, semestre: r.semestre, conclusao: r.conclusao, cidade: r.cidade,
+                bio: r.bio, sobre: r.sobre, habilidades: r.habilidades, whatsapp: r.whatsapp, emailContato: r.emailContato,
+                links: r.links, nExperiencias: r.experiencias.length, nCertificados: r.certificados.length, nIdiomas: r.idiomas.length,
+              }}
+              onAplicar={aplicarCurriculo}
+            />
+            <span className="suave">Já tem currículo? A gente preenche as fichas para você conferir.</span>
+          </div>
+          {importado && (
+            <div className="aviso recuperado" role="status">
+              <span>Preenchemos as fichas com o seu currículo. <strong>Confira cada ficha</strong> e clique em <strong>Salvar portfólio</strong> quando estiver certo. Nada foi salvo ainda.</span>
+              <button type="button" className="link-denuncia" onClick={() => setImportado(false)}>Entendi</button>
             </div>
           )}
           <Fichas atual={passo} feitas={feitas} onIr={irPara} />

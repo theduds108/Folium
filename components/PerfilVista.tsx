@@ -199,17 +199,19 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
                     <ul className="lista-cursos ficha-sublista">
                       {certificados.map((c, i) => (
                         <li key={i}>
-                          <span>
+                          <span className="curso-nome">
                             {c.link ? (
                               <a href={linkExterno(c.link)} target="_blank" rel="noopener noreferrer nofollow">{c.nome} ↗</a>
                             ) : (
                               c.nome
                             )}
                           </span>
-                          <span className="suave">{[c.instituicao, c.ano].filter(Boolean).join(" · ")}</span>
-                          {c.arquivo && (
-                            <LinkSeguro className="link-certificado" href={c.arquivo} target="_blank" rel="noopener noreferrer">ver certificado ↗</LinkSeguro>
-                          )}
+                          <span className="curso-meta">
+                            {[c.instituicao, c.ano && !c.instituicao.includes(c.ano) ? c.ano : ""].filter(Boolean).join(" · ")}
+                            {c.arquivo && (
+                              <LinkSeguro className="link-certificado" href={c.arquivo} target="_blank" rel="noopener noreferrer">certificado ↗</LinkSeguro>
+                            )}
+                          </span>
                         </li>
                       ))}
                     </ul>
