@@ -4,6 +4,7 @@ import { ALUNOS, buscarAluno } from "@/lib/data";
 import { PerfilVista } from "@/components/PerfilVista";
 import { SoComConta } from "@/components/SoComConta";
 import { avaliacoesDe } from "@/lib/conteudo";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -31,7 +32,7 @@ export default async function PerfilAluno({ params }: Props) {
 
   return (
     <SoComConta titulo="Entre para ver este portfólio" texto="Os portfólios dos alunos ficam visíveis só para quem tem conta no Fólium. A conta é grátis: aluno usa o e-mail institucional, empresa ou contratante usa qualquer e-mail.">
-      <PerfilVista aluno={aluno} avaliacoes={avaliacoesDe(aluno.slug)} />
+      <PerfilVista aluno={aluno} avaliacoes={MOSTRAR_EXEMPLOS ? avaliacoesDe(aluno.slug) : []} />
     </SoComConta>
   );
 }
