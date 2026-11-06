@@ -55,7 +55,7 @@ const PASSOS: Record<TipoTour, Passo[]> = {
     },
     {
       titulo: "Pronto!",
-      texto: "Quando quiser rever este passo a passo, use “Rever o tour” no rodapé da página.",
+      texto: "Quando quiser rever este passo a passo, use “Rever o tour” no rodapé da página. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
     },
   ],
   colaborador: [
@@ -97,7 +97,7 @@ const PASSOS: Record<TipoTour, Passo[]> = {
     },
     {
       titulo: "Pronto!",
-      texto: "Agora é montar o portfólio. Para rever este passo a passo, use “Rever o tour” no rodapé ou no Guia do aluno.",
+      texto: "Agora é montar o portfólio. Para rever este passo a passo, use “Rever o tour” no rodapé ou no Guia do aluno. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
     },
   ],
   contratante: [
@@ -138,7 +138,7 @@ const PASSOS: Record<TipoTour, Passo[]> = {
     },
     {
       titulo: "Pronto!",
-      texto: "Para rever este passo a passo, use “Rever o tour” no rodapé da página.",
+      texto: "Para rever este passo a passo, use “Rever o tour” no rodapé da página. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
     },
   ],
 };
