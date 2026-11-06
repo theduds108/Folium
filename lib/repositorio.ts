@@ -195,15 +195,44 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   return slug;
 }
 
+/**
+ * Redimensiona e comprime a foto no aparelho antes de enviar. Fotos de celular costumam
+ * passar de 5 MB, vir em HEIC ou sem tipo informado; assim todas viram um JPEG leve.
+ */
+async function prepararFoto(arquivo: File): Promise<Blob> {
+  const LADO_MAX = 2000;
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+  } catch {
+    throw new Error("Não consegui abrir essa imagem. Tire um print da foto ou escolha uma em JPG, PNG ou WebP.");
+  }
+  const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+  canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Seu navegador não conseguiu preparar a imagem. Tente em outro navegador.");
+  ctx.fillStyle = "#fff"; // PNG com transparência vira fundo branco no JPEG
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close?.();
+  for (const qualidade of [0.85, 0.7, 0.55]) {
+    const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/jpeg", qualidade));
+    if (blob && blob.size <= 4.5 * 1024 * 1024) return blob;
+  }
+  throw new Error("A imagem continua grande demais. Escolha outra, de menor resolução.");
+}
+
 /** Envia uma imagem para fotos/<id do usuário>/ e devolve o endereço público. */
 export async function enviarFoto(userId: string, arquivo: File) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
-  if (!/^image\/(jpeg|png|webp)$/.test(arquivo.type)) throw new Error("Use uma imagem JPG, PNG ou WebP.");
-  if (arquivo.size > 5 * 1024 * 1024) throw new Error("A imagem precisa ter até 5 MB.");
-  const ext = arquivo.type.split("/")[1];
-  const caminho = `${userId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await sb.storage.from("fotos").upload(caminho, arquivo, { contentType: arquivo.type });
+  const pareceImagem = arquivo.type.startsWith("image/") || /\.(jpe?g|png|webp|heic|heif)$/i.test(arquivo.name);
+  if (!pareceImagem) throw new Error("Use uma imagem JPG, PNG ou WebP.");
+  const imagem = await prepararFoto(arquivo);
+  const caminho = `${userId}/${crypto.randomUUID()}.jpeg`;
+  const { error } = await sb.storage.from("fotos").upload(caminho, imagem, { contentType: "image/jpeg" });
   if (error) throw traduzirErro(error);
   return sb.storage.from("fotos").getPublicUrl(caminho).data.publicUrl;
 }

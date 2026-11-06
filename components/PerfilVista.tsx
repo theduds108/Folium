@@ -2,7 +2,8 @@ import Link from "next/link";
 import { REDES, iniciais, linkExterno, unsplash, type Aluno, type Trabalho } from "@/lib/data";
 import { Anotacao } from "@/components/Zine";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
-import { ImgSegura, LinkSeguro } from "@/lib/arquivos";
+import { LinkSeguro } from "@/lib/arquivos";
+import { GaleriaObra } from "@/components/GaleriaObra";
 import { SeloVerificado } from "@/components/Logo";
 import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
@@ -11,42 +12,21 @@ import type { Avaliacao } from "@/lib/conteudo";
 import { formatarMes, formatarPeriodo } from "@/lib/formato";
 
 /**
- * Uma obra do portfólio, como peça editorial: imagem inteira num passe-partout
- * (object-fit: contain, nunca recortada) e legenda abaixo com tipo, título e créditos.
+ * Uma obra do portfólio, como peça editorial: imagens inteiras num passe-partout
+ * (object-fit: contain, nunca recortadas), em carrossel quando há mais de uma,
+ * e legenda abaixo com tipo, título e créditos.
  */
 function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
-  const largura = destaque ? 1400 : 800;
   const meta = [t.tipo, t.cliente, t.ano].filter(Boolean).join(" · ");
+  const imagens = [t.imagem, ...(t.galeria ?? [])].filter((x): x is string => !!x);
   return (
     <figure className={destaque ? "obra obra-destaque" : "obra"}>
-      <div className="obra-quadro" style={{ backgroundColor: t.cor }}>
-        {t.imagem ? (
-          <ImgSegura
-            src={unsplash(t.imagem, largura)}
-            alt={`${t.tipo}: ${t.titulo}`}
-            width={largura}
-            height={Math.round(largura * 0.75)}
-            loading={destaque ? "eager" : "lazy"}
-            decoding="async"
-          />
-        ) : (
-          <span className="obra-sem-imagem" aria-hidden="true">{t.titulo}</span>
-        )}
-      </div>
+      <GaleriaObra imagens={imagens} titulo={t.titulo} tipo={t.tipo} cor={t.cor} destaque={destaque} />
       <figcaption className="obra-legenda">
         {meta && <span className="obra-meta">{meta}</span>}
         <h3 className="obra-titulo">{t.titulo}</h3>
         {t.descricao && <p className="obra-desc">{t.descricao}</p>}
         {t.papel && <p className="obra-papel"><strong>Minha parte:</strong> {t.papel}</p>}
-        {(t.galeria?.length ?? 0) > 0 && (
-          <div className="trabalho-galeria">
-            {t.galeria!.map((g, i) => (
-              <LinkSeguro key={g} href={unsplash(g, 1400)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir imagem ${i + 2} de ${t.titulo}`}>
-                <ImgSegura src={unsplash(g, 300)} alt="" width={300} height={300} loading="lazy" decoding="async" />
-              </LinkSeguro>
-            ))}
-          </div>
-        )}
         {t.link && (
           <a className="link-mao obra-link" href={linkExterno(t.link)} target="_blank" rel="noopener noreferrer nofollow">
             ver projeto →
