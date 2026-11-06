@@ -1135,7 +1135,7 @@ function EscolherArquivo({
   rotulo,
   enviando,
   onEscolher,
-  aceita = "image/jpeg,image/png,image/webp",
+  aceita = "image/*",
 }: {
   rotulo: string;
   enviando: boolean;
