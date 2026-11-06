@@ -36,3 +36,12 @@ export const SENHA_MINIMA = 8;
  * Sem banco ligado (rodando local sem .env.local), os exemplos aparecem de qualquer jeito.
  */
 export const MOSTRAR_ALUNOS_EXEMPLO = false;
+
+/**
+ * Página de demonstração do mural (/demo/oportunidades), com vagas fictícias só para prints e apresentações.
+ * Fica ligada rodando local e nas prévias da Vercel; no site publicado (VERCEL_ENV = "production") a página não existe.
+ * Para forçar: FOLIUM_DEMO=1 liga, FOLIUM_DEMO=0 desliga (variável de ambiente na Vercel ou no .env.local).
+ * Lido só no servidor, na hora de gerar o site.
+ */
+export const DEMO_ATIVA =
+  process.env.FOLIUM_DEMO === "1" || (process.env.FOLIUM_DEMO !== "0" && process.env.VERCEL_ENV !== "production");

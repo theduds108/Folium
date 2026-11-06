@@ -125,6 +125,41 @@ export const OPORTUNIDADES: Oportunidade[] = [
   },
 ];
 
+/**
+ * Vagas da página de demonstração (/demo/oportunidades), usada só para tirar prints e apresentar.
+ * Todas são fictícias (empresas inventadas) e nunca vão para o banco nem para o mural real.
+ * A página só existe na prévia da Vercel e rodando local (veja DEMO_ATIVA em lib/config.ts).
+ */
+export const VAGAS_DEMO: Oportunidade[] = [
+  { ...OPORTUNIDADES[0], destaque: true },
+  {
+    id: "demo-estagio-marketing",
+    titulo: "Estágio em marketing digital",
+    empresa: "Café Sagarana",
+    tipo: "Estágio",
+    servico: "Marketing digital e tráfego pago",
+    cidade: "Bauru, SP",
+    orcamento: "Bolsa de R$ 1.200 + VT",
+    prazo: "6 meses, 4h por dia",
+    descricao: "Apoio em campanhas no Instagram e Google, relatórios de resultado e calendário de promoções das três unidades.",
+    publicadaHa: "há 1 dia",
+  },
+  ...OPORTUNIDADES.slice(1, 3),
+  {
+    id: "demo-front-junior",
+    titulo: "Dev front-end júnior para app de agendamento",
+    empresa: "Agenda Fácil Tecnologia",
+    tipo: "Projeto",
+    servico: "Sites e sistemas",
+    cidade: "Bauru, SP (híbrido)",
+    orcamento: "R$ 2.400 por mês",
+    prazo: "4 meses",
+    descricao: "Telas em React para o painel de salões e barbearias da região. Ideal para quem está no fim de Sistemas ou Ciência da Computação.",
+    publicadaHa: "há 4 dias",
+  },
+  ...OPORTUNIDADES.slice(3),
+];
+
 /** Faixas de preço de referência para quem está começando. Valores aproximados para orientar, não tabela oficial. */
 export const PRECOS = [
   { servico: "Identidade visual (logo + paleta)", faixa: "R$ 300 a R$ 1.200", base: "por projeto" },
