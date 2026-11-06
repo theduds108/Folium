@@ -182,7 +182,11 @@ function acharAlvo(alvo?: string): HTMLElement | null {
   if (!alvo) return null;
   for (const el of Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${alvo}"]`))) {
     const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden") return el;
+    // Só vale o que está na tela agora (topo e barra de baixo são fixos). Um alvo fora da tela,
+    // como o link Feedback no rodapé de uma página longa, vira passo centralizado: antes o destaque
+    // ia para baixo da tela, escurecia só parte dela e o cartão sumia.
+    const naTela = r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+    if (r.width > 0 && r.height > 0 && naTela && getComputedStyle(el).visibility !== "hidden") return el;
   }
   return null;
 }
@@ -268,10 +272,9 @@ export function TourGuiado() {
     const c = { top: r.top - folga, left: r.left - folga, width: r.width + folga * 2, height: r.height + folga * 2 };
     setCaixa(c);
     const espacoAbaixo = vh - (c.top + c.height);
-    const top =
-      espacoAbaixo >= alturaCartao + 24
-        ? c.top + c.height + 14
-        : Math.max(16, c.top - alturaCartao - 14);
+    const desejado = espacoAbaixo >= alturaCartao + 24 ? c.top + c.height + 14 : c.top - alturaCartao - 14;
+    // O cartão nunca sai da tela, nem se o alvo estiver fora dela.
+    const top = Math.min(Math.max(16, desejado), Math.max(16, vh - alturaCartao - 16));
     const left = Math.min(Math.max(16, c.left + c.width / 2 - larguraCartao / 2), vw - larguraCartao - 16);
     setCartao({ top, left });
   }, [passo]);
