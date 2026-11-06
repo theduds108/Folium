@@ -90,6 +90,12 @@ const PASSOS: Record<TipoTour, Passo[]> = {
       semAlvo: "Quanto cobrar, como negociar e como evitar golpe e calote. No celular, o Guia fica no rodapé da página.",
     },
     {
+      alvo: "feedback",
+      titulo: "Mande seu feedback",
+      texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
+    },
+    {
       titulo: "Pronto!",
       texto: "Agora é montar o portfólio. Para rever este passo a passo, use “Rever o tour” no rodapé ou no Guia do aluno.",
     },
@@ -123,6 +129,12 @@ const PASSOS: Record<TipoTour, Passo[]> = {
       alvo: "jornal",
       titulo: "Jornal do Fólium",
       texto: "Uma edição por semana para quem contrata, com dicas de como contratar, faixas de preço e novidades. Completo no Premium.",
+    },
+    {
+      alvo: "feedback",
+      titulo: "Mande seu feedback",
+      texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
     },
     {
       titulo: "Pronto!",

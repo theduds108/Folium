@@ -39,7 +39,7 @@ export function JornalEdicao() {
   const { conta, premium, carregando } = useConta();
   const [escolhida, setEscolhida] = useState<TipoConta>("contratante");
   const [alunos, setAlunos] = useState<Aluno[]>(ALUNOS_VITRINE);
-  const [vagas, setVagas] = useState<Oportunidade[]>(OPORTUNIDADES);
+  const [vagas, setVagas] = useState<Oportunidade[]>(MOSTRAR_EXEMPLOS || !bancoLigado ? OPORTUNIDADES : []);
   const [materias, setMaterias] = useState<Materia[]>([]);
   const edicao = edicaoAtual();
   // Quem tem conta lê a edição do próprio tipo; visitante escolhe qual espiar.

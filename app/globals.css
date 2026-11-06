@@ -3020,3 +3020,11 @@ html { scroll-padding-top: 84px; }
 .ficha-sublista .curso-nome a { color: inherit; }
 .ficha-sublista .curso-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font-size: 0.88rem; color: var(--texto-suave); }
 .ficha-sublista .link-certificado { font-size: 0.82rem; }
+
+/* ===== Página de feedback ===== */
+.feedback-grade { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; margin-top: 24px; }
+.feedback-lado .botao { width: 100%; }
+.feedback-ok { max-width: 560px; margin: 24px auto 0; text-align: center; display: grid; justify-items: center; gap: 8px; }
+.feedback-ok .trava-acoes { justify-content: center; }
+.feedback-notas .opcao { min-width: 48px; justify-content: center; }
+@media (max-width: 860px) { .feedback-grade { grid-template-columns: 1fr; } }

@@ -189,7 +189,7 @@ export const PLANOS: Plano[] = [
     plano: "gratis",
     nome: "Contratante Grátis",
     preco: "R$ 0",
-    itens: ["Todos os portfólios, com contato direto", "1 vaga por mês no mural", "Painel para acompanhar suas vagas"],
+    itens: ["Todos os portfólios, com contato direto", "Vagas no mural sem limite, por enquanto", "Painel para acompanhar suas vagas"],
   },
   {
     tipo: "contratante",

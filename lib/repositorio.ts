@@ -319,6 +319,7 @@ export function traduzirErro(e: { message?: string; code?: string } | null | und
     return new Error("O login por nome de usuário ainda não foi ligado no banco. Avise a equipe do Fólium.");
   if (e?.code === "signup_disabled") return new Error("Novos cadastros estão fechados no momento.");
   if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos. Com o Premium não há limite.");
+  if (/Muitas vagas/.test(msg)) return new Error("Você publicou muitas vagas nas últimas 24 horas. Espere um pouco e tente de novo.");
   if (/Limite de 1 vaga/.test(msg)) return new Error("O plano grátis permite 1 vaga por mês. Com o Premium as vagas são ilimitadas.");
   // Mesmo e-mail pedindo de novo antes do intervalo mínimo ("you can only request this after 42 seconds").
   const espera = msg.match(/after (\d+) seconds?/i);
@@ -500,4 +501,32 @@ export async function listarMaterias(): Promise<Materia[]> {
     imagem: m.imagem_url ?? undefined,
     publicadaEm: m.publicada_em,
   }));
+}
+
+/* ---------- Feedback ---------- */
+
+export type TipoFeedback = "sugestao" | "problema" | "elogio" | "outro";
+
+/**
+ * Envia um feedback para a equipe. O banco só aceita inserir (quem mandou não consegue ler de volta);
+ * a equipe lê na tabela "feedbacks" pelo Table Editor do Supabase.
+ */
+export async function enviarFeedback(f: { tipo: TipoFeedback; mensagem: string; pagina: string; nota: number | null }) {
+  const sb = supabase();
+  if (!sb) return; // modo demonstração: não guarda nada
+  const { data: u } = await sb.auth.getUser();
+  if (!u.user) throw new Error("Entre na sua conta para mandar feedback.");
+  const { error } = await sb.from("feedbacks").insert({
+    autor_id: u.user.id,
+    tipo: f.tipo,
+    mensagem: f.mensagem.trim().slice(0, 1500),
+    pagina: f.pagina.slice(0, 120),
+    nota: f.nota,
+  });
+  if (error) {
+    if (/Muitos feedbacks/.test(error.message)) throw new Error("Você mandou vários feedbacks seguidos. Espere um pouco e tente de novo.");
+    if (/relation .*feedbacks|does not exist|schema cache/i.test(error.message))
+      throw new Error("O feedback ainda não foi ligado no banco. Avise a equipe do Fólium.");
+    throw traduzirErro(error);
+  }
 }

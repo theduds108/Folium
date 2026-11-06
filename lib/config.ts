@@ -12,10 +12,20 @@ export function emailInstitucional(email: string) {
 }
 
 /**
- * Mostra as vagas de exemplo junto com as reais.
- * Quando houver vagas de verdade suficientes, troque para false.
+ * Mostra as vagas de exemplo e os comentários de exemplo (depoimentos da página inicial
+ * e avaliações nos perfis) junto com o conteúdo real.
+ * Desligado: o site só mostra vagas e comentários de verdade. Para trazê-los de volta
+ * (ex.: numa apresentação), troque para true.
+ * Sem banco ligado (rodando local sem .env.local), as vagas de exemplo aparecem de qualquer jeito.
  */
-export const MOSTRAR_EXEMPLOS = true;
+export const MOSTRAR_EXEMPLOS = false;
+
+/**
+ * Por enquanto o contratante do plano grátis publica quantas vagas quiser (sem o limite de 1 por mês).
+ * Para voltar ao limite, troque para false e rode de novo a parte do limite no banco
+ * (veja supabase/migrations/20261106000000_feedback_vagas_liberadas.sql).
+ */
+export const VAGAS_LIBERADAS = true;
 
 /** Tamanho mínimo da senha da conta (o Supabase exige pelo menos 6). */
 export const SENHA_MINIMA = 8;

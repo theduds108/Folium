@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { DEPOIMENTOS, MISSAO, OPORTUNIDADES, VALORES } from "@/lib/conteudo";
-import { DestaquesInicio, LequeInicio } from "@/components/VitrineInicio";
+import { DEPOIMENTOS, MISSAO, VALORES } from "@/lib/conteudo";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
 import { Faixa, PapelRasgado } from "@/components/Zine";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
@@ -46,8 +47,8 @@ export default function Inicio() {
           <div className="capa-conteudo">
             <p className="valor-capa">Talentos da UNISAGRADO para o seu próximo freela.</p>
             <p className="lead-zine">
-              Veja trabalhos de universitários, filtre pelo que você precisa e fale direto com quem fez. Para contratar,
-              não precisa criar conta.
+              Veja trabalhos de universitários, filtre pelo que você precisa e fale direto com quem fez. A conta é
+              grátis, para alunos e para quem contrata.
             </p>
 
             <form className="busca-rapida" action="/talentos/" role="search">
@@ -103,22 +104,7 @@ export default function Inicio() {
             <h2>Oportunidades recentes</h2>
             <Link href="/oportunidades" className="link-mao">ver mural →</Link>
           </div>
-          <div className="grade-vagas revelar-grupo">
-            {OPORTUNIDADES.slice(0, 3).map((o) => (
-              <Link key={o.id} href="/oportunidades" className={`cartao vaga vaga-link vaga-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>
-                <div className="vaga-topo">
-                  <span className={`carimbo carimbo-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>{o.tipo}</span>
-                  <span className="suave vaga-data">{o.publicadaHa}</span>
-                </div>
-                <h3>{o.titulo}</h3>
-                <p className="suave vaga-empresa">{o.empresa}</p>
-                <dl className="vaga-dados">
-                  <div><dt>Orçamento</dt><dd>{o.orcamento}</dd></div>
-                  <div><dt>Prazo</dt><dd>{o.prazo}</dd></div>
-                </dl>
-              </Link>
-            ))}
-          </div>
+          <VagasInicio />
         </div>
       </section>
 
@@ -137,7 +123,7 @@ export default function Inicio() {
             <div className="cartao lado">
               <h3>Para quem contrata</h3>
               <ol className="passos">
-                <li>Navegue sem precisar criar conta.</li>
+                <li>Crie sua conta grátis com qualquer e-mail.</li>
                 <li>Filtre por curso, tipo de serviço e habilidade.</li>
                 <li>Fale direto com o aluno pelo WhatsApp ou e-mail.</li>
               </ol>
@@ -165,6 +151,7 @@ export default function Inicio() {
         </div>
       </section>
 
+      {MOSTRAR_EXEMPLOS && (
       <section className="secao">
         <div className="container">
           <h2 className="revelar">Quem já usou</h2>
@@ -179,6 +166,7 @@ export default function Inicio() {
           <p className="suave" style={{ fontSize: "0.85rem", marginTop: 12 }}>Depoimentos ilustrativos do protótipo.</p>
         </div>
       </section>
+      )}
 
       <section className="secao">
         <div className="container">

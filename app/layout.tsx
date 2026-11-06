@@ -45,7 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             <span>
               <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
-              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> · <ReverTour /> <InstalarApp />
+              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> ·{" "}
+              <Link href="/feedback" data-tour="feedback">Feedback</Link> · <ReverTour /> <InstalarApp />
             </span>
           </div>
         </footer>

@@ -45,6 +45,7 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
       { href: "/jornal", rotulo: "Jornal" },
       { href: "/guia", rotulo: "Guia" },
       { href: "/planos", rotulo: "Planos" },
+      { href: "/feedback", rotulo: "Feedback" },
     ],
     acao: { href: "/meu-perfil", rotulo: "Meu portfólio" },
     barra: [
@@ -62,6 +63,7 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
       { href: "/publicar", rotulo: "Publicar vaga" },
       { href: "/jornal", rotulo: "Jornal" },
       { href: "/planos", rotulo: "Planos" },
+      { href: "/feedback", rotulo: "Feedback" },
     ],
     acao: { href: "/painel", rotulo: "Meu painel" },
     barra: [
