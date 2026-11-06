@@ -94,18 +94,18 @@ export function Cabecalho() {
           </Link>
           <nav className="nav" aria-label="Principal">
             {nav.topo.map((l) => (
-              <Link key={l.href} href={l.href} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}</Link>
+              <Link key={l.href} href={l.href} data-tour={l.href.slice(1)} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}</Link>
             ))}
-            <Link href={acao.href} className="botao botao-primario">{acao.rotulo}</Link>
+            <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-primario">{acao.rotulo}</Link>
           </nav>
-          <Link href={acao.href} className="botao botao-contorno barra-entrar" style={{ minHeight: 38, padding: "6px 14px" }}>
+          <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-contorno barra-entrar" style={{ minHeight: 38, padding: "6px 14px" }}>
             {acao.rotulo}
           </Link>
         </div>
       </header>
       <nav className="barra-inferior" aria-label="Navegação">
         {nav.barra.map((l) => (
-          <Link key={l.href} href={l.href} className={ativo(pathname, l.href) ? "ativo" : ""}>
+          <Link key={l.href} href={l.href} data-tour={l.href.slice(1) || "inicio"} className={ativo(pathname, l.href) ? "ativo" : ""}>
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
               <path d={ICONE[l.icone ?? "inicio"]} fill="currentColor" fillRule={l.icone === "jornal" || l.icone === "publicar" ? "evenodd" : undefined} />
             </svg>
