@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Caveat, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { AbaFeedback } from "@/components/AbaFeedback";
 import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
 import { InstalarApp } from "@/components/InstalarApp";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
           </div>
         </footer>
+        <AbaFeedback />
         <VisaoDemo />
         <TourGuiado />
         <RegistrarSW />
