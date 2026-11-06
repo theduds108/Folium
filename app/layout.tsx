@@ -6,6 +6,7 @@ import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
 import { InstalarApp } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
+import { BotaoTour, TourGuiado } from "@/components/TourGuiado";
 import { VisaoDemo } from "@/components/VisaoDemo";
 import { Abertura } from "@/components/animacoes/Abertura";
 import { Revelar } from "@/components/animacoes/Revelar";
@@ -44,10 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             <span>
               <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
-              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> <InstalarApp />
+              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> ·{" "}
+              <Link href="/feedback" data-tour="/feedback">Feedback</Link> · <BotaoTour /> <InstalarApp />
             </span>
           </div>
         </footer>
+        <TourGuiado />
         <VisaoDemo />
         <RegistrarSW />
         <Revelar />

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { emailInstitucional } from "./config";
+import { emailInstitucional, VAGAS_LIBERADAS } from "./config";
 import { supabase } from "./supabase";
 import { useSessao } from "./sessao";
 
@@ -50,7 +50,7 @@ export const RECURSOS = {
     premium: { trabalhos: 50, destaqueBusca: true, jornal: true, estatisticas: true },
   },
   contratante: {
-    gratis: { vagasPorMes: 1, vagaDestaque: false, salvarTalentos: false, jornal: false },
+    gratis: { vagasPorMes: VAGAS_LIBERADAS ? Infinity : 1, vagaDestaque: false, salvarTalentos: false, jornal: false },
     premium: { vagasPorMes: Infinity, vagaDestaque: true, salvarTalentos: true, jornal: true },
   },
 } as const;

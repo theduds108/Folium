@@ -28,7 +28,8 @@ function TelaPublicar({ conta, premium }: { conta: Conta; premium: boolean }) {
     minhasVagas().then((v) => setNoMes(v.filter((x) => Date.now() - new Date(x.criadaEm).getTime() < 30 * 86_400_000).length));
   }, []);
 
-  const esgotou = noMes !== null && noMes >= limite;
+  const semLimite = limite === Infinity;
+  const esgotou = !semLimite && noMes !== null && noMes >= limite;
 
   return (
     <div className="container pagina">
@@ -42,7 +43,9 @@ function TelaPublicar({ conta, premium }: { conta: Conta; premium: boolean }) {
           <span className="suave">
             {premium
               ? "Vagas ilimitadas, com opção de destaque no topo do mural."
-              : noMes === null
+              : semLimite
+                ? "Por enquanto, publique quantas vagas precisar."
+                : noMes === null
                 ? "Conferindo suas vagas do mês…"
                 : esgotou
                   ? "Você já usou a vaga grátis deste mês."

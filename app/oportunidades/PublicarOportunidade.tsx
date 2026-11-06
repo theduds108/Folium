@@ -7,7 +7,7 @@ import { GRUPOS_SERVICOS } from "@/components/OpcoesServicos";
 import { Seletor } from "@/components/Seletor";
 import { bancoLigado } from "@/lib/supabase";
 import { enviarOportunidade, guardarVagaDemo } from "@/lib/repositorio";
-import type { Conta } from "@/lib/conta";
+import { RECURSOS, type Conta } from "@/lib/conta";
 import { formatarData, mascaraReais, mascaraTelefone } from "@/lib/formato";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
@@ -40,7 +40,9 @@ export function PublicarOportunidade({ conta, premium = false }: { conta?: Conta
         <p>
           {premium
             ? "Plano Premium: vagas ilimitadas e opção de destaque no topo do mural."
-            : "No plano grátis você publica 1 vaga por mês. Talento universitário da região, com selo da instituição."}
+            : RECURSOS.contratante.gratis.vagasPorMes === Infinity
+              ? "Por enquanto, publique quantas vagas precisar. Talento universitário da região, com selo da instituição."
+              : "No plano grátis você publica 1 vaga por mês. Talento universitário da região, com selo da instituição."}
         </p>
         <ol className="publicar-passos">
           {PASSOS.map((p) => (
