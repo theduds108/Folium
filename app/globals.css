@@ -3165,3 +3165,13 @@ html { scroll-padding-top: 84px; }
   padding: 8px 10px; border-radius: 8px;
   background: #fbf1df; color: var(--cobre-texto); border: 1px solid #e8cfa4;
 }
+
+/* Faixa da página de demonstração (/demo/oportunidades): deixa claro que as vagas são fictícias. */
+.faixa-demo {
+  margin: 0 0 20px;
+  padding: 10px 14px;
+  border: 1.5px dashed var(--linha);
+  border-radius: 10px;
+  background: var(--papel-claro);
+  font-size: 0.9rem;
+}

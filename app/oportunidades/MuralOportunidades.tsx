@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
+import { OPORTUNIDADES, VAGAS_DEMO, type Oportunidade } from "@/lib/conteudo";
 import { GRUPOS_SERVICOS_FILTRO } from "@/components/OpcoesServicos";
 import { Seletor } from "@/components/Seletor";
 import { EsqueletoVaga } from "@/components/Esqueleto";
@@ -30,7 +30,8 @@ function IconeCheck() {
   );
 }
 
-export function MuralOportunidades() {
+/** demo: mostra só as vagas fictícias de VAGAS_DEMO, sem consultar o banco (página /demo/oportunidades). */
+export function MuralOportunidades({ demo = false }: { demo?: boolean }) {
   const { usuario } = useSessao();
   const { conta } = useConta();
   // "Tenho interesse" é para quem trabalha; contratante só vê as vagas.
@@ -40,10 +41,11 @@ export function MuralOportunidades() {
   const [servico, setServico] = useState("");
   const [interesse, setInteresse] = useState<string[]>([]);
   const [reais, setReais] = useState<Oportunidade[]>([]);
-  const [carregando, setCarregando] = useState(bancoLigado);
+  const [carregando, setCarregando] = useState(bancoLigado && !demo);
   const [anuncio, setAnuncio] = useState("");
 
   useEffect(() => {
+    if (demo) return;
     let ativo = true;
     listarOportunidadesReais()
       .then((r) => ativo && setReais(r))
@@ -51,10 +53,10 @@ export function MuralOportunidades() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [demo]);
 
   // Vagas em destaque (contratante Premium) vêm primeiro.
-  const todas = (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : [...reais]).sort(
+  const todas = (demo ? [...VAGAS_DEMO] : MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : [...reais]).sort(
     (a, b) => Number(!!b.destaque) - Number(!!a.destaque)
   );
   const porServico = todas.filter((o) => !servico || o.servico === servico);

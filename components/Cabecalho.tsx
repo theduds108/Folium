@@ -77,7 +77,9 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
 };
 
 function ativo(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  // A página de demonstração do mural conta como "Oportunidades".
+  const caminho = pathname.replace(/^\/demo/, "");
+  return href === "/" ? caminho === "/" : caminho.startsWith(href);
 }
 
 export function Cabecalho() {
