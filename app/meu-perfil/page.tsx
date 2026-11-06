@@ -21,6 +21,7 @@ import {
 import { emailInstitucional } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { ImgSegura, LinkSeguro } from "@/lib/arquivos";
+import { prepararFoto } from "@/lib/validarFoto";
 import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
 import { sair, useSessao } from "@/lib/sessao";
 import { RECURSOS, useConta } from "@/lib/conta";
@@ -260,6 +261,7 @@ function Editor(props: PropsEditor) {
   const [salvando, setSalvando] = useState(false);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
+  const [msgArquivo, setMsgArquivo] = useState<{ chave: string; tipo: "erro" | "aviso"; texto: string } | null>(null);
   const [cursoOutro, setCursoOutro] = useState(false);
   const [passo, setPasso] = useState<Passo>("voce");
   const [enquadrando, setEnquadrando] = useState(false);
@@ -355,17 +357,23 @@ function Editor(props: PropsEditor) {
     setSalvo(false);
   };
 
-  /** Sobe a imagem e devolve a URL, ou null se der erro (o erro aparece no formulário). */
+  /**
+   * Sobe a imagem e devolve a URL, ou null se der erro. Problemas e avisos de foto aparecem
+   * junto do campo que a pessoa usou (chave), não só no fim do formulário.
+   */
   const subir = async (arquivo: File | undefined, chave: string, tipo: "imagem" | "pdf" | "documento" = "imagem") => {
     if (!arquivo) return null;
     setErro("");
+    setMsgArquivo(null);
     setEnviando(chave);
     try {
-      if (!real) return await arquivoLocal(arquivo);
       const pdf = tipo === "pdf" || (tipo === "documento" && arquivo.type === "application/pdf");
-      return pdf ? await enviarCurriculo(userId, arquivo) : await enviarFoto(userId, arquivo);
+      if (!real) return await arquivoLocal(arquivo, (texto) => setMsgArquivo({ chave, tipo: "aviso", texto }));
+      return pdf
+        ? await enviarCurriculo(userId, arquivo)
+        : await enviarFoto(userId, arquivo, (texto) => setMsgArquivo({ chave, tipo: "aviso", texto }));
     } catch (e) {
-      setErro((e as Error).message);
+      setMsgArquivo({ chave, tipo: "erro", texto: (e as Error).message });
       return null;
     } finally {
       setEnviando(null);
@@ -649,6 +657,8 @@ function Editor(props: PropsEditor) {
                 )}
                 {r.foto && <button type="button" className="link-denuncia" onClick={() => mudar("foto", "")}>Remover</button>}
               </div>
+              <MensagemArquivo msg={msgArquivo} chave="foto" />
+              <span className="ajuda">JPG, PNG ou WebP, com pelo menos 300 px de lado e até 25 MB. Fotos grandes são reduzidas automaticamente.</span>
               <div className="dicas-foto">
                 <span className="dicas-foto-titulo">Dicas para a foto</span>
                 <ul>
@@ -755,6 +765,7 @@ function Editor(props: PropsEditor) {
                     />
                   )}
               </div>
+              <MensagemArquivo msg={msgArquivo} chave={`t${i}`} />
               <label className="campo campo-pequeno">
                 Conte sobre o trabalho
                 <textarea className="entrada" rows={6} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho, o problema que resolve, como foi feito e qual foi o resultado" maxLength={MAX_DESCRICAO} />
@@ -963,6 +974,7 @@ function Editor(props: PropsEditor) {
                   )}
                 </div>
               )}
+              <MensagemArquivo msg={msgArquivo} chave={`c${i}`} />
             </div>
           ))}
           {r.certificados.length < 15 && (
@@ -1016,6 +1028,7 @@ function Editor(props: PropsEditor) {
                 />
                 {r.curriculo && <button type="button" className="link-denuncia" onClick={() => mudar("curriculo", "")}>Remover</button>}
               </div>
+              <MensagemArquivo msg={msgArquivo} chave="cv" />
               <span className="ajuda">Até 3 MB. Quem visitar seu portfólio poderá baixar.</span>
             </div>
           )}
@@ -1107,16 +1120,28 @@ function Editor(props: PropsEditor) {
  * Modo demonstração: guarda a imagem no próprio aparelho (reduzida para caber no navegador).
  * PDFs abrem só nesta aba, porque não há onde guardar.
  */
-async function arquivoLocal(arquivo: File): Promise<string> {
+async function arquivoLocal(arquivo: File, aoAvisar?: (aviso: string) => void): Promise<string> {
   if (arquivo.type === "application/pdf") return URL.createObjectURL(arquivo);
-  if (!arquivo.type.startsWith("image/")) throw new Error("Use uma imagem JPG, PNG ou WebP.");
-  const bitmap = await createImageBitmap(arquivo);
-  const escala = Math.min(1, 900 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * escala);
-  canvas.height = Math.round(bitmap.height * escala);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.75);
+  // Mesma validação do envio real, com imagens menores para caber no navegador.
+  const { blob, aviso } = await prepararFoto(arquivo, 900);
+  if (aviso) aoAvisar?.(aviso);
+  return await new Promise<string>((ok, falhou) => {
+    const leitor = new FileReader();
+    leitor.onload = () => ok(String(leitor.result));
+    leitor.onerror = () => falhou(new Error("Não consegui ler a imagem. Escolha outra."));
+    leitor.readAsDataURL(blob);
+  });
+}
+
+/** Aviso ou erro de um envio de arquivo, logo abaixo do campo. */
+function MensagemArquivo({ msg, chave }: { msg: { chave: string; tipo: "erro" | "aviso"; texto: string } | null; chave: string }) {
+  if (!msg || msg.chave !== chave) return null;
+  return (
+    <p className={msg.tipo === "erro" ? "erro aviso-arquivo" : "aviso-arquivo aviso-arquivo-info"} role={msg.tipo === "erro" ? "alert" : "status"}>
+      {msg.tipo === "erro" ? "Não foi possível enviar: " : "Aviso: "}
+      {msg.texto}
+    </p>
+  );
 }
 
 function trocar<T>(lista: T[], i: number, mudanca: Partial<T>): T[] {

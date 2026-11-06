@@ -3158,3 +3158,10 @@ html { scroll-padding-top: 84px; }
 @media (prefers-reduced-motion: reduce) {
   .galeria-trilho { scroll-behavior: auto; }
 }
+
+/* Avisos de envio de foto, logo abaixo do campo */
+.aviso-arquivo { margin: 6px 0 0; font-size: 0.9rem; line-height: 1.35; }
+.aviso-arquivo-info {
+  padding: 8px 10px; border-radius: 8px;
+  background: #fbf1df; color: var(--cobre-texto); border: 1px solid #e8cfa4;
+}
