@@ -149,7 +149,7 @@ export function JornalEdicao() {
             </ul>
             <Link href="/talentos" className="link-mao">ver todos os talentos →</Link>
           </section>
-          <Termometro titulo="Quanto pagar" itens={precos} nota="Faixas para quem está começando na região. Experiência e prazo curto puxam o valor para cima." />
+          <Termometro titulo="Quanto pagar" itens={precos} nota="Faixas para quem está começando na região. Experiência e prazo curto puxam o valor para cima." link="Ver todas as faixas no guia" />
           <Materias lista={daEdicao} />
         </div>
       ) : (
@@ -224,7 +224,7 @@ function MancheteVaga({ vaga }: { vaga: Oportunidade }) {
   );
 }
 
-function Termometro({ titulo, itens, nota }: { titulo: string; itens: typeof SERVICOS_PRECO; nota: string }) {
+function Termometro({ titulo, itens, nota, link = "Abrir a calculadora" }: { titulo: string; itens: typeof SERVICOS_PRECO; nota: string; link?: string }) {
   return (
     <section className="jornal-coluna" aria-label={titulo}>
       <h2 className="jornal-secao-titulo">{titulo}</h2>
@@ -236,7 +236,7 @@ function Termometro({ titulo, itens, nota }: { titulo: string; itens: typeof SER
           </li>
         ))}
       </ul>
-      <p className="ajuda">{nota} <Link href="/guia/#precos">Abrir a calculadora</Link></p>
+      <p className="ajuda">{nota} <Link href="/guia/#precos">{link}</Link></p>
     </section>
   );
 }

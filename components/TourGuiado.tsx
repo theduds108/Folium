@@ -138,7 +138,7 @@ const PASSOS: Record<TipoTour, Passo[]> = {
     },
     {
       titulo: "Pronto!",
-      texto: "Para rever este passo a passo, use “Rever o tour” no rodapé da página. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
+      texto: "No Guia do contratante, no rodapé da página, tem o passo a passo de cada área e quanto pagar por serviço. Lá e no rodapé você também revê este tour e vê como instalar o Fólium no celular.",
     },
   ],
 };
