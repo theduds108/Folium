@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DICAS_SEGURANCA } from "@/lib/conteudo";
 import { GuiaConteudo } from "@/components/GuiaPrecos";
 import { Anotacao } from "@/components/Zine";
+import Link from "next/link";
 import { ReverTour } from "@/components/TourGuiado";
 
 export const metadata: Metadata = { title: "Guia do aluno" };
@@ -12,7 +13,7 @@ export default function Guia() {
       <h1 className="titulo-pagina">Guia do aluno</h1>
       <Anotacao className="anotacao-perfil">para cobrar justo e trabalhar seguro</Anotacao>
       <p className="suave" style={{ margin: "8px 0 0" }}>
-        Primeira vez por aqui? <ReverTour>Fazer o tour pelo app</ReverTour>
+        Primeira vez por aqui? <ReverTour>Fazer o tour pelo app</ReverTour> · <Link href="/instalar">Como instalar no celular</Link>
       </p>
 
       <section className="secao" id="precos">

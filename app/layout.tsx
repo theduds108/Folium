@@ -5,7 +5,6 @@ import "./globals.css";
 import { AbaFeedback } from "@/components/AbaFeedback";
 import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
-import { InstalarApp } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { ReverTour, TourGuiado } from "@/components/TourGuiado";
 import { VisaoDemo } from "@/components/VisaoDemo";
@@ -47,7 +46,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span>
               <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
               <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> ·{" "}
-              <Link href="/feedback" data-tour="feedback">Feedback</Link> · <ReverTour /> <InstalarApp />
+              <Link href="/feedback" data-tour="feedback">Feedback</Link> · <ReverTour /> ·{" "}
+              <Link href="/instalar">Instalar no celular</Link>
             </span>
           </div>
         </footer>
