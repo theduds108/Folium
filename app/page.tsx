@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DEPOIMENTOS, MISSAO, VALORES } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { SoParaAluno, SoParaContratante } from "@/components/GuiaPorConta";
 import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
 import { Faixa, PapelRasgado } from "@/components/Zine";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
@@ -132,6 +133,7 @@ export default function Inicio() {
         </div>
       </section>
 
+      <SoParaAluno>
       <section className="secao">
         <div className="container">
           <div className="secao-titulo revelar">
@@ -150,6 +152,28 @@ export default function Inicio() {
           </div>
         </div>
       </section>
+      </SoParaAluno>
+
+      <SoParaContratante>
+      <section className="secao">
+        <div className="container">
+          <div className="secao-titulo">
+            <h2>Guia do contratante</h2>
+            <Link href="/guia" className="link-mao">ver guia completo →</Link>
+          </div>
+          <div className="dois-lados">
+            <Link href="/guia#como-funciona" className="cartao lado atalho">
+              <h3>Primeira vaga?</h3>
+              <p className="suave">Como buscar talentos, publicar vagas e acompanhar os interessados no painel.</p>
+            </Link>
+            <Link href="/guia#precos" className="cartao lado atalho">
+              <h3>Quanto pagar?</h3>
+              <p className="suave">Faixas de referência para cada tipo de serviço feito por estudantes.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+      </SoParaContratante>
 
       {MOSTRAR_EXEMPLOS && (
       <section className="secao">
