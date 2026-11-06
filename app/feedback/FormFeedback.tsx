@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { enviarFeedback, type TipoFeedback } from "@/lib/repositorio";
 import { useConta } from "@/lib/conta";
-import { abrirTour } from "@/components/TourGuiado";
+import { reverTour } from "@/components/TourGuiado";
 
 const TIPOS: { valor: TipoFeedback; rotulo: string; dica: string }[] = [
   { valor: "sugestao", rotulo: "Sugestão", dica: "O que você gostaria que o Fólium tivesse ou fizesse diferente?" },
@@ -112,7 +112,7 @@ export function FormFeedback() {
       <aside className="cartao bloco feedback-lado">
         <h2 className="h-pequeno">Primeira vez por aqui?</h2>
         <p className="suave">O tour mostra em poucos passos onde fica cada coisa no Fólium.</p>
-        <button type="button" className="botao botao-contorno" onClick={abrirTour}>Ver o tour de novo</button>
+        <button type="button" className="botao botao-contorno" onClick={reverTour}>Ver o tour de novo</button>
         <h2 className="h-pequeno" style={{ marginTop: 24 }}>Quer denunciar alguém?</h2>
         <p className="suave">Use o botão de denúncia no próprio perfil ou vaga. Assim a equipe sabe exatamente o que analisar.</p>
       </aside>

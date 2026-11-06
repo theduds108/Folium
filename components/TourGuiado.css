@@ -1,0 +1,76 @@
+/* ---------- Tour guiado do primeiro acesso (ver components/TourGuiado.tsx) ----------
+   Ficha de papel com contagem manuscrita, destaque tracejado em cobre sobre o alvo e
+   fundo em verde-musgo translúcido. Sem animação infinita; com reduced motion fica parado. */
+.tour { position: fixed; inset: 0; z-index: 1100; }
+.tour-fundo { position: fixed; inset: 0; }
+.tour[data-centro] .tour-fundo { background: rgba(47, 62, 42, 0.55); }
+
+.tour-destaque {
+  position: fixed;
+  border-radius: 12px;
+  outline: 2px dashed var(--cobre-botao);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 200vmax rgba(47, 62, 42, 0.55);
+  pointer-events: none;
+}
+
+.tour-cartao {
+  position: fixed;
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 16px 18px 14px;
+  background: var(--papel-claro);
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: var(--raio);
+  box-shadow: 4px 4px 0 var(--verde-musgo);
+  color: var(--verde-musgo);
+}
+
+.tour-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tour-contagem {
+  font-family: var(--fonte-mao), cursive;
+  font-size: 1.2rem;
+  color: var(--cobre-texto);
+}
+.tour-pular {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.tour-pular:hover { color: var(--verde-musgo); }
+
+.tour-titulo {
+  margin: 2px 0 6px;
+  font-family: var(--fonte-titulo), sans-serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+.tour-texto { margin: 0 0 14px; line-height: 1.5; }
+
+.tour-pe { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tour-pontos { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tour-pontos li { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--verde-folio); }
+.tour-pontos li.feito { background: var(--verde-folio); }
+.tour-pontos li.atual { width: 20px; border-radius: 4px; background: var(--cobre-botao); border-color: var(--cobre-botao); }
+.tour-botoes { display: flex; gap: 8px; margin-left: auto; }
+.tour-botoes .botao { min-height: 44px; padding: 8px 16px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .tour-destaque {
+    transition: top var(--mov-filtro) var(--ease-saida), left var(--mov-filtro) var(--ease-saida),
+      width var(--mov-filtro) var(--ease-saida), height var(--mov-filtro) var(--ease-saida);
+  }
+  .tour-cartao { animation: tour-entrada var(--mov-entrada) var(--ease-saida); }
+  @keyframes tour-entrada {
+    from { opacity: 0; transform: translateY(var(--elevar-entrada)); }
+  }
+}

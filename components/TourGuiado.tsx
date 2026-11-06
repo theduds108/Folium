@@ -1,217 +1,399 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useConta, type TipoConta } from "@/lib/conta";
+import "./TourGuiado.css";
 
 /**
  * Tour guiado do primeiro acesso.
  *
- * Aparece sozinho uma vez para cada tipo de uso (visitante na página inicial, colaborador e
- * contratante depois de entrar) e pode ser aberto de novo pela página de Feedback ou pelo rodapé.
- * Cada passo ilumina um item do menu (marcado com data-tour no Cabecalho). Se o item não estiver
- * visível (ex.: menu de cima no celular), o passo aparece no meio da tela.
- * Guarda no navegador só a marca "já viu o tour", nada além disso.
+ * Na primeira vez que a pessoa usa o Fólium, um passo a passo destaca os botões da
+ * navegação (no topo do computador ou na barra de baixo do celular) e explica cada área.
+ * Cada tipo de usuário tem o seu tour: visitante, colaborador (aluno) e contratante.
+ *
+ * - Não navega nem recarrega a página: nada do que já foi preenchido se perde.
+ * - Dá para pular a qualquer momento (botão "Pular" ou tecla Esc) e rever depois
+ *   pelo link "Rever o tour" do rodapé ou do guia (ver ReverTour abaixo).
+ * - Fica marcado no navegador (localStorage) por tipo de conta: quem entra como aluno
+ *   depois de ver o tour de visitante ainda vê o tour do aluno.
+ * - Os alvos são marcados com data-tour no Cabecalho. Se o alvo não estiver visível
+ *   (ex.: "Guia" não aparece na barra do celular), o passo aparece centralizado.
  */
 
-type Passo = { alvo?: string; titulo: string; texto: string };
+type TipoTour = "visitante" | TipoConta;
 
-const FEEDBACK: Passo = {
-  alvo: "/feedback",
-  titulo: "Conte o que achou",
-  texto: "Achou um problema ou tem uma ideia? Mande pela página de Feedback, no rodapé. Por lá você também pode ver este tour de novo.",
+type Passo = {
+  /** Valor de data-tour do elemento a destacar. Sem alvo, o cartão fica no centro da tela. */
+  alvo?: string;
+  titulo: string;
+  texto: string;
+  /** Texto usado quando o alvo não está visível nesta tela. */
+  semAlvo?: string;
 };
 
-const PASSOS: Record<"visitante" | TipoConta, Passo[]> = {
+const PASSOS: Record<TipoTour, Passo[]> = {
   visitante: [
-    { titulo: "Bem-vindo ao Fólium!", texto: "Aqui alunos da UNISAGRADO mostram seus trabalhos e quem precisa de um freela encontra talento da região. Vamos ver em 1 minuto onde fica cada coisa." },
-    { alvo: "/talentos", titulo: "Talentos", texto: "Os portfólios dos alunos, com filtros por curso e serviço. Para ver, é só ter uma conta grátis." },
-    { alvo: "/oportunidades", titulo: "Vagas", texto: "O mural de freelas, projetos e estágios publicados por empresas e pessoas da região." },
-    { alvo: "/entrar", titulo: "Crie sua conta", texto: "Aluno entra com o e-mail institucional e monta o portfólio. Quem contrata entra com qualquer e-mail e publica vagas." },
-    { ...FEEDBACK, texto: "Ficou com dúvida ou tem uma ideia? Depois de entrar, a página de Feedback fica no rodapé." },
+    {
+      titulo: "Bem-vindo ao Fólium",
+      texto: "A vitrine de portfólios dos alunos da UNISAGRADO. Em poucos passos você vê onde fica cada coisa. Pode pular quando quiser.",
+    },
+    {
+      alvo: "talentos",
+      titulo: "Encontre talentos",
+      texto: "Busque alunos por curso e serviço e abra o portfólio de cada um. Para ver os perfis é preciso entrar, assim os dados dos alunos ficam protegidos.",
+    },
+    {
+      alvo: "oportunidades",
+      titulo: "Vagas e freelas",
+      texto: "O mural reúne freelas, projetos e estágios de empresas e pessoas da região.",
+    },
+    {
+      alvo: "entrar",
+      titulo: "Crie sua conta",
+      texto: "Aluno entra com o e-mail institucional e monta o portfólio. Quem contrata entra com qualquer e-mail e publica vagas.",
+    },
+    {
+      titulo: "Pronto!",
+      texto: "Quando quiser rever este passo a passo, use “Rever o tour” no rodapé da página.",
+    },
   ],
   colaborador: [
-    { titulo: "Que bom ter você aqui!", texto: "Vamos ver rapidinho como montar seu portfólio e achar seus primeiros trabalhos." },
-    { alvo: "/meu-perfil", titulo: "Seu portfólio", texto: "Comece por aqui: foto, curso, serviços, trabalhos e contato. Dá para preencher a partir do seu currículo. Quando estiver pronto, publique e compartilhe o link." },
-    { alvo: "/oportunidades", titulo: "Vagas", texto: "Veja as oportunidades da região e toque em Tenho interesse para pegar o contato da empresa." },
-    { alvo: "/guia", titulo: "Guia de preços", texto: "Não sabe quanto cobrar? A calculadora do guia sugere um valor justo e tem dicas para não cair em golpe." },
-    { alvo: "/jornal", titulo: "Jornal do Fólium", texto: "Toda semana: vagas em destaque, quanto cobrar e matérias para quem está começando." },
-    FEEDBACK,
+    {
+      titulo: "Bem-vindo ao Fólium",
+      texto: "Aqui seu trabalho vira oportunidade. Em poucos passos você vê onde fica cada coisa. Pode pular quando quiser.",
+    },
+    {
+      alvo: "meu-perfil",
+      titulo: "Seu portfólio",
+      texto: "Comece por aqui: foto, sobre você, trabalhos, experiências e contato. Dá para importar do currículo (PDF ou Word) e revisar antes de salvar.",
+    },
+    {
+      alvo: "oportunidades",
+      titulo: "Vagas para você",
+      texto: "Freelas, projetos e estágios publicados por quem contrata. Clique em “Tenho interesse” e a empresa recebe seu portfólio.",
+    },
+    {
+      alvo: "talentos",
+      titulo: "Veja os colegas",
+      texto: "Os portfólios de outros alunos aparecem aqui. Bom para se inspirar e ver como os contratantes encontram você.",
+    },
+    {
+      alvo: "jornal",
+      titulo: "Jornal do Fólium",
+      texto: "Uma edição por semana com dicas de carreira e novidades para quem está começando. Completo no Premium.",
+    },
+    {
+      alvo: "guia",
+      titulo: "Guia do aluno",
+      texto: "Quanto cobrar por cada serviço, como negociar e como evitar golpe e calote.",
+      semAlvo: "Quanto cobrar, como negociar e como evitar golpe e calote. No celular, o Guia fica no rodapé da página.",
+    },
+    {
+      alvo: "feedback",
+      titulo: "Mande seu feedback",
+      texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
+    },
+    {
+      titulo: "Pronto!",
+      texto: "Agora é montar o portfólio. Para rever este passo a passo, use “Rever o tour” no rodapé ou no Guia do aluno.",
+    },
   ],
   contratante: [
-    { titulo: "Bem-vindo ao Fólium!", texto: "Vamos ver rapidinho como encontrar talentos e publicar suas vagas." },
-    { alvo: "/talentos", titulo: "Encontre talentos", texto: "Filtre por serviço e curso, abra o portfólio e fale direto com o aluno pelo WhatsApp ou e-mail." },
-    { alvo: "/publicar", titulo: "Publique vagas", texto: "Conte o que você precisa. Por enquanto você pode publicar quantas vagas quiser; a equipe confere cada uma em até 1 dia útil." },
-    { alvo: "/painel", titulo: "Seu painel", texto: "Acompanhe o status das suas vagas, quantos alunos se interessaram e atualize seus dados de contato." },
-    { alvo: "/oportunidades", titulo: "Mural de vagas", texto: "Depois de aprovada, sua vaga aparece aqui para os alunos." },
-    FEEDBACK,
+    {
+      titulo: "Bem-vindo ao Fólium",
+      texto: "Aqui você encontra universitários da região para freelas, projetos e estágios. Em poucos passos você vê onde fica cada coisa.",
+    },
+    {
+      alvo: "talentos",
+      titulo: "Encontre talentos",
+      texto: "Busque por nome ou habilidade, filtre por curso e serviço, abra o portfólio e fale direto com o aluno pelo WhatsApp ou e-mail.",
+    },
+    {
+      alvo: "publicar",
+      titulo: "Publique suas vagas",
+      texto: "Descreva o trabalho, o prazo e o valor. Você pode publicar várias vagas; cada uma passa por uma conferência rápida da equipe antes de aparecer no mural.",
+    },
+    {
+      alvo: "painel",
+      titulo: "Seu painel",
+      texto: "Acompanhe o status de cada vaga, veja quem demonstrou interesse e mantenha seus dados de contato em dia.",
+    },
+    {
+      alvo: "oportunidades",
+      titulo: "Mural de vagas",
+      texto: "É aqui que os alunos veem as vagas aprovadas e clicam em “Tenho interesse”.",
+    },
+    {
+      alvo: "jornal",
+      titulo: "Jornal do Fólium",
+      texto: "Uma edição por semana para quem contrata, com dicas de como contratar, faixas de preço e novidades. Completo no Premium.",
+    },
+    {
+      alvo: "feedback",
+      titulo: "Mande seu feedback",
+      texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
+    },
+    {
+      titulo: "Pronto!",
+      texto: "Para rever este passo a passo, use “Rever o tour” no rodapé da página.",
+    },
   ],
 };
 
-const CHAVE = (tipo: string) => `folium-tour-${tipo}`;
-const EVENTO = "folium:abrir-tour";
+const CHAVE = (t: TipoTour) => `folium-tour-visto-${t}`;
+const EVENTO_REVER = "folium-tour";
+/** Páginas em que o tour não começa sozinho (a pessoa está no meio do login). */
+const SEM_TOUR = ["/entrar", "/senha"];
 
-/** Abre o tour de novo (usado pelo botão da página de Feedback e pelo rodapé). */
-export function abrirTour() {
-  window.dispatchEvent(new Event(EVENTO));
-}
-
-function jaViu(tipo: string) {
+function jaViu(t: TipoTour) {
   try {
-    return localStorage.getItem(CHAVE(tipo)) === "1";
+    return localStorage.getItem(CHAVE(t)) === "1";
   } catch {
-    return true; // sem armazenamento: não insiste em abrir sozinho
+    return false;
+  }
+}
+function marcarVisto(t: TipoTour) {
+  try {
+    localStorage.setItem(CHAVE(t), "1");
+  } catch {
+    /* sem armazenamento: o tour pode voltar na próxima visita */
   }
 }
 
-function marcarVisto(tipo: string) {
-  try {
-    localStorage.setItem(CHAVE(tipo), "1");
-  } catch {
-    /* sem armazenamento */
-  }
+/** Abre o tour de novo, de qualquer lugar do site. */
+export function reverTour() {
+  window.dispatchEvent(new Event(EVENTO_REVER));
 }
 
-/** Primeiro elemento visível na tela com esse data-tour. */
-function acharAlvo(alvo?: string): DOMRect | null {
+/** Link "Rever o tour" (rodapé, guia). */
+export function ReverTour({ className = "link-texto", children = "Rever o tour" }: { className?: string; children?: React.ReactNode }) {
+  return (
+    <button type="button" className={className} onClick={reverTour}>
+      {children}
+    </button>
+  );
+}
+
+/** Primeiro elemento visível com data-tour={alvo}. */
+function acharAlvo(alvo?: string): HTMLElement | null {
   if (!alvo) return null;
-  for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${alvo}"]`)) {
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${alvo}"]`))) {
     const r = el.getBoundingClientRect();
-    const visivel = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight && getComputedStyle(el).visibility !== "hidden";
-    if (visivel) return r;
+    if (r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden") return el;
   }
   return null;
 }
 
-/** Páginas em que o tour não abre sozinho (a pessoa está no meio de outra tarefa). */
-const SEM_TOUR_AUTOMATICO = ["/entrar", "/senha"];
+type Caixa = { top: number; left: number; width: number; height: number };
 
 export function TourGuiado() {
   const pathname = usePathname();
-  const { conta, logado, carregando } = useConta();
-  const tipo: "visitante" | TipoConta = conta?.tipo ?? "visitante";
-  const passos = PASSOS[tipo];
-  const [aberto, setAberto] = useState(false);
-  const [i, setI] = useState(0);
-  const [rect, setRect] = useState<DOMRect | null>(null);
-  const cartao = useRef<HTMLDivElement>(null);
+  const { conta, carregando, logado } = useConta();
+  const tipo: TipoTour | null = carregando ? null : conta ? conta.tipo : logado ? null : "visitante";
 
-  // Abre sozinho na primeira vez de cada tipo.
-  useEffect(() => {
-    if (carregando || aberto) return;
-    if (logado && !conta) return; // conta ainda carregando
-    if (SEM_TOUR_AUTOMATICO.some((p) => pathname.startsWith(p))) return;
-    if (tipo === "visitante" && pathname !== "/") return;
-    if (jaViu(tipo)) return;
-    const t = window.setTimeout(() => {
-      setI(0);
-      setAberto(true);
-    }, 1800); // depois da animação de abertura
-    return () => window.clearTimeout(t);
-  }, [carregando, logado, conta, tipo, pathname, aberto]);
+  const [ativo, setAtivo] = useState<TipoTour | null>(null);
+  const [indice, setIndice] = useState(0);
+  const [caixa, setCaixa] = useState<Caixa | null>(null);
+  const [cartao, setCartao] = useState<{ top: number; left: number } | null>(null);
+  const refCartao = useRef<HTMLDivElement>(null);
+  const refProximo = useRef<HTMLButtonElement>(null);
+  const focoAntes = useRef<Element | null>(null);
 
-  // Abrir de novo pelo botão.
-  useEffect(() => {
-    const abrir = () => {
-      setI(0);
-      setAberto(true);
-    };
-    window.addEventListener(EVENTO, abrir);
-    return () => window.removeEventListener(EVENTO, abrir);
+  const passos = ativo ? PASSOS[ativo] : [];
+  const passo = passos[indice];
+  const ultimo = indice === passos.length - 1;
+
+  const abrir = useCallback((t: TipoTour) => {
+    focoAntes.current = document.activeElement;
+    setIndice(0);
+    setAtivo(t);
   }, []);
 
   const fechar = useCallback(() => {
-    marcarVisto(tipo);
-    setAberto(false);
-  }, [tipo]);
+    if (ativo) marcarVisto(ativo);
+    setAtivo(null);
+    setCaixa(null);
+    setCartao(null);
+    const antes = focoAntes.current;
+    if (antes instanceof HTMLElement) antes.focus({ preventScroll: true });
+  }, [ativo]);
 
-  const passo = passos[Math.min(i, passos.length - 1)]!;
-
-  // Posição do item iluminado; acompanha rolagem e mudança de tamanho.
-  useLayoutEffect(() => {
-    if (!aberto) return;
-    const medir = () => setRect(acharAlvo(passo.alvo));
-    medir();
-    window.addEventListener("resize", medir);
-    window.addEventListener("scroll", medir, { passive: true });
-    return () => {
-      window.removeEventListener("resize", medir);
-      window.removeEventListener("scroll", medir);
-    };
-  }, [aberto, passo.alvo]);
-
-  // Foco no cartão a cada passo e Esc para fechar.
+  // Começa sozinho na primeira visita, depois da abertura do app.
   useEffect(() => {
-    if (!aberto) return;
-    cartao.current?.focus();
-    const tecla = (e: KeyboardEvent) => {
-      if (e.key === "Escape") fechar();
-      if (e.key === "ArrowRight") setI((x) => Math.min(x + 1, passos.length - 1));
-      if (e.key === "ArrowLeft") setI((x) => Math.max(x - 1, 0));
+    if (!tipo || ativo || jaViu(tipo)) return;
+    if (SEM_TOUR.some((p) => pathname.startsWith(p))) return;
+    // Visitante só vê o tour na página inicial (quem chega por um link de perfil vai direto ao assunto).
+    if (tipo === "visitante" && pathname !== "/") return;
+    const comAbertura =
+      !document.documentElement.classList.contains("sem-abertura") &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const espera = window.setTimeout(() => {
+      if (!jaViu(tipo) && !document.querySelector(".janela-fundo")) abrir(tipo);
+    }, comAbertura ? 1900 : 600);
+    return () => window.clearTimeout(espera);
+  }, [tipo, pathname, ativo, abrir]);
+
+  // "Rever o tour".
+  useEffect(() => {
+    const aoRever = () => {
+      if (tipo) abrir(tipo);
     };
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, [aberto, i, fechar, passos.length]);
+    window.addEventListener(EVENTO_REVER, aoRever);
+    return () => window.removeEventListener(EVENTO_REVER, aoRever);
+  }, [tipo, abrir]);
 
-  if (!aberto) return null;
+  // Se a conta muda no meio (ex.: saiu), fecha sem marcar.
+  useEffect(() => {
+    if (ativo && tipo && tipo !== ativo) setAtivo(null);
+  }, [tipo, ativo]);
 
-  const ultimo = i >= passos.length - 1;
-  const folga = 6;
-  const posicao: React.CSSProperties = {};
-  if (rect) {
-    const largura = Math.min(360, window.innerWidth - 32);
-    posicao.left = Math.max(16, Math.min(rect.left + rect.width / 2 - largura / 2, window.innerWidth - largura - 16));
-    posicao.width = largura;
-    if (rect.top < window.innerHeight / 2) posicao.top = rect.bottom + folga + 14;
-    else posicao.bottom = window.innerHeight - rect.top + folga + 14;
-  }
+  // Mede o alvo e posiciona destaque e cartão; acompanha rolagem e mudança de tamanho.
+  const medir = useCallback(() => {
+    if (!passo) return;
+    const el = acharAlvo(passo.alvo);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const larguraCartao = Math.min(360, vw - 32);
+    const alturaCartao = refCartao.current?.offsetHeight ?? 220;
+    if (!el) {
+      setCaixa(null);
+      setCartao({ top: Math.max(16, (vh - alturaCartao) / 2), left: (vw - larguraCartao) / 2 });
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    const folga = 6;
+    const c = { top: r.top - folga, left: r.left - folga, width: r.width + folga * 2, height: r.height + folga * 2 };
+    setCaixa(c);
+    const espacoAbaixo = vh - (c.top + c.height);
+    const top =
+      espacoAbaixo >= alturaCartao + 24
+        ? c.top + c.height + 14
+        : Math.max(16, c.top - alturaCartao - 14);
+    const left = Math.min(Math.max(16, c.left + c.width / 2 - larguraCartao / 2), vw - larguraCartao - 16);
+    setCartao({ top, left });
+  }, [passo]);
+
+  useLayoutEffect(() => {
+    if (!ativo) return;
+    medir();
+    // Mede de novo depois que o cartão tem o texto novo (a altura muda).
+    const q = requestAnimationFrame(medir);
+    let pendente = 0;
+    const aoMudar = () => {
+      cancelAnimationFrame(pendente);
+      pendente = requestAnimationFrame(medir);
+    };
+    window.addEventListener("resize", aoMudar);
+    window.addEventListener("scroll", aoMudar, true);
+    return () => {
+      cancelAnimationFrame(q);
+      cancelAnimationFrame(pendente);
+      window.removeEventListener("resize", aoMudar);
+      window.removeEventListener("scroll", aoMudar, true);
+    };
+  }, [ativo, indice, medir]);
+
+  // Foco no botão principal a cada passo; teclado: Esc pula, setas andam, Tab fica dentro do cartão.
+  useEffect(() => {
+    if (!ativo) return;
+    refProximo.current?.focus({ preventScroll: true });
+  }, [ativo, indice]);
+
+  useEffect(() => {
+    if (!ativo) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        fechar();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (ultimo) fechar();
+        else setIndice((i) => i + 1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setIndice((i) => Math.max(0, i - 1));
+      } else if (e.key === "Tab" && refCartao.current) {
+        const focaveis = Array.from(refCartao.current.querySelectorAll<HTMLElement>("button"));
+        if (!focaveis.length) return;
+        const primeiro = focaveis[0];
+        const fim = focaveis[focaveis.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+          e.preventDefault();
+          fim.focus();
+        } else if (!e.shiftKey && document.activeElement === fim) {
+          e.preventDefault();
+          primeiro.focus();
+        } else if (!refCartao.current.contains(document.activeElement)) {
+          e.preventDefault();
+          primeiro.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [ativo, ultimo, fechar]);
+
+  if (!ativo || !passo) return null;
+
+  const texto = !caixa && passo.alvo && passo.semAlvo ? passo.semAlvo : passo.texto;
 
   return (
-    <div className="tour" role="presentation">
-      {rect ? (
+    <div className="tour" data-centro={caixa ? undefined : ""}>
+      {/* Segura os cliques fora do cartão: o tour não deixa ninguém sair da página sem querer. */}
+      <div className="tour-fundo" aria-hidden="true" />
+      {caixa && (
         <div
-          className="tour-foco"
+          className="tour-destaque"
           aria-hidden="true"
-          style={{ top: rect.top - folga, left: rect.left - folga, width: rect.width + folga * 2, height: rect.height + folga * 2 }}
+          style={{ top: caixa.top, left: caixa.left, width: caixa.width, height: caixa.height }}
         />
-      ) : (
-        <div className="tour-fundo" aria-hidden="true" onClick={fechar} />
       )}
       <div
-        ref={cartao}
-        className={rect ? "tour-cartao" : "tour-cartao tour-cartao-centro"}
-        style={posicao}
+        ref={refCartao}
+        className="tour-cartao"
         role="dialog"
         aria-modal="true"
         aria-labelledby="tour-titulo"
         aria-describedby="tour-texto"
-        tabIndex={-1}
+        key={indice}
+        style={cartao ? { top: cartao.top, left: cartao.left } : { visibility: "hidden" }}
       >
         <div className="tour-topo">
-          <span className="rotulos"><span>Tour · {i + 1} de {passos.length}</span></span>
-          <button type="button" className="tour-pular" onClick={fechar}>Pular tour</button>
-        </div>
-        <h2 id="tour-titulo">{passo.titulo}</h2>
-        <p id="tour-texto">{passo.texto}</p>
-        <div className="tour-pontos" aria-hidden="true">
-          {passos.map((_, n) => <span key={n} className={n === i ? "atual" : ""} />)}
-        </div>
-        <div className="tour-acoes">
-          {i > 0 && (
-            <button type="button" className="botao botao-contorno" onClick={() => setI(i - 1)}>Voltar</button>
-          )}
-          <button type="button" className="botao botao-verde" onClick={() => (ultimo ? fechar() : setI(i + 1))}>
-            {ultimo ? "Começar a usar" : "Próximo"}
+          <span className="tour-contagem">
+            {indice + 1} de {passos.length}
+          </span>
+          <button type="button" className="tour-pular" onClick={fechar}>
+            {ultimo ? "Fechar" : "Pular tour"}
           </button>
+        </div>
+        <h2 id="tour-titulo" className="tour-titulo">{passo.titulo}</h2>
+        <p id="tour-texto" className="tour-texto">{texto}</p>
+        <div className="tour-pe">
+          <ol className="tour-pontos" aria-hidden="true">
+            {passos.map((_, i) => (
+              <li key={i} className={i === indice ? "atual" : i < indice ? "feito" : ""} />
+            ))}
+          </ol>
+          <div className="tour-botoes">
+            {indice > 0 && (
+              <button type="button" className="botao botao-contorno" onClick={() => setIndice((i) => i - 1)}>
+                Voltar
+              </button>
+            )}
+            <button
+              ref={refProximo}
+              type="button"
+              className="botao botao-primario"
+              onClick={() => (ultimo ? fechar() : setIndice((i) => i + 1))}
+            >
+              {ultimo ? "Começar" : indice === 0 ? "Mostrar" : "Próximo"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-/** Link "Tour do app" para o rodapé. */
-export function BotaoTour() {
-  return (
-    <button type="button" className="link-tour" onClick={abrirTour}>Tour do app</button>
   );
 }
