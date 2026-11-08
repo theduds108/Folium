@@ -26,22 +26,31 @@ export function PapelRasgado({ cor = "#2F3E2A", inverter = false }: { cor?: stri
 }
 
 /**
- * Índice de serviços em faixa escura. Antes era um letreiro correndo sem parar;
- * agora é um bloco estático e clicável: cada serviço abre a busca já filtrada.
- * Ritmo editorial sem movimento contínuo.
+ * Índice de serviços em faixa escura: letreiro que roda sozinho em loop infinito.
+ * A lista aparece duas vezes seguidas e a faixa anda metade do caminho, então o fim
+ * emenda no começo sem pulo. Para quando o mouse ou o foco do teclado está em cima;
+ * quem pediu menos movimento no aparelho vê a lista parada.
  */
 export function Faixa({ itens, rotulo = "Índice de serviços" }: { itens: string[]; rotulo?: string }) {
+  const lista = (copia: boolean) => (
+    <ul className="faixa-lista" aria-hidden={copia || undefined}>
+      {itens.map((t) => (
+        <li key={t}>
+          <Link href={`/talentos/?servico=${encodeURIComponent(t)}`} tabIndex={copia ? -1 : undefined}>{t}</Link>
+        </li>
+      ))}
+    </ul>
+  );
   return (
     <nav className="faixa" aria-label={rotulo}>
       <div className="container">
         <span className="faixa-rotulo">{rotulo}</span>
-        <ul className="faixa-lista">
-          {itens.map((t) => (
-            <li key={t}>
-              <Link href={`/talentos/?servico=${encodeURIComponent(t)}`}>{t}</Link>
-            </li>
-          ))}
-        </ul>
+      </div>
+      <div className="faixa-letreiro">
+        <div className="faixa-trilho" style={{ ["--qtd" as string]: itens.length }}>
+          {lista(false)}
+          {lista(true)}
+        </div>
       </div>
     </nav>
   );

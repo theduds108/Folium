@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SoComConta } from "@/components/SoComConta";
 import { MuralOportunidades } from "./MuralOportunidades";
 import { AvisoEmpresa } from "./AreaVagas";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
@@ -7,7 +8,8 @@ export const metadata: Metadata = { title: "Oportunidades" };
 
 export default function Oportunidades() {
   return (
-    <div className="container pagina">
+    <SoComConta titulo="Entre para ver as oportunidades" texto="As vagas ficam visíveis só para quem tem conta no Fólium. A conta é grátis.">
+      <div className="container pagina">
       <CabecalhoArquivo
         rotulo="Mural de oportunidades · região de Bauru"
         titulo="Oportunidades"
@@ -17,5 +19,6 @@ export default function Oportunidades() {
       </CabecalhoArquivo>
       <MuralOportunidades />
     </div>
+    </SoComConta>
   );
 }

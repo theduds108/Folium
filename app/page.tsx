@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ALUNOS } from "@/lib/data";
-import { DEPOIMENTOS, MISSAO, OPORTUNIDADES, VALORES } from "@/lib/conteudo";
-import { CartaoAluno } from "@/components/CartaoAluno";
-import { Leque } from "@/components/Leque";
-import { Anotacao, Faixa, PapelRasgado } from "@/components/Zine";
+import { DEPOIMENTOS, MISSAO, VALORES } from "@/lib/conteudo";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { SoParaAluno, SoParaContratante } from "@/components/GuiaPorConta";
+import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
+import { Faixa, PapelRasgado } from "@/components/Zine";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
 
@@ -22,9 +22,6 @@ const INDICE = [
 ];
 
 export default function Inicio() {
-  const destaques = ALUNOS.filter((a) => a.disponivel).slice(0, 3);
-  const leque = ALUNOS.slice(0, 5);
-
   return (
     <>
       <section className="capa-zine" aria-labelledby="capa-marca">
@@ -51,8 +48,8 @@ export default function Inicio() {
           <div className="capa-conteudo">
             <p className="valor-capa">Talentos da UNISAGRADO para o seu próximo freela.</p>
             <p className="lead-zine">
-              Veja trabalhos de universitários, filtre pelo que você precisa e fale direto com quem fez. Para contratar,
-              não precisa criar conta.
+              Veja trabalhos de universitários, filtre pelo que você precisa e fale direto com quem fez. A conta é
+              grátis, para alunos e para quem contrata.
             </p>
 
             <form className="busca-rapida" action="/talentos/" role="search">
@@ -63,7 +60,7 @@ export default function Inicio() {
 
             <div className="hero-acoes">
               <Link href="/talentos" className="botao botao-primario">Encontrar talentos</Link>
-              <Link href="/entrar" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
+              <Link href="/entrar?modo=primeiro" className="botao botao-contorno">Sou aluno, criar portfólio</Link>
             </div>
 
             <ul className="provas" aria-label="Por que confiar">
@@ -82,12 +79,7 @@ export default function Inicio() {
             </ul>
           </div>
 
-          <div className="leque-legenda">
-            <span className="rotulos"><span>Do arquivo · {leque.length} fichas</span></span>
-            <Anotacao className="anotacao-capa">abra uma ficha</Anotacao>
-            <Link href="/talentos" className="link-mao">ver todos →</Link>
-          </div>
-          <Leque alunos={leque} />
+          <LequeInicio />
         </EntradaCapa>
       </section>
 
@@ -103,11 +95,7 @@ export default function Inicio() {
             <h2>Disponíveis agora</h2>
             <Link href="/talentos" className="link-mao">ver todos →</Link>
           </div>
-          <div className="grade-alunos revelar-grupo">
-            {destaques.map((a) => (
-              <CartaoAluno key={a.slug} aluno={a} />
-            ))}
-          </div>
+          <DestaquesInicio />
         </div>
       </section>
 
@@ -117,22 +105,7 @@ export default function Inicio() {
             <h2>Oportunidades recentes</h2>
             <Link href="/oportunidades" className="link-mao">ver mural →</Link>
           </div>
-          <div className="grade-vagas revelar-grupo">
-            {OPORTUNIDADES.slice(0, 3).map((o) => (
-              <Link key={o.id} href="/oportunidades" className={`cartao vaga vaga-link vaga-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>
-                <div className="vaga-topo">
-                  <span className={`carimbo carimbo-${o.tipo === "Estágio" ? "estagio" : o.tipo.toLowerCase()}`}>{o.tipo}</span>
-                  <span className="suave vaga-data">{o.publicadaHa}</span>
-                </div>
-                <h3>{o.titulo}</h3>
-                <p className="suave vaga-empresa">{o.empresa}</p>
-                <dl className="vaga-dados">
-                  <div><dt>Orçamento</dt><dd>{o.orcamento}</dd></div>
-                  <div><dt>Prazo</dt><dd>{o.prazo}</dd></div>
-                </dl>
-              </Link>
-            ))}
-          </div>
+          <VagasInicio />
         </div>
       </section>
 
@@ -151,7 +124,7 @@ export default function Inicio() {
             <div className="cartao lado">
               <h3>Para quem contrata</h3>
               <ol className="passos">
-                <li>Navegue sem precisar criar conta.</li>
+                <li>Crie sua conta grátis com qualquer e-mail.</li>
                 <li>Filtre por curso, tipo de serviço e habilidade.</li>
                 <li>Fale direto com o aluno pelo WhatsApp ou e-mail.</li>
               </ol>
@@ -160,23 +133,49 @@ export default function Inicio() {
         </div>
       </section>
 
+      <SoParaAluno>
       <section className="secao">
         <div className="container">
+          <div className="secao-titulo revelar">
+            <h2>Guia do aluno</h2>
+            <Link href="/guia" className="link-mao">ver guia completo →</Link>
+          </div>
           <div className="dois-lados revelar-grupo">
             <Link href="/guia#precos" className="cartao lado atalho">
-              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
               <h3>Não sabe quanto cobrar?</h3>
               <p className="suave">Veja faixas de preço de referência para cada tipo de serviço.</p>
             </Link>
             <Link href="/guia#seguranca" className="cartao lado atalho">
-              <span className="etiqueta etiqueta-terra">Guia do aluno</span>
               <h3>Medo de golpe ou calote?</h3>
               <p className="suave">Seis cuidados simples para fechar freelas com segurança.</p>
             </Link>
           </div>
         </div>
       </section>
+      </SoParaAluno>
 
+      <SoParaContratante>
+      <section className="secao">
+        <div className="container">
+          <div className="secao-titulo">
+            <h2>Guia do contratante</h2>
+            <Link href="/guia" className="link-mao">ver guia completo →</Link>
+          </div>
+          <div className="dois-lados">
+            <Link href="/guia#como-funciona" className="cartao lado atalho">
+              <h3>Primeira vaga?</h3>
+              <p className="suave">Como buscar talentos, publicar vagas e acompanhar os interessados no painel.</p>
+            </Link>
+            <Link href="/guia#precos" className="cartao lado atalho">
+              <h3>Quanto pagar?</h3>
+              <p className="suave">Faixas de referência para cada tipo de serviço feito por estudantes.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+      </SoParaContratante>
+
+      {MOSTRAR_EXEMPLOS && (
       <section className="secao">
         <div className="container">
           <h2 className="revelar">Quem já usou</h2>
@@ -191,6 +190,7 @@ export default function Inicio() {
           <p className="suave" style={{ fontSize: "0.85rem", marginTop: 12 }}>Depoimentos ilustrativos do protótipo.</p>
         </div>
       </section>
+      )}
 
       <section className="secao">
         <div className="container">

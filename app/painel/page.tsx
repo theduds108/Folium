@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Area, SeloPlano, TravaPremium } from "@/components/Area";
 import { CartaoAluno } from "@/components/CartaoAluno";
-import { ALUNOS, type Aluno } from "@/lib/data";
+import { ALUNOS_VITRINE, type Aluno } from "@/lib/data";
 import { RECURSOS, salvarDadosConta, type Conta } from "@/lib/conta";
 import { listarAlunosReais, listarSalvos, minhasVagas, type MinhaVaga } from "@/lib/repositorio";
 import { mascaraTelefone, telefoneValido } from "@/lib/formato";
@@ -33,12 +33,13 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
   useEffect(() => {
     if (!premium) return;
     Promise.all([listarSalvos(), listarAlunosReais()]).then(([slugs, reais]) => {
-      const todos = [...reais, ...ALUNOS];
+      const todos = [...reais, ...ALUNOS_VITRINE];
       setSalvos(slugs.map((s) => todos.find((a) => a.slug === s)).filter((a): a is Aluno => !!a));
     });
   }, [premium]);
 
   const noMes = (vagas ?? []).filter((v) => Date.now() - new Date(v.criadaEm).getTime() < 30 * 86_400_000).length;
+  const semLimite = recursos.vagasPorMes === Infinity;
   const podePublicar = noMes < recursos.vagasPorMes;
   const nome = conta.empresa || conta.nome;
 
@@ -64,7 +65,13 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
         <Link href="/publicar" className="cartao atalho-painel">
           <strong>Publicar vaga</strong>
           <span className="suave">
-            {premium ? "Vagas ilimitadas, com destaque no mural." : podePublicar ? "Você tem 1 vaga disponível este mês." : "Sua vaga do mês já foi usada."}
+            {premium
+              ? "Vagas ilimitadas, com destaque no mural."
+              : semLimite
+                ? "Publique quantas vagas precisar."
+                : podePublicar
+                  ? "Você tem 1 vaga disponível este mês."
+                  : "Sua vaga do mês já foi usada."}
           </span>
         </Link>
         <Link href="/jornal" className="cartao atalho-painel">
@@ -77,7 +84,8 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
         <section className="cartao bloco painel-secao" aria-labelledby="titulo-vagas">
           <div className="secao-titulo">
             <h2 id="titulo-vagas" className="h-pequeno">Suas vagas</h2>
-            {!premium && <span className="ajuda">{Math.min(noMes, 1)} de 1 vaga este mês</span>}
+            {!premium && !semLimite && <span className="ajuda">{Math.min(noMes, 1)} de 1 vaga este mês</span>}
+            {vagas && vagas.length > 0 && <Link href="/publicar" className="link-mao">+ nova vaga</Link>}
           </div>
           {vagas === null ? (
             <p className="suave">Carregando…</p>
@@ -190,6 +198,7 @@ function DadosContratante({ conta }: { conta: Conta }) {
         </div>
         <p className="ajuda" style={{ margin: 0 }}>
           Conta: {conta.email} ·{" "}
+          <Link href="/senha" className="link-denuncia">Usuário e senha</Link> ·{" "}
           <button type="button" className="link-denuncia" onClick={sair}>Sair da conta</button>
         </p>
         {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}

@@ -2,6 +2,8 @@
 
 import { useId, useMemo, useRef, useState } from "react";
 import { OPORTUNIDADES } from "@/lib/conteudo";
+import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { bancoLigado } from "@/lib/supabase";
 import { Seletor } from "@/components/Seletor";
 import { GRUPOS_PRECO, NEGOCIACAO, NIVEIS, SERVICOS_PRECO, TAMANHOS, brl, redondo } from "@/lib/precos";
 
@@ -37,7 +39,8 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
     return { de, ate, sugerido, hora: sugerido / horas, horas };
   }, [s, fN, fT, fU]);
 
-  const vagas = (servico: string) => OPORTUNIDADES.filter((o) => o.servico === servico);
+  // Vagas fictícias só como exemplo quando os exemplos estão ligados (ou no modo demo).
+  const vagas = (servico: string) => (MOSTRAR_EXEMPLOS || !bancoLigado ? OPORTUNIDADES : []).filter((o) => o.servico === servico);
 
   const fechar = () => onFechar?.();
 

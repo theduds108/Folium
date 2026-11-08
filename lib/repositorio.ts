@@ -4,6 +4,7 @@
 import type { Aluno, Certificado, Experiencia, Idioma, Links, Trabalho } from "./data";
 import type { Oportunidade } from "./conteudo";
 import { supabase } from "./supabase";
+import { mb, prepararFoto } from "./validarFoto";
 
 const CORES = ["#4F7A3A", "#B0673B", "#6B4A34", "#2F3E2A", "#C98A4B", "#7C8B5A"];
 
@@ -195,16 +196,19 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   return slug;
 }
 
-/** Envia uma imagem para fotos/<id do usuário>/ e devolve o endereço público. */
-export async function enviarFoto(userId: string, arquivo: File) {
+/**
+ * Envia uma imagem para fotos/<id do usuário>/ e devolve o endereço público.
+ * A foto é validada e reduzida no aparelho (ver lib/validarFoto.ts); `aoAvisar` recebe o aviso
+ * quando ela foi reduzida ou convertida. Erros chegam como ErroFoto, com texto pronto.
+ */
+export async function enviarFoto(userId: string, arquivo: File, aoAvisar?: (aviso: string) => void) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
-  if (!/^image\/(jpeg|png|webp)$/.test(arquivo.type)) throw new Error("Use uma imagem JPG, PNG ou WebP.");
-  if (arquivo.size > 5 * 1024 * 1024) throw new Error("A imagem precisa ter até 5 MB.");
-  const ext = arquivo.type.split("/")[1];
-  const caminho = `${userId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await sb.storage.from("fotos").upload(caminho, arquivo, { contentType: arquivo.type });
+  const { blob, aviso } = await prepararFoto(arquivo);
+  const caminho = `${userId}/${crypto.randomUUID()}.jpeg`;
+  const { error } = await sb.storage.from("fotos").upload(caminho, blob, { contentType: "image/jpeg" });
   if (error) throw traduzirErro(error);
+  if (aviso) aoAvisar?.(aviso);
   return sb.storage.from("fotos").getPublicUrl(caminho).data.publicUrl;
 }
 
@@ -212,8 +216,8 @@ export async function enviarFoto(userId: string, arquivo: File) {
 export async function enviarCurriculo(userId: string, arquivo: File) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
-  if (arquivo.type !== "application/pdf") throw new Error("O currículo precisa ser um PDF.");
-  if (arquivo.size > 3 * 1024 * 1024) throw new Error("O PDF precisa ter até 3 MB.");
+  if (arquivo.type !== "application/pdf") throw new Error("Formato não compatível: aqui só entra arquivo PDF.");
+  if (arquivo.size > 3 * 1024 * 1024) throw new Error(`O PDF passou do tamanho máximo: tem ${mb(arquivo.size)} e o limite é 3 MB. Comprima o PDF e tente de novo.`);
   const caminho = `${userId}/${crypto.randomUUID()}.pdf`;
   const { error } = await sb.storage.from("curriculos").upload(caminho, arquivo, { contentType: "application/pdf" });
   if (error) throw traduzirErro(error);
@@ -308,18 +312,33 @@ export async function denunciar(alvoTipo: "perfil" | "oportunidade", alvo: strin
 export function traduzirErro(e: { message?: string; code?: string } | null | undefined): Error {
   const msg = e?.message ?? "";
   if (/row-level security/i.test(msg)) return new Error("Sua conta não tem permissão para isso. Confira se entrou com o e-mail certo.");
+  if (e?.code === "invalid_credentials" || /invalid login credentials/i.test(msg))
+    return new Error("Usuário ou senha incorretos. Se você ainda não criou sua senha, use “Esqueci a senha”.");
+  if (e?.code === "same_password" || /different from the old/i.test(msg)) return new Error("A senha nova precisa ser diferente da atual.");
+  if (e?.code === "weak_password" || /password should/i.test(msg))
+    return new Error("Senha fraca. Ela precisa ter pelo menos 8 caracteres, com letra maiúscula, letra minúscula, número e caractere especial.");
+  if (/muitas_tentativas/.test(msg))
+    return new Error("Muitas tentativas erradas com esse usuário. Espere 15 minutos, entre com o e-mail no lugar do usuário ou use “Esqueci a senha”.");
+  if (/nomes_usuario|email_para_login|nome_usuario_livre/.test(msg))
+    return new Error("O login por nome de usuário ainda não foi ligado no banco. Avise a equipe do Fólium.");
+  if (e?.code === "signup_disabled") return new Error("Novos cadastros estão fechados no momento.");
   if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos. Com o Premium não há limite.");
+  if (/Muitas vagas/.test(msg)) return new Error("Você publicou muitas vagas nas últimas 24 horas. Espere um pouco e tente de novo.");
+  if (/Muitas denuncias/.test(msg)) return new Error("Você enviou muitas denúncias na última hora. Espere um pouco e tente de novo.");
   if (/Limite de 1 vaga/.test(msg)) return new Error("O plano grátis permite 1 vaga por mês. Com o Premium as vagas são ilimitadas.");
   // Mesmo e-mail pedindo de novo antes do intervalo mínimo ("you can only request this after 42 seconds").
   const espera = msg.match(/after (\d+) seconds?/i);
-  if (espera) return new Error(`Já mandamos um link para este e-mail agora há pouco. Espere ${espera[1]} segundos para pedir outro, ou confira a caixa de entrada e o spam.`);
+  if (espera) return new Error(`Já mandamos um e-mail para este endereço agora há pouco. Espere ${espera[1]} segundos para pedir outro, ou confira a caixa de entrada e o spam.`);
   // Limite de e-mails do projeto (o envio padrão do Supabase manda só poucos por hora no projeto todo).
   if (e?.code === "over_email_send_rate_limit" || /email rate limit/i.test(msg))
     return new Error(
-      "Muita gente pediu link de acesso nesta última hora e o envio de e-mails chegou ao limite. Tente de novo daqui a pouco. Se já recebeu um link antes, ele ainda funciona: abra o e-mail e clique nele."
+      "O envio de e-mails do Fólium chegou ao limite desta hora. Tente de novo daqui a pouco. Se você já criou usuário e senha, entre com eles, que não depende de e-mail."
     );
   if (e?.code === "over_request_rate_limit" || /rate limit|too many/i.test(msg))
     return new Error("Muitas tentativas seguidas deste aparelho. Espere alguns minutos e tente de novo.");
+  // Falha do servidor de e-mail (SMTP) ao mandar o link: problema de configuração nosso, não da pessoa.
+  if (/error sending .*email/i.test(msg))
+    return new Error("Não conseguimos enviar o e-mail de acesso agora. O problema é do nosso lado; tente de novo em alguns minutos.");
   if (/fetch|network/i.test(msg)) return new Error("Sem conexão com o servidor. Confira sua internet.");
   return new Error(msg || "Algo deu errado. Tente de novo.");
 }
@@ -487,4 +506,32 @@ export async function listarMaterias(): Promise<Materia[]> {
     imagem: m.imagem_url ?? undefined,
     publicadaEm: m.publicada_em,
   }));
+}
+
+/* ---------- Feedback ---------- */
+
+export type TipoFeedback = "sugestao" | "problema" | "elogio" | "outro";
+
+/**
+ * Envia um feedback para a equipe. O banco só aceita inserir (quem mandou não consegue ler de volta);
+ * a equipe lê na tabela "feedbacks" pelo Table Editor do Supabase.
+ */
+export async function enviarFeedback(f: { tipo: TipoFeedback; mensagem: string; pagina: string; nota: number | null }) {
+  const sb = supabase();
+  if (!sb) return; // modo demonstração: não guarda nada
+  const { data: u } = await sb.auth.getUser();
+  if (!u.user) throw new Error("Entre na sua conta para mandar feedback.");
+  const { error } = await sb.from("feedbacks").insert({
+    autor_id: u.user.id,
+    tipo: f.tipo,
+    mensagem: f.mensagem.trim().slice(0, 1500),
+    pagina: f.pagina.slice(0, 120),
+    nota: f.nota,
+  });
+  if (error) {
+    if (/Muitos feedbacks/.test(error.message)) throw new Error("Você mandou vários feedbacks seguidos. Espere um pouco e tente de novo.");
+    if (/relation .*feedbacks|does not exist|schema cache/i.test(error.message))
+      throw new Error("O feedback ainda não foi ligado no banco. Avise a equipe do Fólium.");
+    throw traduzirErro(error);
+  }
 }

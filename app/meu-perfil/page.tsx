@@ -20,6 +20,8 @@ import {
 } from "@/lib/data";
 import { emailInstitucional } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
+import { ImgSegura, LinkSeguro } from "@/lib/arquivos";
+import { prepararFoto } from "@/lib/validarFoto";
 import { cadastrarEmpresas, enviarCurriculo, enviarFoto, meuPerfil, salvarPerfil } from "@/lib/repositorio";
 import { sair, useSessao } from "@/lib/sessao";
 import { RECURSOS, useConta } from "@/lib/conta";
@@ -33,6 +35,8 @@ import { FotoEnquadrada } from "@/components/FotoEnquadrada";
 import { EnquadrarFoto } from "@/components/EnquadrarFoto";
 import { GuiaPrecos } from "@/components/GuiaPrecos";
 import { BuscaEmpresa } from "@/components/BuscaEmpresa";
+import { ImportarCurriculo } from "@/components/ImportarCurriculo";
+import { mesmoTexto, type DadosCurriculo } from "@/lib/curriculo";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 
 const CHAVE = "folium-rascunho-perfil";
@@ -211,7 +215,7 @@ export default function MeuPerfil() {
   if (!usuario)
     return (
       <Aviso titulo="Entre para montar seu portfólio">
-        <p className="suave">Use seu e-mail institucional. Mandamos um link de acesso, sem senha.</p>
+        <p className="suave">Entre com seu nome de usuário e senha. No primeiro acesso, use o e-mail institucional.</p>
         <Link href="/entrar" className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
       </Aviso>
     );
@@ -257,10 +261,12 @@ function Editor(props: PropsEditor) {
   const [salvando, setSalvando] = useState(false);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
+  const [msgArquivo, setMsgArquivo] = useState<{ chave: string; tipo: "erro" | "aviso"; texto: string } | null>(null);
   const [cursoOutro, setCursoOutro] = useState(false);
   const [passo, setPasso] = useState<Passo>("voce");
   const [enquadrando, setEnquadrando] = useState(false);
   const [recuperado, setRecuperado] = useState(false);
+  const [importado, setImportado] = useState(false);
   /** Texto (JSON) do último estado salvo no banco: serve para saber se há algo ainda não salvo. */
   const base = useRef("");
   const tituloRef = useRef<HTMLHeadingElement>(null);
@@ -351,17 +357,23 @@ function Editor(props: PropsEditor) {
     setSalvo(false);
   };
 
-  /** Sobe a imagem e devolve a URL, ou null se der erro (o erro aparece no formulário). */
+  /**
+   * Sobe a imagem e devolve a URL, ou null se der erro. Problemas e avisos de foto aparecem
+   * junto do campo que a pessoa usou (chave), não só no fim do formulário.
+   */
   const subir = async (arquivo: File | undefined, chave: string, tipo: "imagem" | "pdf" | "documento" = "imagem") => {
     if (!arquivo) return null;
     setErro("");
+    setMsgArquivo(null);
     setEnviando(chave);
     try {
-      if (!real) return await arquivoLocal(arquivo);
       const pdf = tipo === "pdf" || (tipo === "documento" && arquivo.type === "application/pdf");
-      return pdf ? await enviarCurriculo(userId, arquivo) : await enviarFoto(userId, arquivo);
+      if (!real) return await arquivoLocal(arquivo, (texto) => setMsgArquivo({ chave, tipo: "aviso", texto }));
+      return pdf
+        ? await enviarCurriculo(userId, arquivo)
+        : await enviarFoto(userId, arquivo, (texto) => setMsgArquivo({ chave, tipo: "aviso", texto }));
     } catch (e) {
-      setErro((e as Error).message);
+      setMsgArquivo({ chave, tipo: "erro", texto: (e as Error).message });
       return null;
     } finally {
       setEnviando(null);
@@ -513,6 +525,42 @@ function Editor(props: PropsEditor) {
     h.closest(".editor-form")?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
   }, [passo]);
 
+  /** Aplica no rascunho o que o aluno marcou na leitura do currículo. Não salva: ele revisa e clica em Salvar. */
+  const aplicarCurriculo = (d: DadosCurriculo, ok: Set<string>) => {
+    setR((a) => {
+      const n: Rascunho = { ...a, links: { ...a.links } };
+      if (ok.has("nome") && d.nome) n.nome = d.nome;
+      if (ok.has("titulo") && d.titulo) n.titulo = d.titulo.slice(0, 80);
+      if (ok.has("curso") && d.curso) n.curso = d.curso;
+      if (ok.has("semestre") && d.semestre) n.semestre = d.semestre;
+      if (ok.has("conclusao") && d.conclusao) n.conclusao = d.conclusao;
+      if (ok.has("cidade") && d.cidade) n.cidade = d.cidade;
+      if (ok.has("bio") && d.bio) n.bio = d.bio.slice(0, 280);
+      if (ok.has("sobre") && d.sobre) n.sobre = d.sobre.slice(0, 1500);
+      if (ok.has("whatsapp") && d.whatsapp) n.whatsapp = d.whatsapp;
+      if (ok.has("email") && d.email) n.emailContato = d.email;
+      for (const rede of REDES) {
+        const v = d.links[rede.chave];
+        if (ok.has(`link-${rede.chave}`) && v) n.links[rede.chave] = v;
+      }
+      if (ok.has("habilidades") && d.habilidades.length) n.habilidades = d.habilidades.join(", ");
+      if (ok.has("experiencias"))
+        n.experiencias = [
+          ...a.experiencias,
+          ...d.experiencias.filter((x) => !a.experiencias.some((y) => mesmoTexto(y.cargo, x.cargo) && (mesmoTexto(y.lugar, x.lugar) || !y.lugar.trim() || !x.lugar.trim()))),
+        ].slice(0, 10);
+      if (ok.has("certificados"))
+        n.certificados = [...a.certificados, ...d.certificados.filter((x) => !a.certificados.some((y) => mesmoTexto(y.nome, x.nome)))].slice(0, 15);
+      if (ok.has("idiomas"))
+        n.idiomas = [...a.idiomas, ...d.idiomas.filter((x) => !a.idiomas.some((y) => mesmoTexto(y.idioma, x.idioma)))].slice(0, 8);
+      return n;
+    });
+    setCursoOutro(Boolean(d.curso) && ok.has("curso") ? !(CURSOS as readonly string[]).includes(d.curso!) : cursoOutro);
+    setSalvo(false);
+    setImportado(true);
+    irPara("voce");
+  };
+
   const irPara = (id: Passo) => {
     trocouPasso.current = true;
     setPasso(id);
@@ -565,6 +613,23 @@ function Editor(props: PropsEditor) {
               </button>
             </div>
           )}
+          <div className="importar-faixa">
+            <ImportarCurriculo
+              atual={{
+                nome: r.nome, titulo: r.titulo, curso: r.curso, semestre: r.semestre, conclusao: r.conclusao, cidade: r.cidade,
+                bio: r.bio, sobre: r.sobre, habilidades: r.habilidades, whatsapp: r.whatsapp, emailContato: r.emailContato,
+                links: r.links, nExperiencias: r.experiencias.length, nCertificados: r.certificados.length, nIdiomas: r.idiomas.length,
+              }}
+              onAplicar={aplicarCurriculo}
+            />
+            <span className="suave">Já tem currículo? A gente preenche as fichas para você conferir.</span>
+          </div>
+          {importado && (
+            <div className="aviso recuperado" role="status">
+              <span>Preenchemos as fichas com o seu currículo. <strong>Confira cada ficha</strong> e clique em <strong>Salvar portfólio</strong> quando estiver certo. Nada foi salvo ainda.</span>
+              <button type="button" className="link-denuncia" onClick={() => setImportado(false)}>Entendi</button>
+            </div>
+          )}
           <Fichas atual={passo} feitas={feitas} onIr={irPara} />
         </div>
 
@@ -591,6 +656,17 @@ function Editor(props: PropsEditor) {
                   </button>
                 )}
                 {r.foto && <button type="button" className="link-denuncia" onClick={() => mudar("foto", "")}>Remover</button>}
+              </div>
+              <MensagemArquivo msg={msgArquivo} chave="foto" />
+              <span className="ajuda">JPG, PNG ou WebP, com pelo menos 300 px de lado e até 25 MB. Fotos grandes são reduzidas automaticamente.</span>
+              <div className="dicas-foto">
+                <span className="dicas-foto-titulo">Dicas para a foto</span>
+                <ul>
+                  <li>Prefira uma foto que mostre bem o seu rosto, para quem contrata reconhecer você.</li>
+                  <li>Evite fotos no espelho, com filtro ou de longe.</li>
+                  <li>Use luz natural e um fundo simples.</li>
+                  <li>Apareça só você na foto, sem óculos escuros ou boné cobrindo o rosto.</li>
+                </ul>
               </div>
             </div>
           )}
@@ -656,8 +732,7 @@ function Editor(props: PropsEditor) {
               <div className="linha-arquivo">
                   {[t.imagem, ...t.galeria].filter(Boolean).map((img, k) => (
                     <span key={img} className="miniatura-caixa">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={unsplash(img, 240)} alt="" className="miniatura" />
+                      <ImgSegura src={unsplash(img, 240)} alt="" className="miniatura" />
                       {k === 0 && <span className="miniatura-capa">capa</span>}
                       <button
                         type="button"
@@ -690,6 +765,7 @@ function Editor(props: PropsEditor) {
                     />
                   )}
               </div>
+              <MensagemArquivo msg={msgArquivo} chave={`t${i}`} />
               <label className="campo campo-pequeno">
                 Conte sobre o trabalho
                 <textarea className="entrada" rows={6} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho, o problema que resolve, como foi feito e qual foi o resultado" maxLength={MAX_DESCRICAO} />
@@ -883,7 +959,7 @@ function Editor(props: PropsEditor) {
               </div>
               {(
                 <div className="linha-arquivo">
-                  {c.arquivo && <a href={c.arquivo} target="_blank" rel="noopener noreferrer">Ver certificado anexado</a>}
+                  {c.arquivo && <LinkSeguro href={c.arquivo} target="_blank" rel="noopener noreferrer">Ver certificado anexado</LinkSeguro>}
                   <EscolherArquivo
                     rotulo={c.arquivo ? "Trocar arquivo" : "Anexar certificado (PDF ou imagem)"}
                     aceita="application/pdf,image/jpeg,image/png,image/webp"
@@ -898,6 +974,7 @@ function Editor(props: PropsEditor) {
                   )}
                 </div>
               )}
+              <MensagemArquivo msg={msgArquivo} chave={`c${i}`} />
             </div>
           ))}
           {r.certificados.length < 15 && (
@@ -939,7 +1016,7 @@ function Editor(props: PropsEditor) {
             <div className="campo">
               Currículo em PDF (opcional)
               <div className="linha-arquivo">
-                {r.curriculo && <a href={r.curriculo} target="_blank" rel="noopener noreferrer">Ver currículo enviado</a>}
+                {r.curriculo && <LinkSeguro href={r.curriculo} target="_blank" rel="noopener noreferrer">Ver currículo enviado</LinkSeguro>}
                 <EscolherArquivo
                   rotulo={r.curriculo ? "Trocar PDF" : "Enviar PDF"}
                   aceita="application/pdf"
@@ -951,6 +1028,7 @@ function Editor(props: PropsEditor) {
                 />
                 {r.curriculo && <button type="button" className="link-denuncia" onClick={() => mudar("curriculo", "")}>Remover</button>}
               </div>
+              <MensagemArquivo msg={msgArquivo} chave="cv" />
               <span className="ajuda">Até 3 MB. Quem visitar seu portfólio poderá baixar.</span>
             </div>
           )}
@@ -994,6 +1072,7 @@ function Editor(props: PropsEditor) {
             {real && (
               <span className="barra-salvar-extra">
                 {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio →</Link>}
+                <Link href="/senha" className="link-texto" style={{ fontSize: "0.9rem" }}>usuário e senha</Link>
                 <button type="button" className="botao botao-contorno botao-pequeno botao-sair" onClick={sair}>
                   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10 5l3 3-3 3M13 8H6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -1041,16 +1120,28 @@ function Editor(props: PropsEditor) {
  * Modo demonstração: guarda a imagem no próprio aparelho (reduzida para caber no navegador).
  * PDFs abrem só nesta aba, porque não há onde guardar.
  */
-async function arquivoLocal(arquivo: File): Promise<string> {
+async function arquivoLocal(arquivo: File, aoAvisar?: (aviso: string) => void): Promise<string> {
   if (arquivo.type === "application/pdf") return URL.createObjectURL(arquivo);
-  if (!arquivo.type.startsWith("image/")) throw new Error("Use uma imagem JPG, PNG ou WebP.");
-  const bitmap = await createImageBitmap(arquivo);
-  const escala = Math.min(1, 900 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * escala);
-  canvas.height = Math.round(bitmap.height * escala);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.75);
+  // Mesma validação do envio real, com imagens menores para caber no navegador.
+  const { blob, aviso } = await prepararFoto(arquivo, 900);
+  if (aviso) aoAvisar?.(aviso);
+  return await new Promise<string>((ok, falhou) => {
+    const leitor = new FileReader();
+    leitor.onload = () => ok(String(leitor.result));
+    leitor.onerror = () => falhou(new Error("Não consegui ler a imagem. Escolha outra."));
+    leitor.readAsDataURL(blob);
+  });
+}
+
+/** Aviso ou erro de um envio de arquivo, logo abaixo do campo. */
+function MensagemArquivo({ msg, chave }: { msg: { chave: string; tipo: "erro" | "aviso"; texto: string } | null; chave: string }) {
+  if (!msg || msg.chave !== chave) return null;
+  return (
+    <p className={msg.tipo === "erro" ? "erro aviso-arquivo" : "aviso-arquivo aviso-arquivo-info"} role={msg.tipo === "erro" ? "alert" : "status"}>
+      {msg.tipo === "erro" ? "Não foi possível enviar: " : "Aviso: "}
+      {msg.texto}
+    </p>
+  );
 }
 
 function trocar<T>(lista: T[], i: number, mudanca: Partial<T>): T[] {
@@ -1069,7 +1160,7 @@ function EscolherArquivo({
   rotulo,
   enviando,
   onEscolher,
-  aceita = "image/jpeg,image/png,image/webp",
+  aceita = "image/*",
 }: {
   rotulo: string;
   enviando: boolean;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TravaPremium } from "@/components/Area";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
-import { ALUNOS, iniciais, linkPerfil, unsplash, type Aluno } from "@/lib/data";
+import { ALUNOS_VITRINE, iniciais, linkPerfil, unsplash, type Aluno } from "@/lib/data";
 import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { useConta, type TipoConta } from "@/lib/conta";
@@ -38,8 +38,8 @@ const INDICE: Record<TipoConta, { titulo: string; texto: string }[]> = {
 export function JornalEdicao() {
   const { conta, premium, carregando } = useConta();
   const [escolhida, setEscolhida] = useState<TipoConta>("contratante");
-  const [alunos, setAlunos] = useState<Aluno[]>(ALUNOS);
-  const [vagas, setVagas] = useState<Oportunidade[]>(OPORTUNIDADES);
+  const [alunos, setAlunos] = useState<Aluno[]>(ALUNOS_VITRINE);
+  const [vagas, setVagas] = useState<Oportunidade[]>(MOSTRAR_EXEMPLOS || !bancoLigado ? OPORTUNIDADES : []);
   const [materias, setMaterias] = useState<Materia[]>([]);
   const edicao = edicaoAtual();
   // Quem tem conta lê a edição do próprio tipo; visitante escolhe qual espiar.
@@ -48,7 +48,7 @@ export function JornalEdicao() {
 
   useEffect(() => {
     const comExemplos = MOSTRAR_EXEMPLOS || !bancoLigado;
-    listarAlunosReais().then((r) => setAlunos(comExemplos ? [...r, ...ALUNOS] : r));
+    listarAlunosReais().then((r) => setAlunos([...r, ...ALUNOS_VITRINE]));
     listarOportunidadesReais().then((r) => setVagas(comExemplos ? [...r, ...OPORTUNIDADES] : r));
   }, []);
 
@@ -149,7 +149,7 @@ export function JornalEdicao() {
             </ul>
             <Link href="/talentos" className="link-mao">ver todos os talentos →</Link>
           </section>
-          <Termometro titulo="Quanto pagar" itens={precos} nota="Faixas para quem está começando na região. Experiência e prazo curto puxam o valor para cima." />
+          <Termometro titulo="Quanto pagar" itens={precos} nota="Faixas para quem está começando na região. Experiência e prazo curto puxam o valor para cima." link="Ver todas as faixas no guia" />
           <Materias lista={daEdicao} />
         </div>
       ) : (
@@ -224,7 +224,7 @@ function MancheteVaga({ vaga }: { vaga: Oportunidade }) {
   );
 }
 
-function Termometro({ titulo, itens, nota }: { titulo: string; itens: typeof SERVICOS_PRECO; nota: string }) {
+function Termometro({ titulo, itens, nota, link = "Abrir a calculadora" }: { titulo: string; itens: typeof SERVICOS_PRECO; nota: string; link?: string }) {
   return (
     <section className="jornal-coluna" aria-label={titulo}>
       <h2 className="jornal-secao-titulo">{titulo}</h2>
@@ -236,7 +236,7 @@ function Termometro({ titulo, itens, nota }: { titulo: string; itens: typeof SER
           </li>
         ))}
       </ul>
-      <p className="ajuda">{nota} <Link href="/guia/#precos">Abrir a calculadora</Link></p>
+      <p className="ajuda">{nota} <Link href="/guia/#precos">{link}</Link></p>
     </section>
   );
 }

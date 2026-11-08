@@ -6,23 +6,27 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "animejs": "^4.5.0",
     "lottie-react": "^3.1.2",
     "next": "15.5.28",
+    "pdfjs-dist": "4.10.38",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "scrollreveal": "^4.0.9",
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@types/node": "22.15.3",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@types/three": "^0.187.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.28",
     "typescript": "5.8.3"
   },
   "overrides": {

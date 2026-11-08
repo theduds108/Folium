@@ -31,7 +31,6 @@ export function EnquadrarFoto({
   useEffect(() => {
     const d = dialogo.current;
     if (d && !d.open) d.showModal();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mudar = (m: Partial<Enquadramento>) => setEnq((a) => ({ ...a, ...m }));

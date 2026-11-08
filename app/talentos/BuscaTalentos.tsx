@@ -2,12 +2,11 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ALUNOS, CURSOS, type Aluno } from "@/lib/data";
+import { ALUNOS_VITRINE, CURSOS, type Aluno } from "@/lib/data";
 import { GRUPOS_SERVICOS_FILTRO } from "@/components/OpcoesServicos";
 import { Seletor } from "@/components/Seletor";
 import { CartaoAluno } from "@/components/CartaoAluno";
 import { EsqueletoPolaroide } from "@/components/Esqueleto";
-import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { listarAlunosReais } from "@/lib/repositorio";
 import { bancoLigado } from "@/lib/supabase";
 
@@ -36,7 +35,7 @@ export function BuscaTalentos() {
     };
   }, []);
 
-  const todos = useMemo(() => (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...ALUNOS] : reais), [reais]);
+  const todos = useMemo(() => [...reais, ...ALUNOS_VITRINE], [reais]);
 
   const cursos = useMemo(() => [...new Set([...CURSOS, ...todos.map((a) => a.curso)])].sort((a, b) => a.localeCompare(b, "pt-BR")), [todos]);
 

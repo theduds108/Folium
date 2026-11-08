@@ -12,6 +12,7 @@ Os tempos ficam em variáveis CSS no topo de `app/globals.css`.
 
 ## Cada animação e seu objetivo
 
+- **Abertura do app** (`Abertura`, CSS): na primeira vez que a pessoa abre o Fólium na sessão, o anel da marca se desenha, a folha brota, o nome aparece e a frase "Seu trabalho, reconhecido." se escreve em Caveat; depois o papel creme sobe como uma página virando, com uma faixa cobre atrás (~1,6s). Não bloqueia toques, não usa JS para animar e só volta numa nova sessão. A entrada da capa espera a página virar.
 - **Entrada da capa** (`EntradaCapa`, CSS): marca → frase/busca/ações juntas → leque abre uma vez. Apresenta a marca e entrega a busca logo depois. Roda em CSS desde a primeira pintura, sem "piscar".
 - **Folhas 3D** (`FolhasCaindo`, Three.js): caem uma única vez na chegada (3–5s) e o WebGL é liberado. Só em telas a partir de 720px. Decorativo, `aria-hidden`.
 - **Reveal ao rolar** (`Revelar`, ScrollReveal): uma transição curta por seção abaixo da dobra, intervalo de 40ms em grupos. Não é usado nas listas que mudam com filtros.
@@ -27,4 +28,4 @@ Os tempos ficam em variáveis CSS no topo de `app/globals.css`.
 
 ## prefers-reduced-motion: reduce
 
-O site fica completo e parado: sem folhas 3D, sem entrada da capa, sem reveals, sem transições de transform. Mudanças de cor e opacidade continuam (hover, foco, confirmação), e o check de "salvo" aparece pronto.
+O site fica completo e parado: sem abertura, sem folhas 3D, sem entrada da capa, sem reveals, sem transições de transform. Mudanças de cor e opacidade continuam (hover, foco, confirmação), e o check de "salvo" aparece pronto.

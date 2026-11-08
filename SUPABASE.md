@@ -105,3 +105,31 @@ Enquanto não existe um painel de administração próprio, tudo é feito em **T
   `linha_fina`, `texto` (parágrafos separados por uma linha em branco), `editoria`, `autor` e
   `publico` (`todos`, `colaborador` ou `contratante`), e marque `publicada`. Só assinantes Premium
   leem. Enquanto não houver matéria publicada, o jornal mostra três matérias de exemplo.
+
+## Login com nome de usuário e senha
+
+O primeiro acesso é pelo link no e-mail (garante que é aluno UNISAGRADO). Depois a pessoa cria
+nome de usuário e senha em `/senha` e passa a entrar com eles, sem e-mail nenhum.
+
+1. SQL Editor: rode `supabase/migrations/20261104220000_nome_usuario.sql`.
+2. Authentication > URL Configuration > Redirect URLs: inclua `https://folium-phi.vercel.app/**`
+   (os links do primeiro acesso e do "Esqueci a senha" voltam para `/senha/`).
+3. Authentication > Sign In / Providers > Email: deixe "Email" ligado (é ele que permite senha) e, em
+   **Minimum password length**, ponha `8`; em **Password Requirements**, escolha
+   "Lowercase, uppercase letters, digits and symbols". É isso que recusa senha fraca no servidor
+   (a lista na tela é só ajuda visual).
+4. SQL Editor: rode `supabase/migrations/20261104230000_login_seguro.sql`. Ele troca a função de login
+   por uma que só devolve o e-mail quando a senha está certa e trava o nome de usuário por 15 minutos
+   depois de 5 erros.
+
+Onde ficam os dados: a senha é guardada só pelo Supabase Auth, como hash bcrypt (não dá para
+ler de volta); nenhuma tabela nossa nem o navegador guardam a senha. O navegador guarda apenas a
+sessão (um token que expira), que é o mesmo que qualquer site de login guarda.
+
+## Dados só para quem tem conta
+
+Rode `supabase/migrations/20261105000000_dados_protegidos.sql` no SQL Editor. Depois dele:
+- sem login, o banco não entrega portfólios, trabalhos, vagas, empresas nem denúncias;
+- os buckets `fotos` e `curriculos` ficam privados: o site pede links assinados (6 horas) para
+  quem está logado (ver `lib/arquivos.tsx`). Links antigos de foto ou currículo copiados para fora
+  do site param de abrir, de propósito.

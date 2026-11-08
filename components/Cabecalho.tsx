@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FolhaIcone } from "./Logo";
+import { MenuPrincipal, type GrupoMenu } from "./MenuPrincipal";
 import { useConta, type TipoConta } from "@/lib/conta";
 
 const ICONE = {
@@ -18,16 +19,37 @@ const ICONE = {
 
 type ItemNav = { href: string; rotulo: string; icone?: keyof typeof ICONE };
 
-/** Navegação de cada tipo de usuário: visitante, colaborador (aluno) e contratante. */
-const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; barra: ItemNav[] }> = {
+/**
+ * Navegação de cada tipo de usuário: visitante, colaborador (aluno) e contratante.
+ * topo = só o essencial no cabeçalho do computador; barra = barra de baixo do celular;
+ * menu = tudo, no menu (☰) que fica no cabeçalho em qualquer tela.
+ */
+const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; barra: ItemNav[]; menu: GrupoMenu[] }> = {
   visitante: {
     topo: [
       { href: "/talentos", rotulo: "Talentos" },
       { href: "/oportunidades", rotulo: "Oportunidades" },
       { href: "/jornal", rotulo: "Jornal" },
-      { href: "/guia", rotulo: "Guia" },
-      { href: "/sobre", rotulo: "Sobre" },
-      { href: "/planos", rotulo: "Planos" },
+    ],
+    menu: [
+      {
+        titulo: "Explorar",
+        itens: [
+          { href: "/", rotulo: "Início" },
+          { href: "/talentos", rotulo: "Talentos", dica: "Portfólios dos alunos" },
+          { href: "/oportunidades", rotulo: "Oportunidades", dica: "Freelas, projetos e estágios" },
+          { href: "/jornal", rotulo: "Jornal" },
+        ],
+      },
+      {
+        titulo: "Sobre o Fólium",
+        itens: [
+          { href: "/guia", rotulo: "Guia", dica: "Como funciona e quanto cobrar" },
+          { href: "/planos", rotulo: "Planos" },
+          { href: "/sobre", rotulo: "Sobre" },
+          { href: "/entrar", rotulo: "Entrar ou criar conta" },
+        ],
+      },
     ],
     acao: { href: "/entrar", rotulo: "Entrar" },
     barra: [
@@ -41,16 +63,35 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
   colaborador: {
     topo: [
       { href: "/oportunidades", rotulo: "Oportunidades" },
+      { href: "/talentos", rotulo: "Talentos" },
       { href: "/jornal", rotulo: "Jornal" },
-      { href: "/guia", rotulo: "Guia" },
-      { href: "/planos", rotulo: "Planos" },
+    ],
+    menu: [
+      {
+        titulo: "Sua área",
+        itens: [
+          { href: "/meu-perfil", rotulo: "Meu portfólio", dica: "Editar foto, trabalhos e contato" },
+          { href: "/oportunidades", rotulo: "Oportunidades", dica: "Freelas, projetos e estágios" },
+          { href: "/talentos", rotulo: "Talentos", dica: "Portfólios dos colegas" },
+          { href: "/jornal", rotulo: "Jornal" },
+        ],
+      },
+      {
+        titulo: "Ajuda e Fólium",
+        itens: [
+          { href: "/guia", rotulo: "Guia do aluno", dica: "Quanto cobrar, negociar, evitar golpe" },
+          { href: "/planos", rotulo: "Planos" },
+          { href: "/feedback", rotulo: "Feedback", dica: "Fale com a equipe" },
+          { href: "/sobre", rotulo: "Sobre" },
+        ],
+      },
     ],
     acao: { href: "/meu-perfil", rotulo: "Meu portfólio" },
     barra: [
       { href: "/", rotulo: "Início", icone: "inicio" },
       { href: "/oportunidades", rotulo: "Vagas", icone: "vagas" },
+      { href: "/talentos", rotulo: "Talentos", icone: "talentos" },
       { href: "/jornal", rotulo: "Jornal", icone: "jornal" },
-      { href: "/guia", rotulo: "Guia", icone: "guia" },
       { href: "/meu-perfil", rotulo: "Portfólio", icone: "perfil" },
     ],
   },
@@ -60,7 +101,27 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
       { href: "/oportunidades", rotulo: "Vagas" },
       { href: "/publicar", rotulo: "Publicar vaga" },
       { href: "/jornal", rotulo: "Jornal" },
-      { href: "/planos", rotulo: "Planos" },
+    ],
+    menu: [
+      {
+        titulo: "Sua área",
+        itens: [
+          { href: "/painel", rotulo: "Meu painel", dica: "Suas vagas e interessados" },
+          { href: "/talentos", rotulo: "Talentos", dica: "Buscar alunos" },
+          { href: "/publicar", rotulo: "Publicar vaga" },
+          { href: "/oportunidades", rotulo: "Mural de vagas" },
+          { href: "/jornal", rotulo: "Jornal" },
+        ],
+      },
+      {
+        titulo: "Ajuda e Fólium",
+        itens: [
+          { href: "/guia", rotulo: "Guia do contratante", dica: "Passo a passo e quanto pagar" },
+          { href: "/planos", rotulo: "Planos" },
+          { href: "/feedback", rotulo: "Feedback", dica: "Fale com a equipe" },
+          { href: "/sobre", rotulo: "Sobre" },
+        ],
+      },
     ],
     acao: { href: "/painel", rotulo: "Meu painel" },
     barra: [
@@ -93,18 +154,21 @@ export function Cabecalho() {
           </Link>
           <nav className="nav" aria-label="Principal">
             {nav.topo.map((l) => (
-              <Link key={l.href} href={l.href} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}</Link>
+              <Link key={l.href} href={l.href} data-tour={l.href.slice(1)} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}</Link>
             ))}
-            <Link href={acao.href} className="botao botao-primario">{acao.rotulo}</Link>
+            <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-primario">{acao.rotulo}</Link>
           </nav>
-          <Link href={acao.href} className="botao botao-contorno barra-entrar" style={{ minHeight: 38, padding: "6px 14px" }}>
-            {acao.rotulo}
-          </Link>
+          <div className="cabecalho-direita">
+            <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-contorno barra-entrar" style={{ minHeight: 40, padding: "6px 14px" }}>
+              {acao.rotulo}
+            </Link>
+            <MenuPrincipal grupos={nav.menu} />
+          </div>
         </div>
       </header>
       <nav className="barra-inferior" aria-label="Navegação">
         {nav.barra.map((l) => (
-          <Link key={l.href} href={l.href} className={ativo(pathname, l.href) ? "ativo" : ""}>
+          <Link key={l.href} href={l.href} data-tour={l.href.slice(1) || "inicio"} className={ativo(pathname, l.href) ? "ativo" : ""}>
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
               <path d={ICONE[l.icone ?? "inicio"]} fill="currentColor" fillRule={l.icone === "jornal" || l.icone === "publicar" ? "evenodd" : undefined} />
             </svg>

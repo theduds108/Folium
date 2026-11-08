@@ -42,7 +42,7 @@ export function Area({ tipo, children }: { tipo: TipoConta; children: (estado: E
         <p className="suave">
           {tipo === "contratante"
             ? "A conta de contratante é grátis e serve para publicar vagas e acompanhar quem se interessou. Qualquer e-mail funciona."
-            : "Use seu e-mail institucional. Mandamos um link de acesso, sem senha."}
+            : "Entre com seu nome de usuário e senha. No primeiro acesso, use o e-mail institucional."}
         </p>
         <Link href={`/entrar/?como=${tipo}`} className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
       </CartaoAviso>

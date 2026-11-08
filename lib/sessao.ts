@@ -22,7 +22,9 @@ export function useSessao() {
       setSessao(data.session);
       setCarregando(false);
     });
-    const { data } = sb.auth.onAuthStateChange((_evento, nova) => {
+    const { data } = sb.auth.onAuthStateChange((evento, nova) => {
+      // Link de "Esqueci a senha": se o Supabase mandar para outra página, leva para criar a senha.
+      if (evento === "PASSWORD_RECOVERY" && !window.location.pathname.startsWith("/senha")) window.location.assign("/senha/");
       setSessao(nova);
       setCarregando(false);
     });
