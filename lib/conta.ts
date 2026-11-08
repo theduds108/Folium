@@ -29,6 +29,8 @@ export type Conta = {
   whatsapp: string;
   cidade: string;
   email: string;
+  /** Já viu o tour guiado (guardado na conta, vale em qualquer aparelho). */
+  tourVisto: boolean;
 };
 
 type LinhaConta = {
@@ -41,6 +43,8 @@ type LinhaConta = {
   empresa: string;
   whatsapp: string;
   cidade: string;
+  /** Coluna da migração 20261108000000_tour_visto.sql; some se ela ainda não rodou. */
+  tour_visto_em?: string | null;
 };
 
 /** O que cada plano libera. Usado nas telas para decidir o que mostrar ou bloquear. */
@@ -79,6 +83,7 @@ const DE_LINHA = (l: LinhaConta, email: string): Conta => ({
   whatsapp: l.whatsapp,
   cidade: l.cidade,
   email,
+  tourVisto: !!l.tour_visto_em,
 });
 
 /* ---------- Modo demonstração (sem banco): a conta fica no navegador ---------- */
@@ -104,6 +109,7 @@ function lerDemo(): Conta | null {
       empresa: c.empresa ?? "",
       whatsapp: c.whatsapp ?? "",
       cidade: c.cidade ?? "Bauru, SP",
+      tourVisto: !!c.tourVisto,
       email: c.tipo === "colaborador" ? "aluna.25111585@alunos.unisagrado.edu.br" : "contato@empresa.com",
     };
   } catch {
@@ -284,4 +290,27 @@ export async function pedirPremium() {
   cache.clear();
   window.dispatchEvent(new Event(EVENTO));
   return "pedido" as const;
+}
+
+/**
+ * Marca na conta que a pessoa já viu o tour guiado, para ele não voltar em outro aparelho
+ * ou navegador. Se a coluna ainda não existir no banco, fica só a marca do navegador.
+ */
+export async function marcarTourVistoNaConta() {
+  const sb = supabase();
+  if (!sb) {
+    if (lerDemo()) definirContaDemo({ tourVisto: true });
+    return;
+  }
+  const { data } = await sb.auth.getUser();
+  if (!data.user) return;
+  const { error } = await sb.from("contas").update({ tour_visto_em: new Date().toISOString() }).eq("id", data.user.id);
+  if (error) {
+    console.warn("Não deu para guardar o tour na conta (rode a migração tour_visto)", error.message);
+    return;
+  }
+  // Atualiza a conta guardada em memória sem recarregar a tela.
+  const id = data.user.id;
+  const antes = cache.get(id);
+  if (antes) cache.set(id, antes.then((c) => (c ? { ...c, tourVisto: true } : c)));
 }

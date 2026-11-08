@@ -6,7 +6,7 @@ import { AbaFeedback } from "@/components/AbaFeedback";
 import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
 import { RegistrarSW } from "@/components/RegistrarSW";
-import { ReverTour, TourGuiado } from "@/components/TourGuiado";
+import { TourGuiado } from "@/components/TourGuiado";
 import { VisaoDemo } from "@/components/VisaoDemo";
 import { Abertura } from "@/components/animacoes/Abertura";
 import { Revelar } from "@/components/animacoes/Revelar";
@@ -43,11 +43,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span>
               Fólium · projeto de empreendedorismo, em parceria com a UNISAGRADO.
             </span>
+            {/* Os outros links (Guia, Sobre, Planos, Feedback, Rever o tour, Instalar) ficam no menu ☰ do cabeçalho. */}
             <span>
-              <Link href="/talentos">Talentos</Link> · <Link href="/oportunidades">Oportunidades</Link> · <Link href="/jornal">Jornal</Link> · <Link href="/guia">Guia</Link> ·{" "}
-              <Link href="/sobre">Sobre</Link> · <Link href="/planos">Planos</Link> ·{" "}
-              <Link href="/feedback" data-tour="feedback">Feedback</Link> · <ReverTour /> ·{" "}
-              <Link href="/instalar">Instalar no celular</Link>
+              <Link href="/sobre">Sobre</Link> · <Link href="/feedback">Feedback</Link>
             </span>
           </div>
         </footer>
