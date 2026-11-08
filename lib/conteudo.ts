@@ -161,6 +161,10 @@ export type Plano = {
   plano: "gratis" | "premium" | "licenca";
   nome: string;
   preco: string;
+  /** Frase curta com o principal motivo de escolher o plano. */
+  lema: string;
+  /** Linha pequena logo abaixo do preço (comparação, equivalência). */
+  nota?: string;
   destaque?: boolean;
   itens: string[];
   /** Itens que ainda vão chegar. */
@@ -173,15 +177,29 @@ export const PLANOS: Plano[] = [
     plano: "gratis",
     nome: "Colaborador Grátis",
     preco: "R$ 0",
-    itens: ["Portfólio com até 6 trabalhos", "Link próprio para compartilhar", "Selo de aluno verificado", "Mural de oportunidades e botão Tenho interesse", "Guia de quanto cobrar"],
+    lema: "Monte seu portfólio e comece a ser encontrado, sem pagar nada.",
+    itens: [
+      "Portfólio com até 6 trabalhos",
+      "Link próprio para mandar a clientes",
+      "Selo de aluno verificado pela UNISAGRADO",
+      "Mural de oportunidades e botão Tenho interesse",
+      "Guia de quanto cobrar, com calculadora",
+    ],
   },
   {
     tipo: "colaborador",
     plano: "premium",
     nome: "Colaborador Premium",
     preco: "R$ 9,90/mês",
+    nota: "Cerca de R$ 0,33 por dia. Planos pagos de outras plataformas de freela e carreira começam entre R$ 29 e R$ 40 por mês.",
+    lema: "Mostre tudo o que você já fez e fique por dentro das melhores oportunidades.",
     destaque: true,
-    itens: ["Trabalhos ilimitados no portfólio", "Jornal do Fólium, edição do colaborador: vagas da semana, quanto cobrar e matérias", "Chance de ser o perfil da semana no jornal"],
+    itens: [
+      "Tudo do plano grátis",
+      "Mais trabalhos no portfólio, sem o limite de 6",
+      "Jornal do Fólium da semana: vagas, quanto cobrar e matérias para quem está começando",
+      "Chance de ser o perfil da semana no jornal",
+    ],
     emBreve: ["Perfil em destaque nas buscas", "Estatísticas de visitas ao perfil"],
   },
   {
@@ -189,21 +207,35 @@ export const PLANOS: Plano[] = [
     plano: "gratis",
     nome: "Contratante Grátis",
     preco: "R$ 0",
-    itens: ["Todos os portfólios, com contato direto", "Vagas no mural sem limite, por enquanto", "Painel para acompanhar suas vagas"],
+    lema: "Veja os trabalhos antes de conversar e fale direto com o aluno.",
+    itens: [
+      "Todos os portfólios, com contato direto",
+      "Vagas no mural sem limite, por enquanto",
+      "Painel para acompanhar suas vagas e quem se interessou",
+      "Alunos com e-mail institucional verificado",
+    ],
   },
   {
     tipo: "contratante",
     plano: "premium",
     nome: "Contratante Premium",
     preco: "R$ 49/mês",
+    nota: "Valor fixo, sem comissão sobre o que você combinar com o aluno. Plataformas de freela costumam ficar com 5% a 20% de cada projeto: em um trabalho de R$ 1.500, isso são de R$ 75 a R$ 300.",
+    lema: "Contrate mais rápido: sua vaga no topo e os melhores talentos guardados.",
     destaque: true,
-    itens: ["Vagas ilimitadas no mural", "Vaga em destaque no topo do mural", "Lista de talentos salvos", "Jornal do Fólium, edição do contratante: talentos em alta, recém-chegados e quanto pagar"],
+    itens: [
+      "Tudo do plano grátis",
+      "Vagas ilimitadas, com destaque no topo do mural",
+      "Lista de talentos salvos para chamar quando precisar",
+      "Jornal do Fólium da semana: talentos em alta, recém-chegados e quanto pagar",
+    ],
   },
   {
     tipo: "instituicao",
     plano: "licenca",
     nome: "Licença institucional",
     preco: "Sob consulta",
+    lema: "Uma vitrine oficial para mostrar o talento dos seus alunos.",
     itens: ["Painel com dados dos alunos", "Selo oficial da instituição", "Vitrine para eventos e extensão"],
   },
 ];

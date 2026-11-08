@@ -16,6 +16,8 @@ const INDICE = [
   "Ilustração",
   "UX/UI design",
   "Sites e sistemas",
+  "Landing page",
+  "Loja virtual",
   "Redação e revisão",
   "Motion design e animação",
   "Projeto de interiores",
@@ -187,7 +189,7 @@ export default function Inicio() {
               </figure>
             ))}
           </div>
-          <p className="suave" style={{ fontSize: "0.85rem", marginTop: 12 }}>Depoimentos ilustrativos do protótipo.</p>
+          <p className="suave" style={{ fontSize: "var(--t-pequeno)", marginTop: 12 }}>Depoimentos ilustrativos do protótipo.</p>
         </div>
       </section>
       )}
