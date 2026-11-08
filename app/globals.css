@@ -3165,3 +3165,133 @@ html { scroll-padding-top: 84px; }
   padding: 8px 10px; border-radius: 8px;
   background: #fbf1df; color: var(--cobre-texto); border: 1px solid #e8cfa4;
 }
+
+/* ---------- Menu ☰ do cabeçalho (ver components/MenuPrincipal.tsx) ----------
+   O cabeçalho mostra só o essencial; o resto fica numa folha de papel que entra pela direita.
+   Visual de ficha: borda musgo, sombra chapada, títulos de seção em versalete. */
+.nav { margin-left: auto; }
+.cabecalho-direita { display: flex; align-items: center; gap: 8px; }
+
+.menu-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px 0 12px;
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: 999px;
+  background: var(--papel-claro);
+  color: var(--verde-musgo);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--verde-musgo);
+  transition: transform var(--mov-rapido) var(--ease-saida), box-shadow var(--mov-rapido) var(--ease-saida),
+    background var(--mov-rapido);
+}
+.menu-botao:hover { background: #fff; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--verde-musgo); }
+.menu-botao:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--verde-musgo); }
+.menu-botao[aria-expanded="true"] { background: var(--verde-musgo); color: var(--creme-papel); }
+.menu-botao:focus-visible,
+.menu-fechar:focus-visible,
+.menu-link:focus-visible { outline: 3px solid var(--marrom-cobre); outline-offset: 2px; }
+.menu-riscos { display: grid; gap: 4px; width: 20px; }
+.menu-riscos span { display: block; height: 2.5px; border-radius: 2px; background: currentColor; }
+.menu-riscos span:nth-child(2) { width: 80%; }
+.cabecalho-direita .barra-entrar { white-space: nowrap; }
+/* Celular estreito: só os 3 riscos (o rótulo continua para leitor de tela). */
+@media (max-width: 420px) {
+  .menu-botao { padding: 0 11px; }
+  .menu-botao-rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .cabecalho-direita .barra-entrar { padding: 6px 12px !important; }
+}
+
+.menu-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(47, 62, 42, 0.45);
+}
+.menu-folha {
+  width: min(380px, calc(100vw - 40px));
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  background: var(--papel-claro);
+  border-left: 1.5px solid var(--verde-musgo);
+  border-top: 4px solid var(--verde-musgo);
+  box-shadow: -6px 0 0 rgba(47, 62, 42, 0.18);
+  padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  color: var(--verde-musgo);
+}
+.menu-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  border-bottom: 1.5px solid var(--verde-musgo);
+  margin-bottom: 8px;
+}
+.menu-titulo { margin: 0; font-family: var(--fonte-titulo), Georgia, serif; font-size: 1.5rem; }
+.menu-fechar {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--linha);
+  border-radius: 999px;
+  background: none;
+  color: var(--verde-musgo);
+  cursor: pointer;
+}
+.menu-fechar:hover { border-color: var(--verde-musgo); }
+.menu-grupos { display: grid; gap: 4px; }
+.menu-grupo { padding: 10px 0 6px; }
+.menu-grupo + .menu-grupo { border-top: 1px dashed var(--linha); }
+.menu-grupo-titulo {
+  margin: 0 0 4px;
+  font-family: var(--fonte-texto), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cobre-texto);
+}
+.menu-grupo-extra .menu-grupo-titulo { font-family: var(--fonte-mao), cursive; font-size: 1.25rem; letter-spacing: 0; text-transform: none; }
+.menu-grupo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.menu-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 12px;
+  margin: 0 -12px;
+  width: calc(100% + 24px);
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--verde-musgo);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--mov-rapido);
+}
+.menu-link:hover { background: rgba(47, 62, 42, 0.06); }
+.menu-link.ativo { background: rgba(79, 122, 58, 0.12); box-shadow: inset 3px 0 0 var(--verde-folio); }
+.menu-link-rotulo { font-weight: 700; font-size: 1.05rem; }
+.menu-link-dica { font-size: 0.85rem; color: var(--texto-suave); }
+.menu-assinatura { margin: auto 0 0; padding-top: 16px; font-size: 0.8rem; color: var(--texto-suave); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .menu-fundo { animation: menu-fundo-entra var(--mov-filtro) ease-out; }
+  .menu-folha { animation: menu-folha-entra var(--mov-entrada) var(--ease-saida); }
+}
+@keyframes menu-fundo-entra { from { opacity: 0; } }
+@keyframes menu-folha-entra { from { transform: translateX(24px); opacity: 0; } }

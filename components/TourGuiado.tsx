@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useConta, type TipoConta } from "@/lib/conta";
+import { marcarTourVistoNaConta, useConta, type TipoConta } from "@/lib/conta";
 import "./TourGuiado.css";
 
 /**
@@ -13,12 +13,14 @@ import "./TourGuiado.css";
  * Cada tipo de usuário tem o seu tour: visitante, colaborador (aluno) e contratante.
  *
  * - Não navega nem recarrega a página: nada do que já foi preenchido se perde.
+ * - Aparece sozinho UMA vez só. Fica marcado assim que abre (mesmo se a pessoa recarregar
+ *   ou fechar a aba no meio): no navegador (localStorage, por tipo de conta) e, para quem
+ *   tem conta, também na própria conta (contas.tour_visto_em), valendo em qualquer aparelho.
+ *   Quem entra como aluno depois de ver o tour de visitante ainda vê o tour do aluno, uma vez.
  * - Dá para pular a qualquer momento (botão "Pular" ou tecla Esc) e rever depois
- *   pelo link "Rever o tour" do rodapé ou do guia (ver ReverTour abaixo).
- * - Fica marcado no navegador (localStorage) por tipo de conta: quem entra como aluno
- *   depois de ver o tour de visitante ainda vê o tour do aluno.
+ *   pelo "Rever o tour" do menu (☰) ou do guia (ver ReverTour abaixo).
  * - Os alvos são marcados com data-tour no Cabecalho. Se o alvo não estiver visível
- *   (ex.: "Guia" não aparece na barra do celular), o passo aparece centralizado.
+ *   (ex.: "Guia" fica dentro do menu), o passo destaca o botão do menu; sem ele, fica centralizado.
  */
 
 type TipoTour = "visitante" | TipoConta;
@@ -54,8 +56,9 @@ const PASSOS: Record<TipoTour, Passo[]> = {
       texto: "Aluno entra com o e-mail institucional e monta o portfólio. Quem contrata entra com qualquer e-mail e publica vagas.",
     },
     {
-      titulo: "Pronto!",
-      texto: "Quando quiser rever este passo a passo, use “Rever o tour” no rodapé da página. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
+      alvo: "menu",
+      titulo: "Menu",
+      texto: "Aqui ficam o Guia, Planos, Sobre e Feedback. No menu você também revê este passo a passo e vê como instalar o Fólium no celular.",
     },
   ],
   colaborador: [
@@ -84,20 +87,19 @@ const PASSOS: Record<TipoTour, Passo[]> = {
       texto: "Uma edição por semana com dicas de carreira e novidades para quem está começando. Completo no Premium.",
     },
     {
-      alvo: "guia",
-      titulo: "Guia do aluno",
-      texto: "Quanto cobrar por cada serviço, como negociar e como evitar golpe e calote.",
-      semAlvo: "Quanto cobrar, como negociar e como evitar golpe e calote. No celular, o Guia fica no rodapé da página.",
-    },
-    {
       alvo: "feedback",
       titulo: "Mande seu feedback",
       texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
-      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no menu (☰), vai direto para a equipe do Fólium.",
+    },
+    {
+      alvo: "menu",
+      titulo: "Menu",
+      texto: "No menu ficam o Guia do aluno (quanto cobrar, como negociar, como evitar golpe e calote), Planos e Sobre. Por ele você também revê este passo a passo e instala o Fólium no celular.",
     },
     {
       titulo: "Pronto!",
-      texto: "Agora é montar o portfólio. Para rever este passo a passo, use “Rever o tour” no rodapé ou no Guia do aluno. Para instalar o Fólium no celular, veja “Instalar no celular”, também no rodapé.",
+      texto: "Agora é montar o portfólio. Este passo a passo não aparece de novo sozinho; para rever, abra o menu (☰) e toque em “Rever o tour”.",
     },
   ],
   contratante: [
@@ -134,11 +136,16 @@ const PASSOS: Record<TipoTour, Passo[]> = {
       alvo: "feedback",
       titulo: "Mande seu feedback",
       texto: "Achou um problema ou tem uma ideia? A aba Feedback vai direto para a equipe do Fólium.",
-      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no rodapé, vai direto para a equipe do Fólium.",
+      semAlvo: "Achou um problema ou tem uma ideia? A página Feedback, no menu (☰), vai direto para a equipe do Fólium.",
+    },
+    {
+      alvo: "menu",
+      titulo: "Menu",
+      texto: "No menu ficam o Guia do contratante (passo a passo de cada área e quanto pagar por serviço), Planos e Sobre. Por ele você também revê este passo a passo e instala o Fólium no celular.",
     },
     {
       titulo: "Pronto!",
-      texto: "No Guia do contratante, no rodapé da página, tem o passo a passo de cada área e quanto pagar por serviço. Lá e no rodapé você também revê este tour e vê como instalar o Fólium no celular.",
+      texto: "Tudo certo para contratar. Este passo a passo não aparece de novo sozinho; para rever, abra o menu (☰) e toque em “Rever o tour”.",
     },
   ],
 };
@@ -168,23 +175,48 @@ export function reverTour() {
   window.dispatchEvent(new Event(EVENTO_REVER));
 }
 
-/** Link "Rever o tour" (rodapé, guia). */
-export function ReverTour({ className = "link-texto", children = "Rever o tour" }: { className?: string; children?: React.ReactNode }) {
+/** Link "Rever o tour" (menu, guia). */
+export function ReverTour({
+  className = "link-texto",
+  children = "Rever o tour",
+  antes,
+}: {
+  className?: string;
+  children?: React.ReactNode;
+  /** Roda antes de abrir o tour (ex.: fechar o menu). */
+  antes?: () => void;
+}) {
   return (
-    <button type="button" className={className} onClick={reverTour}>
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        antes?.();
+        // Espera o menu sair da tela para o tour medir os alvos certos.
+        window.setTimeout(reverTour, antes ? 60 : 0);
+      }}
+    >
       {children}
     </button>
   );
 }
 
 /** Primeiro elemento visível com data-tour={alvo}. */
-function acharAlvo(alvo?: string): HTMLElement | null {
-  if (!alvo) return null;
+function visivel(alvo: string): HTMLElement | null {
   for (const el of Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${alvo}"]`))) {
     const r = el.getBoundingClientRect();
     if (r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden") return el;
   }
   return null;
+}
+
+/** Alvo do passo; se ele estiver escondido dentro do menu, destaca o botão do menu. */
+function acharAlvo(alvo?: string): { el: HTMLElement; noMenu: boolean } | null {
+  if (!alvo) return null;
+  const el = visivel(alvo);
+  if (el) return { el, noMenu: false };
+  const menu = alvo !== "menu" ? visivel("menu") : null;
+  return menu ? { el: menu, noMenu: true } : null;
 }
 
 type Caixa = { top: number; left: number; width: number; height: number };
@@ -197,6 +229,7 @@ export function TourGuiado() {
   const [ativo, setAtivo] = useState<TipoTour | null>(null);
   const [indice, setIndice] = useState(0);
   const [caixa, setCaixa] = useState<Caixa | null>(null);
+  const [noMenu, setNoMenu] = useState(false);
   const [cartao, setCartao] = useState<{ top: number; left: number } | null>(null);
   const refCartao = useRef<HTMLDivElement>(null);
   const refProximo = useRef<HTMLButtonElement>(null);
@@ -215,15 +248,22 @@ export function TourGuiado() {
   const fechar = useCallback(() => {
     if (ativo) marcarVisto(ativo);
     setAtivo(null);
+    setNoMenu(false);
     setCaixa(null);
     setCartao(null);
     const antes = focoAntes.current;
     if (antes instanceof HTMLElement) antes.focus({ preventScroll: true });
   }, [ativo]);
 
-  // Começa sozinho na primeira visita, depois da abertura do app.
+  // Quem tem conta e já viu o tour (em outro aparelho) não vê de novo neste navegador.
+  const vistoNaConta = !!conta?.tourVisto;
   useEffect(() => {
-    if (!tipo || ativo || jaViu(tipo)) return;
+    if (tipo && tipo !== "visitante" && vistoNaConta) marcarVisto(tipo);
+  }, [tipo, vistoNaConta]);
+
+  // Começa sozinho na primeira visita, depois da abertura do app. Só uma vez.
+  useEffect(() => {
+    if (!tipo || ativo || vistoNaConta || jaViu(tipo)) return;
     if (SEM_TOUR.some((p) => pathname.startsWith(p))) return;
     // Visitante só vê o tour na página inicial (quem chega por um link de perfil vai direto ao assunto).
     if (tipo === "visitante" && pathname !== "/") return;
@@ -231,10 +271,14 @@ export function TourGuiado() {
       !document.documentElement.classList.contains("sem-abertura") &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const espera = window.setTimeout(() => {
-      if (!jaViu(tipo) && !document.querySelector(".janela-fundo")) abrir(tipo);
+      if (jaViu(tipo) || document.querySelector(".janela-fundo, .menu-fundo")) return;
+      // Marca já na abertura: se a pessoa recarregar ou sair no meio, o tour não volta sozinho.
+      marcarVisto(tipo);
+      if (tipo !== "visitante") void marcarTourVistoNaConta();
+      abrir(tipo);
     }, comAbertura ? 1900 : 600);
     return () => window.clearTimeout(espera);
-  }, [tipo, pathname, ativo, abrir]);
+  }, [tipo, pathname, ativo, vistoNaConta, abrir]);
 
   // "Rever o tour".
   useEffect(() => {
@@ -253,7 +297,9 @@ export function TourGuiado() {
   // Mede o alvo e posiciona destaque e cartão; acompanha rolagem e mudança de tamanho.
   const medir = useCallback(() => {
     if (!passo) return;
-    const el = acharAlvo(passo.alvo);
+    const achado = acharAlvo(passo.alvo);
+    setNoMenu(!!achado?.noMenu);
+    const el = achado?.el;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const larguraCartao = Math.min(360, vw - 32);
@@ -338,7 +384,12 @@ export function TourGuiado() {
 
   if (!ativo || !passo) return null;
 
-  const texto = !caixa && passo.alvo && passo.semAlvo ? passo.semAlvo : passo.texto;
+  const texto =
+    (!caixa || noMenu) && passo.alvo && passo.semAlvo
+      ? passo.semAlvo
+      : noMenu
+        ? `${passo.texto} Fica no menu (☰).`
+        : passo.texto;
 
   return (
     <div className="tour" data-centro={caixa ? undefined : ""}>
