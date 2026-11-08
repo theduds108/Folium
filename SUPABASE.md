@@ -133,3 +133,20 @@ Rode `supabase/migrations/20261105000000_dados_protegidos.sql` no SQL Editor. De
 - os buckets `fotos` e `curriculos` ficam privados: o site pede links assinados (6 horas) para
   quem está logado (ver `lib/arquivos.tsx`). Links antigos de foto ou currículo copiados para fora
   do site param de abrir, de propósito.
+
+## Feedback por e-mail
+
+Cada feedback enviado em /feedback fica na tabela `feedbacks` e, se os dois segredos abaixo estiverem cadastrados, também chega por e-mail (migração `20261108130000_feedback_por_email.sql`). O e-mail sai pelo Resend (grátis), com remetente `onboarding@resend.dev`; nesse modo o Resend só entrega para o e-mail da própria conta dele, então use o mesmo e-mail nos dois lugares.
+
+1. Crie uma conta em https://resend.com com o e-mail que vai receber os avisos.
+2. Em **API Keys**, crie uma chave com permissão "Sending access" e copie (começa com `re_`).
+3. No Supabase, abra o **SQL Editor** e rode o arquivo `20261108130000_feedback_por_email.sql`.
+4. Ainda no SQL Editor, rode as duas linhas abaixo, trocando os textos entre aspas (sem texto selecionado além delas). Isso guarda a chave no Vault, que é o cofre do Supabase; não coloque a chave em arquivo do site nem mande no chat:
+
+   ```sql
+   select vault.create_secret('re_COLE_A_CHAVE_AQUI', 'resend_api_key');
+   select vault.create_secret('seu-email@exemplo.com', 'feedback_email_destino');
+   ```
+5. Teste enviando um feedback em /feedback logada. O e-mail chega em alguns segundos (veja também o spam na primeira vez).
+
+Para trocar a chave ou o e-mail depois, em **Project Settings → Vault** edite os segredos `resend_api_key` e `feedback_email_destino`. Se o e-mail não chegar, o feedback continua salvo na tabela `feedbacks` (Table Editor); veja os envios em **Database → Extensions → pg_net** (tabela `net._http_response`).

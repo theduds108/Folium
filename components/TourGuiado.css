@@ -30,7 +30,7 @@
 .tour-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .tour-contagem {
   font-family: var(--fonte-mao), cursive;
-  font-size: 1.2rem;
+  font-size: var(--t-grande);
   color: var(--cobre-texto);
 }
 .tour-pular {
@@ -39,7 +39,7 @@
   border: 0;
   background: none;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--t-sec);
   color: var(--texto-suave);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -51,7 +51,7 @@
   margin: 2px 0 6px;
   font-family: var(--fonte-titulo), sans-serif;
   font-weight: 400;
-  font-size: 1.25rem;
+  font-size: var(--t-grande);
   line-height: 1.15;
 }
 .tour-texto { margin: 0 0 14px; line-height: 1.5; }

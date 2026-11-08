@@ -45,7 +45,7 @@ export default function Senha() {
     return (
       <div className="container">
         <div className="cartao pagina-estreita">
-          <h1 style={{ fontSize: "1.9rem" }}>Entre para criar seu login</h1>
+          <h1 style={{ fontSize: "var(--t-tit-m)" }}>Entre para criar seu login</h1>
           <p className="suave">
             {supabase()
               ? "O link pode ter expirado ou já ter sido usado. Peça outro em “Esqueci a senha”."
@@ -81,7 +81,7 @@ export default function Senha() {
       <div className="cartao pagina-estreita">
         {pronto ? (
           <>
-            <h1 style={{ fontSize: "1.9rem" }}>Login criado</h1>
+            <h1 style={{ fontSize: "var(--t-tit-m)" }}>Login criado</h1>
             <div className="aviso" style={{ marginBottom: 16 }}>
               A partir de agora, este é o seu login: usuário <strong>{nome}</strong> e a senha que você criou. Não
               precisa mais esperar link no e-mail.
@@ -92,7 +92,7 @@ export default function Senha() {
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: "1.9rem" }}>{temLogin ? "Trocar usuário ou senha" : "Crie seu usuário e senha"}</h1>
+            <h1 style={{ fontSize: "var(--t-tit-m)" }}>{temLogin ? "Trocar usuário ou senha" : "Crie seu usuário e senha"}</h1>
             <p className="suave">
               {temLogin
                 ? "Troque o que quiser. Deixe a senha em branco para manter a atual."
@@ -143,7 +143,7 @@ export default function Senha() {
                 {salvando ? "Salvando…" : temLogin ? "Salvar" : "Criar meu login"}
               </button>
             </form>
-            <p className="suave" style={{ marginTop: 20, marginBottom: 0, fontSize: "0.92rem" }}>
+            <p className="suave" style={{ marginTop: 20, marginBottom: 0, fontSize: "var(--t-sec)" }}>
               <Link href={destino}>Agora não</Link>
             </p>
           </>

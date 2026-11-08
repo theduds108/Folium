@@ -59,13 +59,13 @@ export function InstalarApp({ className = "link-texto" }: { className?: string }
       {aberto && (
         <div className="janela-fundo" role="presentation" onClick={() => setAberto(false)}>
           <div className="janela cartao" role="dialog" aria-modal="true" aria-labelledby="instalar-titulo" onClick={(e) => e.stopPropagation()}>
-            <h2 id="instalar-titulo" style={{ fontSize: "1.4rem", marginTop: 0 }}>Instalar o Fólium no iPhone</h2>
+            <h2 id="instalar-titulo" style={{ fontSize: "var(--t-tit-p)", marginTop: 0 }}>Instalar o Fólium no iPhone</h2>
             <ol className="passos-instalar">
               <li>Abra o Fólium no <strong>Safari</strong>.</li>
               <li>Toque em <strong>Compartilhar</strong> (o quadrado com a seta para cima).</li>
               <li>Escolha <strong>Adicionar à Tela de Início</strong> e toque em <strong>Adicionar</strong>.</li>
             </ol>
-            <p className="suave" style={{ fontSize: "0.92rem" }}>O ícone da folha aparece junto com seus outros apps.</p>
+            <p className="suave" style={{ fontSize: "var(--t-sec)" }}>O ícone da folha aparece junto com seus outros apps.</p>
             <button type="button" className="botao botao-primario" style={{ width: "100%" }} onClick={() => setAberto(false)}>
               Entendi
             </button>

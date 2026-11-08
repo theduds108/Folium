@@ -34,7 +34,7 @@ export function PerfilReal() {
     return (
       <div className="container">
         <div className="cartao pagina-estreita">
-          <h1 style={{ fontSize: "1.9rem" }}>Portfólio não encontrado</h1>
+          <h1 style={{ fontSize: "var(--t-tit-m)" }}>Portfólio não encontrado</h1>
           <p className="suave">O endereço pode estar errado, ou o aluno deixou o portfólio fora da busca.</p>
           <Link href="/talentos" className="botao botao-primario" style={{ width: "100%" }}>Ver talentos</Link>
         </div>

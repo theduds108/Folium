@@ -135,7 +135,7 @@ function FormEntrar() {
         <div className="cartao pagina-estreita">
           {aviso === "demo" ? (
             <>
-              <h1 style={{ fontSize: "1.9rem" }}>Modo demonstração</h1>
+              <h1 style={{ fontSize: "var(--t-tit-m)" }}>Modo demonstração</h1>
               <div className="aviso" style={{ marginBottom: 16 }}>
                 O banco ainda não foi ligado, então nenhum e-mail foi enviado e não há senha de verdade.
               </div>
@@ -152,7 +152,7 @@ function FormEntrar() {
             </>
           ) : (
             <>
-              <h1 style={{ fontSize: "1.9rem" }}>Confira seu e-mail</h1>
+              <h1 style={{ fontSize: "var(--t-tit-m)" }}>Confira seu e-mail</h1>
               <p className="suave">
                 {aviso === "primeiro" ? (
                   <>
@@ -207,7 +207,7 @@ function FormEntrar() {
             ))}
           </div>
         )}
-        <h1 style={{ fontSize: "1.9rem" }}>{TITULO[modo]}</h1>
+        <h1 style={{ fontSize: "var(--t-tit-m)" }}>{TITULO[modo]}</h1>
         <p className="suave">
           {modo === "entrar" && "Que bom te ver de novo. Use seu usuário (ou e-mail) e sua senha."}
           {modo === "primeiro" && TEXTO[tipo].intro}
