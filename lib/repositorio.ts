@@ -324,6 +324,7 @@ export function traduzirErro(e: { message?: string; code?: string } | null | und
   if (e?.code === "signup_disabled") return new Error("Novos cadastros estão fechados no momento.");
   if (/Limite de 6 trabalhos/.test(msg)) return new Error("O plano grátis permite até 6 trabalhos. Com o Premium não há limite.");
   if (/Muitas vagas/.test(msg)) return new Error("Você publicou muitas vagas nas últimas 24 horas. Espere um pouco e tente de novo.");
+  if (/Muitas denuncias/.test(msg)) return new Error("Você enviou muitas denúncias na última hora. Espere um pouco e tente de novo.");
   if (/Limite de 1 vaga/.test(msg)) return new Error("O plano grátis permite 1 vaga por mês. Com o Premium as vagas são ilimitadas.");
   // Mesmo e-mail pedindo de novo antes do intervalo mínimo ("you can only request this after 42 seconds").
   const espera = msg.match(/after (\d+) seconds?/i);
