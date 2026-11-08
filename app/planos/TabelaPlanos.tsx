@@ -34,10 +34,12 @@ export function TabelaPlanos() {
                   </span>
                   <h3 className="h-pequeno" style={{ marginTop: 12 }}>{p.nome}</h3>
                   <p className="plano-preco">{p.preco}</p>
+                  <p className="plano-lema">{p.lema}</p>
                   <ul className="lista-check">
                     {p.itens.map((i) => <li key={i}>{i}</li>)}
                     {p.emBreve?.map((i) => <li key={i} className="em-breve">{i} <span className="suave">(em breve)</span></li>)}
                   </ul>
+                  {p.nota && <p className="plano-nota">{p.nota}</p>}
                   <AcaoPlano plano={p} atual={atual} />
                 </div>
               );

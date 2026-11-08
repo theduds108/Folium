@@ -9,7 +9,7 @@ export function CartaoAviso({ titulo, children }: { titulo: string; children: Re
   return (
     <div className="container">
       <div className="cartao pagina-estreita">
-        <h1 style={{ fontSize: "1.9rem" }}>{titulo}</h1>
+        <h1 style={{ fontSize: "var(--t-tit-m)" }}>{titulo}</h1>
         {children}
       </div>
     </div>

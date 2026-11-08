@@ -12,7 +12,7 @@ export default function Planos() {
         chama os alunos. Os dois começam grátis, e o Premium inclui o Jornal do Fólium, com uma edição para cada um.
       </p>
       <TabelaPlanos />
-      <p className="suave" style={{ marginTop: 20, fontSize: "0.9rem" }}>
+      <p className="suave" style={{ marginTop: 20, fontSize: "var(--t-sec)" }}>
         Preços em validação com alunos e empresas durante o protótipo. Enquanto o pagamento pelo site não está pronto, a
         equipe confirma cada pedido de Premium e libera em até 1 dia útil.
       </p>

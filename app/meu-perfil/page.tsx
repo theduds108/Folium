@@ -243,7 +243,7 @@ function Aviso({ titulo, children }: { titulo: string; children: React.ReactNode
   return (
     <div className="container">
       <div className="cartao pagina-estreita">
-        <h1 style={{ fontSize: "1.9rem" }}>{titulo}</h1>
+        <h1 style={{ fontSize: "var(--t-tit-m)" }}>{titulo}</h1>
         {children}
       </div>
     </div>
@@ -584,7 +584,7 @@ function Editor(props: PropsEditor) {
       <form className="editor-form form" onSubmit={salvar}>
         <div className="cartao editor-topo">
           <div className="editor-topo-linha">
-            <h1 style={{ fontSize: "1.9rem", marginBottom: 4 }}>Meu portfólio</h1>
+            <h1 style={{ fontSize: "var(--t-tit-m)", marginBottom: 4 }}>Meu portfólio</h1>
             <Link href="/planos" className="selo-plano-link" aria-label={`Plano ${premium ? "Premium" : "Grátis"}, ver planos`}>
               <SeloPlano premium={premium} />
             </Link>
@@ -1072,7 +1072,7 @@ function Editor(props: PropsEditor) {
             {real && (
               <span className="barra-salvar-extra">
                 {r.slug && <Link href={linkPerfil({ slug: r.slug, real: true })} className="link-mao">ver meu portfólio →</Link>}
-                <Link href="/senha" className="link-texto" style={{ fontSize: "0.9rem" }}>usuário e senha</Link>
+                <Link href="/senha" className="link-texto" style={{ fontSize: "var(--t-sec)" }}>usuário e senha</Link>
                 <button type="button" className="botao botao-contorno botao-pequeno botao-sair" onClick={sair}>
                   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10 5l3 3-3 3M13 8H6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
