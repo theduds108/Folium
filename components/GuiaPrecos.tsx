@@ -5,7 +5,18 @@ import { OPORTUNIDADES } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
 import { Seletor } from "@/components/Seletor";
-import { GRUPOS_PRECO, NEGOCIACAO, NIVEIS, SERVICOS_PRECO, TAMANHOS, brl, redondo } from "@/lib/precos";
+import { GRUPOS_PRECO, NEGOCIACAO, NIVEIS, SERVICOS_PRECO, SOBRE_AS_FAIXAS, TAMANHOS, brl, origemFaixa, redondo } from "@/lib/precos";
+import type { Fonte } from "@/lib/precos";
+
+/** De onde veio a faixa: fonte e data, ou o aviso de que é estimativa. */
+export function OrigemFaixa({ fonte }: { fonte: Fonte }) {
+  const o = origemFaixa(fonte);
+  return (
+    <p className={`guia-fonte guia-fonte-${fonte.tipo}`}>
+      <strong>{o.titulo}</strong> {o.detalhe}
+    </p>
+  );
+}
 
 const ABAS = ["Calculadora", "Faixas e exemplos", "Como negociar"] as const;
 
@@ -101,6 +112,7 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
             <p style={{ margin: "6px 0 0" }}>
               <strong>Cobre mais se tiver:</strong> {s.sobe.join(", ")}.
             </p>
+            <OrigemFaixa fonte={s.fonte} />
           </div>
         </div>
       )}
@@ -116,13 +128,14 @@ export function GuiaConteudo({ onUsar, onFechar }: { onUsar?: (texto: string) =>
               {novaArea && <h3 className="guia-area">{x.area}</h3>}
               <section className="guia-item">
                 <button type="button" className="guia-item-topo" aria-expanded={ab} onClick={() => setAberto(ab ? null : x.id)}>
-                  <span><strong>{x.servico}</strong><span className="suave"> · {x.base}</span></span>
+                  <span><strong>{x.servico}</strong><span className="suave"> · {x.base}</span>{x.fonte.tipo === "estimativa" && <span className="guia-selo">estimativa</span>}</span>
                   <span className="guia-faixa">{brl(x.min)} a {brl(x.max)}</span>
                 </button>
                 {ab && (
                   <div className="guia-item-corpo">
                     <p><strong>Normalmente inclui:</strong> {x.inclui.join(", ")}.</p>
                     <p><strong>Cobre mais se:</strong> {x.sobe.join(", ")}.</p>
+                    <OrigemFaixa fonte={x.fonte} />
                     {exemplos.length > 0 ? (
                       <>
                         <p className="rotulos"><span>Exemplos de vagas do mural do Fólium</span></p>
@@ -196,7 +209,7 @@ export function GuiaPrecos({ onUsar }: { onUsar?: (texto: string) => void }) {
       <dialog ref={dialogo} className="enquadrar guia-precos" aria-labelledby={`${id}-t`}>
         <h2 id={`${id}-t`}>Quanto cobrar</h2>
         <p className="suave" style={{ margin: "0 0 12px" }}>
-          Valores de referência para quem está começando na região de Bauru. São estimativas do Fólium, não uma tabela oficial.
+          {SOBRE_AS_FAIXAS}
         </p>
         <GuiaConteudo onUsar={onUsar} onFechar={() => dialogo.current?.close()} />
       </dialog>
