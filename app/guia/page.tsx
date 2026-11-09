@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DICAS_SEGURANCA } from "@/lib/conteudo";
 import { GuiaConteudo } from "@/components/GuiaPrecos";
+import { SOBRE_AS_FAIXAS } from "@/lib/precos";
 import { GuiaContratante } from "@/components/GuiaContratante";
 import { GuiaPorConta } from "@/components/GuiaPorConta";
 import { Anotacao } from "@/components/Zine";
@@ -26,7 +27,7 @@ function GuiaAluno() {
       <section className="secao" id="precos">
         <h2>Quanto cobrar</h2>
         <p className="suave" style={{ maxWidth: "42em" }}>
-          Calcule um valor para o seu trabalho, veja faixas por serviço com exemplos de vagas do mural e aprenda a negociar. São estimativas do Fólium para quem está começando na região de Bauru, não uma tabela oficial.
+          Calcule um valor para o seu trabalho, veja faixas por serviço com exemplos de vagas do mural e aprenda a negociar. {SOBRE_AS_FAIXAS}
         </p>
         <div className="cartao bloco guia-pagina">
           <GuiaConteudo />

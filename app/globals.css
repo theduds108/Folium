@@ -2498,6 +2498,9 @@ html { scroll-padding-top: 84px; }
 .guia-faixa { font-weight: var(--peso-forte); color: var(--verde-folio-escuro); }
 .guia-item-corpo { padding: 4px 14px 12px; }
 .guia-item-corpo p { margin: 6px 0; }
+.guia-fonte { margin: 10px 0 0 !important; padding-top: 8px; border-top: 1px dashed var(--linha); font-size: var(--t-pequeno); color: var(--texto-suave); }
+.guia-fonte strong { color: var(--castanho-cafe); font-weight: var(--peso-medio); }
+.guia-selo { display: inline-block; margin-left: 8px; padding: 1px 6px; border: 1px solid var(--marrom-cobre); border-radius: 3px; font-size: var(--t-micro); color: var(--cobre-texto); letter-spacing: var(--letras-rotulo); text-transform: uppercase; vertical-align: 1px; }
 .guia-exemplos { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 8px; }
 @media (max-width: 560px) { .guia-precos { padding: 18px; } }
 .guia-pagina { padding: clamp(16px, 3vw, 28px); margin-top: 16px; }
