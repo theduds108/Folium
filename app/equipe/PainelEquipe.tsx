@@ -233,6 +233,9 @@ function CartaoPlano({ c, pediu, onMudar }: { c: ContaEquipe; pediu: boolean; on
   const usuario = (c.email ?? "").split("@")[0];
   const nome = c.empresa || c.nome || usuario || "Conta sem nome";
   const premium = c.plano === "premium";
+  // Confirmação dentro do cartão: um toque sem querer não muda o plano de ninguém.
+  const [confirmar, setConfirmar] = useState(false);
+  const novo = premium ? "gratis" : "premium";
   return (
     <article className={pediu ? "cartao equipe-conta pediu" : "cartao equipe-conta"}>
       <div className="equipe-conta-topo">
@@ -249,15 +252,29 @@ function CartaoPlano({ c, pediu, onMudar }: { c: ContaEquipe; pediu: boolean; on
         </span>
         {c.criada_em && <span className="suave equipe-conta-desde">desde {dia(c.criada_em)}</span>}
       </div>
-      {premium ? (
-        <button type="button" className="botao botao-contorno equipe-conta-botao" onClick={() => onMudar("gratis", null)}>Voltar ao grátis</button>
+      {confirmar ? (
+        <div className="equipe-confirmar" role="alertdialog" aria-label="Confirmar mudança de plano">
+          <p>
+            {novo === "premium"
+              ? `Liberar o Premium para ${nome}${ate ? ` até ${formatarData(ate)}` : " sem prazo"}? Nenhum pagamento é cobrado.`
+              : `Voltar ${nome} para o plano grátis? Os recursos Premium somem na hora.`}
+          </p>
+          <div className="equipe-confirmar-botoes">
+            <button type="button" className="botao botao-primario" onClick={() => { setConfirmar(false); onMudar(novo, novo === "premium" ? ate || null : null); }}>
+              {novo === "premium" ? "Sim, liberar" : "Sim, voltar ao grátis"}
+            </button>
+            <button type="button" className="botao botao-contorno" onClick={() => setConfirmar(false)}>Cancelar</button>
+          </div>
+        </div>
+      ) : premium ? (
+        <button type="button" className="botao botao-contorno equipe-conta-botao" onClick={() => setConfirmar(true)}>Voltar ao grátis</button>
       ) : (
         <div className="equipe-conta-acao">
           <label className="campo">
             Premium até (opcional)
             <input type="date" value={ate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setAte(e.target.value)} />
           </label>
-          <button type="button" className="botao botao-primario equipe-conta-botao" onClick={() => onMudar("premium", ate || null)}>Liberar Premium</button>
+          <button type="button" className="botao botao-primario equipe-conta-botao" onClick={() => setConfirmar(true)}>Liberar Premium</button>
         </div>
       )}
     </article>

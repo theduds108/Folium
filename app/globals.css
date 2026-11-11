@@ -3574,6 +3574,10 @@ html { scroll-padding-top: 84px; }
 .equipe-conta-acao { display: grid; gap: 8px; }
 .equipe-conta-acao .campo { margin: 0; }
 .equipe-conta-botao { width: 100%; }
+.equipe-confirmar { display: grid; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--cobre-botao); border-radius: 12px; background: var(--creme-papel); }
+.equipe-confirmar p { margin: 0; font-weight: var(--peso-medio); overflow-wrap: anywhere; }
+.equipe-confirmar-botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.equipe-confirmar-botoes .botao { flex: 1 1 140px; }
 @media (min-width: 700px) {
   .equipe-planos-filtros { grid-template-columns: minmax(220px, 1fr) auto; align-items: end; }
   .equipe-conta-acao { grid-template-columns: 220px auto; align-items: end; justify-content: start; }
