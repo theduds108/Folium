@@ -150,3 +150,10 @@ Cada feedback enviado em /feedback fica na tabela `feedbacks` e, se os dois segr
 5. Teste enviando um feedback em /feedback logada. O e-mail chega em alguns segundos (veja também o spam na primeira vez).
 
 Para trocar a chave ou o e-mail depois, em **Project Settings → Vault** edite os segredos `resend_api_key` e `feedback_email_destino`. Se o e-mail não chegar, o feedback continua salvo na tabela `feedbacks` (Table Editor); veja os envios em **Database → Extensions → pg_net** (tabela `net._http_response`).
+
+## Salvar trabalhos de uma vez e excluir conta (11/11/2026)
+
+Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111000000_salvar_trabalhos_excluir_conta.sql`. Ele cria duas funções:
+
+- `salvar_trabalhos`: o portfólio grava a lista de trabalhos numa transação só (tudo ou nada). Enquanto o SQL não for rodado, o site continua salvando do jeito antigo.
+- `excluir_minha_conta`: usada pelo botão **Excluir minha conta** em /privacidade. Sem o SQL, o botão avisa que a exclusão ainda não foi ativada.

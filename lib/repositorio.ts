@@ -127,7 +127,9 @@ export async function listarAlunosReais(lancarErro = false): Promise<Aluno[]> {
 export async function buscarAlunoReal(slug: string): Promise<Aluno | null> {
   const sb = supabase();
   if (!sb) return null;
-  const { data } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("slug", slug).maybeSingle();
+  const { data, error } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("slug", slug).maybeSingle();
+  // Falha de rede ou do banco: avisa quem chamou, para não confundir com "portfólio não encontrado".
+  if (error) throw traduzirErro(error);
   return data ? paraAluno(data as PerfilComTrabalhos) : null;
 }
 
@@ -152,6 +154,11 @@ export function criarSlug(nome: string) {
   return base.length >= 3 ? base : `aluno-${base || "novo"}`;
 }
 
+/** A função ainda não existe no banco (migração não rodada). */
+function funcaoAusente(error: { code?: string; message?: string }) {
+  return error.code === "PGRST202" || error.code === "42883" || /Could not find the function/i.test(error.message ?? "");
+}
+
 /**
  * Grava o perfil e substitui a lista de trabalhos.
  * Se o endereço (slug) já for de outra pessoa, tenta com um número no fim.
@@ -171,31 +178,35 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
     throw traduzirErro(error);
   }
 
-  // Guarda os trabalhos atuais antes de trocar a lista: se a gravação dos novos falhar
-  // (internet caiu, limite do plano), eles voltam e o aluno não perde nada.
+  const validos = trabalhos
+    .filter((t) => t.titulo.trim())
+    .map((t, i) => ({
+      titulo: t.titulo,
+      tipo: t.tipo,
+      descricao: t.descricao,
+      imagem_url: t.imagem_url,
+      ordem: i,
+      cliente: t.cliente,
+      ano: t.ano,
+      link: t.link,
+      papel: t.papel,
+      galeria: t.galeria,
+    }));
+
+  // Caminho principal: o banco troca a lista inteira numa transação só (tudo ou nada).
+  // Ver supabase/migrations/20261111000000_salvar_trabalhos_excluir_conta.sql.
+  const rpc = await sb.rpc("salvar_trabalhos", { p_trabalhos: validos });
+  if (!rpc.error) return slug;
+  if (!funcaoAusente(rpc.error)) throw traduzirErro(rpc.error);
+
+  // Banco ainda sem a função (SQL de 11/11 não rodado): troca em duas etapas e, se a gravação
+  // dos novos falhar (internet caiu, limite do plano), devolve os antigos para o aluno não perder nada.
   const antigos = await sb.from("trabalhos").select("*").eq("perfil_id", perfil.id);
   if (antigos.error) throw traduzirErro(antigos.error);
   const apagar = await sb.from("trabalhos").delete().eq("perfil_id", perfil.id);
   if (apagar.error) throw traduzirErro(apagar.error);
-  const validos = trabalhos.filter((t) => t.titulo.trim());
   if (validos.length) {
-    const { error } = await sb
-      .from("trabalhos")
-      .insert(
-        validos.map((t, i) => ({
-          perfil_id: perfil.id,
-          titulo: t.titulo,
-          tipo: t.tipo,
-          descricao: t.descricao,
-          imagem_url: t.imagem_url,
-          ordem: i,
-          cliente: t.cliente,
-          ano: t.ano,
-          link: t.link,
-          papel: t.papel,
-          galeria: t.galeria,
-        }))
-      );
+    const { error } = await sb.from("trabalhos").insert(validos.map((t) => ({ ...t, perfil_id: perfil.id })));
     if (error) {
       if (antigos.data?.length) await sb.from("trabalhos").insert(antigos.data);
       throw traduzirErro(error);
@@ -566,4 +577,29 @@ export async function enviarFeedback(f: { tipo: TipoFeedback; mensagem: string; 
       throw new Error("O feedback ainda não foi ligado no banco. Avise a equipe do Fólium.");
     throw traduzirErro(error);
   }
+}
+
+/**
+ * Exclui a conta de quem está logado (LGPD).
+ * 1. Apaga as fotos e PDFs da pessoa (pastas fotos/<id>/ e curriculos/<id>/).
+ * 2. Chama excluir_minha_conta() no banco, que apaga login, perfil, trabalhos, conta e salvos.
+ * 3. Sai deste aparelho.
+ */
+export async function excluirMinhaConta(userId: string) {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  for (const bucket of ["fotos", "curriculos"]) {
+    const { data } = await sb.storage.from(bucket).list(userId, { limit: 1000 });
+    const caminhos = (data ?? []).filter((f) => f.name).map((f) => `${userId}/${f.name}`);
+    if (caminhos.length) {
+      const { error } = await sb.storage.from(bucket).remove(caminhos);
+      if (error) throw new Error("Não consegui apagar seus arquivos agora. Nada foi excluído; tente de novo em instantes.");
+    }
+  }
+  const { error } = await sb.rpc("excluir_minha_conta");
+  if (error) {
+    if (funcaoAusente(error)) throw new Error("A exclusão de conta ainda não foi ativada pela equipe. Fale com a gente pela página Feedback.");
+    throw traduzirErro(error);
+  }
+  await sb.auth.signOut({ scope: "local" });
 }
