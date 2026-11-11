@@ -8,6 +8,7 @@ import { SeloVerificado } from "@/components/Logo";
 import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
+import { BotaoPdf } from "@/components/BotaoPdf";
 import type { Avaliacao } from "@/lib/conteudo";
 import { formatarMes, formatarPeriodo } from "@/lib/formato";
 
@@ -38,7 +39,8 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
 }
 
 /** Página pública do portfólio, usada pelos exemplos e pelos perfis do banco. */
-export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliacoes?: Avaliacao[] }) {
+export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; avaliacoes?: Avaliacao[]; acoes?: React.ReactNode }) {
+  const publico = !!aluno.publico;
   const primeiroNome = aluno.nome.split(" ")[0];
   const mensagem = encodeURIComponent(`Olá, ${primeiroNome}! Vi seu portfólio no Fólium e gostaria de conversar sobre um trabalho.`);
   const links = REDES.filter((r) => aluno.links?.[r.chave]);
@@ -54,9 +56,11 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
 
   return (
     <div className="container perfil">
-      <p className="perfil-voltar">
-        <Link href="/talentos" className="suave">← Voltar para talentos</Link>
-      </p>
+      {!publico && (
+        <p className="perfil-voltar">
+          <Link href="/talentos" className="suave">← Voltar para talentos</Link>
+        </p>
+      )}
 
       <div className="perfil-grade">
         <header className="perfil-ident">
@@ -106,26 +110,40 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
               </dd>
             </dl>
           )}
-          {aluno.whatsapp && (
-            <a className="botao botao-verde" href={`https://wa.me/${aluno.whatsapp}?text=${mensagem}`} target="_blank" rel="noopener noreferrer">
-              Conversar no WhatsApp
-            </a>
+          {publico ? (
+            <>
+              <p className="suave perfil-publico-aviso">
+                Para falar com {primeiroNome} e ver currículo e certificados, entre no Fólium. A conta é grátis.
+              </p>
+              <Link href="/entrar?modo=primeiro" className="botao botao-primario">Criar conta grátis</Link>
+              <Link href="/entrar" className="botao botao-contorno">Já tenho conta</Link>
+            </>
+          ) : (
+            <>
+            {aluno.whatsapp && (
+              <a className="botao botao-verde" href={`https://wa.me/${aluno.whatsapp}?text=${mensagem}`} target="_blank" rel="noopener noreferrer">
+                Conversar no WhatsApp
+              </a>
+            )}
+            {aluno.email && (
+              <a className="botao botao-contorno" href={`mailto:${aluno.email}?subject=${encodeURIComponent("Contato pelo Fólium")}`}>
+                Enviar e-mail
+              </a>
+            )}
+            {aluno.curriculo && (
+              <LinkSeguro className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
+                Baixar currículo (PDF)
+              </LinkSeguro>
+            )}
+            <SalvarTalento slug={aluno.slug} />
+            <div className="compartilhar">
+              <CopiarLink />
+            </div>
+            <Denunciar alvo={aluno.slug} />
+            </>
           )}
-          {aluno.email && (
-            <a className="botao botao-contorno" href={`mailto:${aluno.email}?subject=${encodeURIComponent("Contato pelo Fólium")}`}>
-              Enviar e-mail
-            </a>
-          )}
-          {aluno.curriculo && (
-            <LinkSeguro className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
-              Baixar currículo (PDF)
-            </LinkSeguro>
-          )}
-          <SalvarTalento slug={aluno.slug} />
-          <div className="compartilhar">
-            <CopiarLink />
-          </div>
-          <Denunciar alvo={aluno.slug} />
+          {acoes}
+          <BotaoPdf />
         </aside>
 
         <div className="perfil-corpo">
@@ -246,14 +264,14 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
             <section className="perfil-secao" aria-labelledby="avaliacoes-titulo">
               <h2 id="avaliacoes-titulo">Avaliações</h2>
               <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
-                {avaliacoes.map((a) => (
-                  <figure key={a.autor} className="cartao lado avaliacao">
+                {avaliacoes.map((a, i) => (
+                  <figure key={`${i}-${a.autor}`} className="cartao lado avaliacao">
                     <span className="estrelas" role="img" aria-label={`${a.nota} de 5 estrelas`}>
                       {"★".repeat(a.nota)}
                       <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
                     </span>
                     <blockquote>{a.texto}</blockquote>
-                    <figcaption className="suave">{a.autor} · contratante verificado</figcaption>
+                    <figcaption className="suave">{a.autor} · {a.selo ?? "contratante verificado"}</figcaption>
                   </figure>
                 ))}
               </div>

@@ -6,6 +6,7 @@ import { FolhaIcone } from "./Logo";
 import { InstalarApp } from "./InstalarApp";
 import { MenuPrincipal, type GrupoMenu } from "./MenuPrincipal";
 import { useConta, type TipoConta } from "@/lib/conta";
+import { useEquipe, useVagasNovas } from "@/lib/negocios";
 
 const ICONE = {
   inicio: "M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z",
@@ -74,6 +75,7 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
         itens: [
           { href: "/meu-perfil", rotulo: "Meu portfólio", dica: "Editar foto, trabalhos e contato" },
           { href: "/oportunidades", rotulo: "Oportunidades", dica: "Freelas, projetos e estágios" },
+          { href: "/combinados", rotulo: "Combinados", dica: "Propostas, combinados e avaliações" },
           { href: "/talentos", rotulo: "Talentos", dica: "Portfólios dos colegas" },
           { href: "/jornal", rotulo: "Jornal" },
         ],
@@ -112,6 +114,7 @@ const NAV: Record<"visitante" | TipoConta, { topo: ItemNav[]; acao: ItemNav; bar
           { href: "/painel", rotulo: "Meu painel", dica: "Suas vagas e interessados" },
           { href: "/talentos", rotulo: "Talentos", dica: "Buscar alunos" },
           { href: "/publicar", rotulo: "Publicar vaga" },
+          { href: "/combinados", rotulo: "Combinados", dica: "Propostas, convites e avaliações" },
           { href: "/oportunidades", rotulo: "Mural de vagas" },
           { href: "/jornal", rotulo: "Jornal" },
         ],
@@ -146,6 +149,16 @@ export function Cabecalho() {
   const pathname = usePathname();
   const { conta, logado } = useConta();
   const nav = NAV[conta?.tipo ?? "visitante"];
+  const vagasNovas = useVagasNovas();
+  const equipe = useEquipe();
+  const grupos: GrupoMenu[] = equipe
+    ? [...nav.menu, { titulo: "Equipe Fólium", itens: [{ href: "/equipe", rotulo: "Painel da equipe", dica: "Vagas, denúncias, feedbacks e planos" }] }]
+    : nav.menu;
+  // Bolinha com o número de vagas novas na área do aluno, no link do mural.
+  const selo = (href: string) =>
+    href === "/oportunidades" && vagasNovas > 0 ? (
+      <span className="selo-novas" aria-label={`${vagasNovas} ${vagasNovas === 1 ? "vaga nova" : "vagas novas"}`}>{vagasNovas > 9 ? "9+" : vagasNovas}</span>
+    ) : null;
   // Logado mas a conta ainda carregando: o botão já leva para a área certa depois.
   const acao = logado && !conta ? { href: "/entrar", rotulo: "Minha conta" } : nav.acao;
   return (
@@ -158,7 +171,7 @@ export function Cabecalho() {
           </Link>
           <nav className="nav" aria-label="Principal">
             {nav.topo.map((l) => (
-              <Link key={l.href} href={l.href} data-tour={l.href.slice(1)} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}</Link>
+              <Link key={l.href} href={l.href} data-tour={l.href.slice(1)} className={ativo(pathname, l.href) ? "ativo" : ""}>{l.rotulo}{selo(l.href)}</Link>
             ))}
             <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-primario">{acao.rotulo}</Link>
           </nav>
@@ -167,7 +180,7 @@ export function Cabecalho() {
             <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-contorno barra-entrar" style={{ minHeight: 40, padding: "6px 14px" }}>
               {acao.rotulo}
             </Link>
-            <MenuPrincipal grupos={nav.menu} logado={logado} />
+            <MenuPrincipal grupos={grupos} logado={logado} />
           </div>
         </div>
       </header>
@@ -178,6 +191,7 @@ export function Cabecalho() {
               <path d={ICONE[l.icone ?? "inicio"]} fill="currentColor" fillRule={l.icone === "jornal" || l.icone === "publicar" ? "evenodd" : undefined} />
             </svg>
             {l.rotulo}
+            {selo(l.href)}
           </Link>
         ))}
       </nav>
