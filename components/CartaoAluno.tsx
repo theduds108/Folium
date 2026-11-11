@@ -16,14 +16,14 @@ function corDe(slug: string) {
  * Ordem de leitura: nome → especialidade → disponibilidade → até 2 serviços (+N).
  * O excesso fica escondido por hierarquia e truncamento, sem diminuir a fonte.
  */
-export function CartaoAluno({ aluno }: { aluno: Aluno }) {
+export function CartaoAluno({ aluno, semLink = false }: { aluno: Aluno; /** Só a prévia (editor): não vira link. */ semLink?: boolean }) {
   const especialidade = aluno.titulo || aluno.servicos[0] || aluno.curso;
   const tags = aluno.titulo ? aluno.servicos.slice(0, 2) : aluno.servicos.slice(1, 3);
   const usados = aluno.titulo ? 2 : 3;
   const resto = Math.max(0, aluno.servicos.length - usados);
 
-  return (
-    <Link href={linkPerfil(aluno)} className="polaroide">
+  const conteudo = (
+    <>
       <span className="polaroide-foto" style={{ background: corDe(aluno.slug) }}>
         {aluno.foto ? (
           <FotoEnquadrada
@@ -59,6 +59,12 @@ export function CartaoAluno({ aluno }: { aluno: Aluno }) {
         )}
         <span className="suave polaroide-sub">{aluno.semestre}º semestre · {aluno.cidade}</span>
       </span>
+    </>
+  );
+  if (semLink) return <div className="polaroide">{conteudo}</div>;
+  return (
+    <Link href={linkPerfil(aluno)} className="polaroide">
+      {conteudo}
     </Link>
   );
 }

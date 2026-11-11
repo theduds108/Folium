@@ -106,8 +106,8 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
 
 const CAMPOS_PERFIL = "*, trabalhos(*)";
 
-/** Perfis publicados, mais recentes primeiro. */
-export async function listarAlunosReais(): Promise<Aluno[]> {
+/** Perfis publicados, mais recentes primeiro. Com `lancarErro`, a falha vira erro (a tela avisa em vez de mostrar "nenhum"). */
+export async function listarAlunosReais(lancarErro = false): Promise<Aluno[]> {
   const sb = supabase();
   if (!sb) return [];
   const { data, error } = await sb
@@ -118,6 +118,7 @@ export async function listarAlunosReais(): Promise<Aluno[]> {
     .limit(200);
   if (error) {
     console.error("Erro ao listar perfis", error);
+    if (lancarErro) throw traduzirErro(error);
     return [];
   }
   return (data as PerfilComTrabalhos[]).map(paraAluno);
@@ -170,6 +171,10 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
     throw traduzirErro(error);
   }
 
+  // Guarda os trabalhos atuais antes de trocar a lista: se a gravação dos novos falhar
+  // (internet caiu, limite do plano), eles voltam e o aluno não perde nada.
+  const antigos = await sb.from("trabalhos").select("*").eq("perfil_id", perfil.id);
+  if (antigos.error) throw traduzirErro(antigos.error);
   const apagar = await sb.from("trabalhos").delete().eq("perfil_id", perfil.id);
   if (apagar.error) throw traduzirErro(apagar.error);
   const validos = trabalhos.filter((t) => t.titulo.trim());
@@ -191,7 +196,10 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
           galeria: t.galeria,
         }))
       );
-    if (error) throw traduzirErro(error);
+    if (error) {
+      if (antigos.data?.length) await sb.from("trabalhos").insert(antigos.data);
+      throw traduzirErro(error);
+    }
   }
   return slug;
 }
@@ -250,7 +258,7 @@ function tempoDesde(iso: string) {
 }
 
 /** Oportunidades aprovadas pela equipe. */
-export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
+export async function listarOportunidadesReais(lancarErro = false): Promise<Oportunidade[]> {
   const sb = supabase();
   if (!sb) return [];
   const { data, error } = await sb
@@ -262,6 +270,7 @@ export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
     .limit(100);
   if (error) {
     console.error("Erro ao listar oportunidades", error);
+    if (lancarErro) throw traduzirErro(error);
     return [];
   }
   return (data as LinhaOportunidade[]).map(paraOportunidade);
@@ -298,7 +307,30 @@ export async function enviarOportunidade(o: NovaOportunidade) {
 export async function marcarInteresse(oportunidadeId: string, perfilId: string) {
   const sb = supabase();
   if (!sb) return;
-  await sb.from("interesses").upsert({ oportunidade_id: oportunidadeId, perfil_id: perfilId });
+  const { error } = await sb
+    .from("interesses")
+    .upsert({ oportunidade_id: oportunidadeId, perfil_id: perfilId }, { onConflict: "oportunidade_id,perfil_id", ignoreDuplicates: true });
+  if (!error) return;
+  // Sem portfólio salvo não há o que mandar para a empresa (perfil_id aponta para perfis).
+  if (error.code === "23503") throw new Error("Salve seu portfólio antes: é ele que a empresa recebe quando você tem interesse.");
+  throw traduzirErro(error);
+}
+
+/** Retira o interesse numa vaga (a empresa deixa de ver o aluno na lista). */
+export async function desmarcarInteresse(oportunidadeId: string, perfilId: string) {
+  const sb = supabase();
+  if (!sb) return;
+  const { error } = await sb.from("interesses").delete().eq("oportunidade_id", oportunidadeId).eq("perfil_id", perfilId);
+  if (error) throw traduzirErro(error);
+}
+
+/** Vagas em que o aluno já marcou interesse, para o botão continuar marcado depois de recarregar. */
+export async function meusInteresses(perfilId: string): Promise<string[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.from("interesses").select("oportunidade_id").eq("perfil_id", perfilId);
+  if (error) return [];
+  return (data ?? []).map((l) => l.oportunidade_id as string);
 }
 
 export async function denunciar(alvoTipo: "perfil" | "oportunidade", alvo: string, motivo: string, detalhes: string) {
