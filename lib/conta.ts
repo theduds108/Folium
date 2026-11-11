@@ -280,8 +280,8 @@ export async function salvarDadosConta(c: Pick<Conta, "nome" | "empresa" | "what
 }
 
 /**
- * Pede o Premium. Sem pagamento no site ainda: a equipe vê o pedido na tabela "contas"
- * e libera. No modo demonstração o Premium é ligado na hora, para dar para testar as telas.
+ * Entra na lista do Premium (ainda sem venda: o pagamento está sendo definido). Fica em "contas"
+  * (plano_pedido) e a equipe vê no painel. No modo demonstração o Premium é ligado na hora, para dar para testar as telas.
  */
 export async function pedirPremium() {
   const sb = supabase();

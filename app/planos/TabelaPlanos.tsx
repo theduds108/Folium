@@ -62,7 +62,7 @@ function AcaoPlano({ plano, atual }: { plano: Plano; atual: boolean }) {
   if (!conta)
     return (
       <Link href={`/entrar/?como=${tipo}`} className={plano.destaque ? "botao botao-primario" : "botao botao-contorno"}>
-        {plano.plano === "premium" ? "Criar conta e assinar" : "Começar grátis"}
+        {plano.plano === "premium" ? "Criar conta e entrar na lista" : "Começar grátis"}
       </Link>
     );
 
@@ -77,7 +77,7 @@ function AcaoPlano({ plano, atual }: { plano: Plano; atual: boolean }) {
   if (estado === "pedido" || conta.planoPedido)
     return (
       <p className="salvo" style={{ margin: 0 }}>
-        Pedido enviado. O pagamento pelo site ainda está em desenvolvimento, então a equipe libera seu Premium em até 1 dia útil.
+        Pronto, você está na lista. Avisamos aqui no Fólium quando o Premium abrir.
       </p>
     );
 
@@ -96,10 +96,10 @@ function AcaoPlano({ plano, atual }: { plano: Plano; atual: boolean }) {
           }
         }}
       >
-        {estado === "enviando" ? "Enviando…" : "Quero o Premium"}
+        {estado === "enviando" ? "Enviando…" : "Me avise quando abrir"}
       </button>
-      <p className="ajuda aviso-desenvolvimento">Pagamento pelo site em desenvolvimento. Por enquanto, a equipe confirma seu pedido e libera o Premium em até 1 dia útil.</p>
-      {estado === "erro" && <p className="erro" role="alert">Não deu para enviar o pedido. Tente de novo.</p>}
+      <p className="ajuda aviso-desenvolvimento">O Premium ainda não está à venda: estamos definindo como vai ser o pagamento. Entre na lista e avisamos quando abrir.</p>
+      {estado === "erro" && <p className="erro" role="alert">Não deu para entrar na lista. Tente de novo.</p>}
     </>
   );
 }

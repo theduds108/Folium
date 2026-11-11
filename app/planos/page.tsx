@@ -13,8 +13,8 @@ export default function Planos() {
       </p>
       <TabelaPlanos />
       <p className="suave" style={{ marginTop: 20, fontSize: "var(--t-sec)" }}>
-        Preços em validação com alunos e empresas durante o protótipo. Enquanto o pagamento pelo site não está pronto, a
-        equipe confirma cada pedido de Premium e libera em até 1 dia útil.
+        Preços em validação com alunos e empresas durante o protótipo. O Premium ainda não está à venda: a forma de
+        pagamento está sendo definida. Quem entrar na lista fica sabendo primeiro quando abrir.
       </p>
     </div>
   );
