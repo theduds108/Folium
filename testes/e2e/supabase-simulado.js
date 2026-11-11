@@ -69,6 +69,38 @@ const server = http.createServer((req, res) => {
         (body.p_trabalhos || []).filter((t) => (t.titulo || "").trim()).forEach((t, i) => db.trabalhos.push({ ...t, id: crypto.randomUUID(), perfil_id: me.id, ordem: i }));
         return send(res, 200, null);
       }
+      if (fn === "portfolio_publico") {
+        const p = (db.perfis || []).find((r) => r.slug === body.p_slug && r.publicado && r.link_publico);
+        if (!p) return send(res, 200, null);
+        const { whatsapp: _w, email_contato: _e, curriculo_url: _c, certificados: _ce, links: _l, experiencias: _x, ...seguro } = p;
+        return send(res, 200, { ...seguro, trabalhos: (db.trabalhos || []).filter((t) => t.perfil_id === p.id) });
+      }
+      if (fn === "registrar_visita") { db.visitas = (db.visitas || 0) + 1; return send(res, 200, null); }
+      if (fn === "minhas_estatisticas") {
+        const me = who(req); if (!me) return send(res, 200, null);
+        const premium = (db.contas || []).some((c) => c.id === me.id && c.plano === "premium");
+        return send(res, 200, { premium, visitas_30: db.visitas || 0, visitas_7: premium ? db.visitas || 0 : null, visitas_contratantes_30: premium ? 0 : null, visitas_total: premium ? db.visitas || 0 : null, salvos: premium ? 0 : null, interesses: (db.interesses || []).filter((i) => i.perfil_id === me.id).length, convites: (db.convites || []).filter((c) => c.perfil_id === me.id).length });
+      }
+      if (fn === "responder_convite") {
+        const me = who(req); const c = (db.convites || []).find((x) => x.id === body.p_id && me && x.perfil_id === me.id);
+        if (!c) return send(res, 404, { code: "P0002", message: "Convite não encontrado" });
+        c.status = body.p_aceitar ? "aceito" : "recusado";
+        if (body.p_aceitar) { db.interesses ??= []; if (!db.interesses.some((i) => i.oportunidade_id === c.oportunidade_id && i.perfil_id === c.perfil_id)) db.interesses.push({ oportunidade_id: c.oportunidade_id, perfil_id: c.perfil_id }); }
+        return send(res, 200, null);
+      }
+      if (fn === "mudar_combinado") {
+        const me = who(req); const c = (db.combinados || []).find((x) => x.id === body.p_id);
+        if (!c || !me || ![c.perfil_id, c.contratante_id].includes(me.id)) return send(res, 404, { code: "P0002", message: "Combinado não encontrado" });
+        const a = body.p_acao, aluno = me.id === c.perfil_id;
+        const novo = a === "aceitar" && c.status === "proposto" && aluno ? "aceito" : a === "recusar" && c.status === "proposto" && aluno ? "recusado" : a === "cancelar" && c.status === "proposto" && !aluno ? "cancelado" : a === "concluir" && c.status === "aceito" && !aluno ? "concluido" : null;
+        if (!novo) return send(res, 400, { code: "P0001", message: "Essa mudança não é possível agora" });
+        c.status = novo; return send(res, 200, novo);
+      }
+      if (fn === "eh_equipe") { const me = who(req); return send(res, 200, !!me && (db.equipe || []).some((e) => e.id === me.id)); }
+      if (fn === "equipe_contas") {
+        const me = who(req); if (!me || !(db.equipe || []).some((e) => e.id === me.id)) return send(res, 400, { code: "42501", message: "Só para a equipe" });
+        return send(res, 200, (db.contas || []).map((c) => ({ ...c, email: (users.find((u) => u.id === c.id) || {}).email || "" })));
+      }
       if (fn === "excluir_minha_conta") {
         const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
         users.splice(users.indexOf(me), 1);
@@ -89,6 +121,7 @@ const server = http.createServer((req, res) => {
       if (req.method === "GET" && t === "perfis" && (url.searchParams.get("select") || "").includes("trabalhos(")) { const l = rows.filter((r) => casa(r, f)).map((r) => ({ ...r, trabalhos: (db.trabalhos || []).filter((x) => x.perfil_id === r.id) })); return volta(l); }
       if (t === "interesses" && req.method === "POST" && !(db.perfis || []).some((x) => x.id === body.perfil_id)) return send(res, 409, { code: "23503", message: "insert or update on table \"interesses\" violates foreign key constraint" });
       if (req.method === "GET" || req.method === "HEAD") { if (t === "contas" && failContas > 0) { failContas--; return send(res, 500, { message: "simulated network error" }); } return volta(rows.filter((r) => casa(r, f))); }
+      if (req.method === "POST" && (t === "convites" || t === "combinados" || t === "avaliacoes")) { const me = who(req); for (const b of (Array.isArray(body) ? body : [body])) { if (t === "avaliacoes") { b.autor_id = me && me.id; b.autor_nome = ((db.contas || []).find((c) => c.id === b.autor_id) || {}).empresa || ((db.perfis || []).find((p) => p.id === b.autor_id) || {}).nome || "Usuário"; b.criado_em = new Date().toISOString(); } else { b.contratante_id = me && me.id; b.status = t === "convites" ? "enviado" : "proposto"; b.criado_em = new Date().toISOString(); if (t === "combinados") b.contratante_nome = ((db.contas || []).find((c) => c.id === b.contratante_id) || {}).empresa || "Contratante"; } } }
       if (req.method === "POST") { const novos = (Array.isArray(body) ? body : [body]).map((b) => { const oc = url.searchParams.get("on_conflict") || "id"; const ex = rows.find((r) => b[oc] !== undefined && r[oc] === b[oc]); if (ex) { if ((req.headers.prefer || "").includes("merge-duplicates")) { Object.assign(ex, b); return ex; } return null; } const n = { ...(DEFAULTS[t] || {}), id: b.id ?? crypto.randomUUID(), ...b }; rows.push(n); return n; }); if (novos.includes(null)) return send(res, 409, { code: "23505", message: "duplicate key" }); return (req.headers.prefer || "").includes("return=representation") ? volta(novos) : send(res, 201); }
       if (req.method === "PATCH") { const alvo = rows.filter((r) => casa(r, f)); alvo.forEach((r) => Object.assign(r, body)); return (req.headers.prefer || "").includes("return=representation") ? volta(alvo) : send(res, 204); }
       if (req.method === "DELETE") { db[t] = rows.filter((r) => !casa(r, f)); return send(res, 204); }

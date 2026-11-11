@@ -12,7 +12,8 @@ const post = (t, b) => fetch(`${MOCK}/rest/v1/${t}`, { method: "POST", headers: 
   await page.waitForURL("**/meu-perfil/**"); await page.waitForTimeout(2000);
   ok("editor carrega nome salvo", (await page.locator("input[placeholder='Como quer aparecer']").inputValue()) === "Ana Souza");
   // falha ao carregar o perfil
-  await fetch(MOCK + "/__fail?t=perfis&n=1");
+  // 3 falhas: o editor e os avisos do canto (estatísticas, vagas novas) também leem perfis ao abrir.
+  await fetch(MOCK + "/__fail?t=perfis&n=3");
   await page.reload(); await page.waitForTimeout(2500);
   const nome = await page.locator("input[placeholder='Como quer aparecer']").inputValue().catch(() => "(sem campo)");
   const salvarHabil = await page.getByRole("button", { name: /Salvar portfólio/ }).first().isEnabled().catch(() => false);
