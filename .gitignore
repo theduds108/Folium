@@ -9,3 +9,4 @@ next-env.d.ts
 # arquivos temporários do Supabase local
 supabase/.branches
 supabase/.temp
+testes/e2e/capturas
