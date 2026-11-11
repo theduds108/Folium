@@ -3320,3 +3320,121 @@ html { scroll-padding-top: 84px; }
 }
 @keyframes menu-fundo-entra { from { opacity: 0; } }
 @keyframes menu-folha-entra { from { transform: translateX(24px); opacity: 0; } }
+
+/* ---------- Instalar o app (ver components/InstalarApp.tsx e lib/instalar.ts) ----------
+   Botão do cabeçalho com cara de ficha (igual ao Menu, mas em verde-folha para chamar atenção),
+   janela de passo a passo e a faixa da página inicial. Some tudo quando o Fólium já está instalado. */
+.instalar-cabecalho {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px 0 12px;
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: 999px;
+  background: var(--verde-folio);
+  color: #fff;
+  font: inherit;
+  font-weight: var(--peso-forte);
+  font-size: var(--t-sec);
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--verde-musgo);
+  transition: transform var(--mov-rapido) var(--ease-saida), box-shadow var(--mov-rapido) var(--ease-saida),
+    background var(--mov-rapido);
+}
+.instalar-cabecalho:hover { background: var(--verde-folio-escuro); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--verde-musgo); }
+.instalar-cabecalho:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--verde-musgo); }
+.instalar-cabecalho svg { flex-shrink: 0; }
+.instalar-cabecalho:focus-visible { outline: 3px solid var(--marrom-cobre); outline-offset: 2px; }
+/* Celular: "Instalar" curto; nos bem estreitos, só o ícone (o nome continua no aria-label). */
+@media (max-width: 480px) {
+  .instalar-cabecalho { padding: 0 12px 0 10px; gap: 5px; }
+  .instalar-cabecalho-app { display: none; }
+}
+/* Não cabe tudo: o "Entrar" do topo sai (ele continua na barra de baixo). */
+@media (max-width: 440px) {
+  .cabecalho-direita:has(.instalar-cabecalho) .barra-entrar { display: none !important; }
+  .cabecalho-direita:has(.instalar-cabecalho) { gap: 10px; }
+}
+@media (max-width: 340px) {
+  .instalar-cabecalho { padding: 0 11px; }
+  .instalar-cabecalho-rotulo { display: none; }
+}
+
+.menu-link-instalar .menu-link-rotulo { display: inline-flex; align-items: center; gap: 6px; color: var(--verde-folio-escuro); }
+
+/* A janela fica acima do menu ☰ (z-index 1000) e do tour. */
+.janela-instalar-fundo { z-index: 1100; }
+.janela-instalar {
+  position: relative;
+  padding: 28px 24px 20px;
+  border: 1.5px solid var(--verde-musgo);
+  box-shadow: 4px 4px 0 var(--verde-musgo);
+}
+@media (max-width: 380px) { .janela-instalar { padding: 24px 18px 18px; } }
+.janela-fechar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--verde-musgo);
+  cursor: pointer;
+}
+.janela-fechar:hover { background: rgba(47, 62, 42, 0.08); }
+.janela-rotulo {
+  margin: 0 0 4px;
+  font-size: var(--t-micro);
+  font-weight: var(--peso-forte);
+  letter-spacing: var(--letras-rotulo);
+  text-transform: uppercase;
+  color: var(--cobre-texto);
+}
+.janela-titulo { font-size: var(--t-tit-p); margin: 0 44px 16px 0; line-height: 1.1; }
+.janela-instalar .passos-instalar { gap: 14px; margin-bottom: 18px; padding-left: 22px; line-height: 1.5; }
+.janela-instalar .passos-instalar li::marker { font-weight: var(--peso-forte); color: var(--cobre-texto); }
+.icone-passo { display: inline-block; vertical-align: -3px; color: var(--verde-folio-escuro); }
+.janela-nota { font-size: var(--t-sec); margin: 0 0 18px; padding: 10px 14px; border: 1px dashed var(--linha); border-radius: 10px; background: #fbf3dd; }
+.janela-rodape { margin: 14px 0 0; text-align: center; font-size: var(--t-sec); }
+.janela-rodape a { color: var(--castanho-cafe); text-underline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .janela-instalar { animation: janela-entra var(--mov-entrada) var(--ease-saida); }
+  @keyframes janela-entra { from { opacity: 0; transform: translateY(var(--elevar-entrada)); } to { opacity: 1; transform: none; } }
+}
+
+/* Faixa "Tenha o Fólium como app" na página inicial */
+.convite-instalar-secao { padding-top: 32px; padding-bottom: 0; }
+.convite-instalar {
+  display: flex;
+  align-items: center;
+  gap: 18px 22px;
+  padding: 20px 22px;
+  border: 1.5px solid var(--verde-musgo);
+  border-radius: var(--raio);
+  background: var(--papel-claro);
+  box-shadow: 4px 4px 0 var(--verde-musgo);
+}
+.convite-instalar-icone img { display: block; width: 64px; height: 64px; border-radius: 16px; transform: rotate(-4deg); box-shadow: 2px 2px 0 var(--verde-musgo); }
+.convite-instalar-texto { flex: 1; min-width: 0; }
+.convite-instalar-texto h2 { margin: 0 0 4px; font-size: var(--t-tit-p); }
+.convite-instalar-texto p { margin: 0; }
+.convite-instalar-rotulo {
+  font-family: var(--fonte-mao), cursive;
+  font-size: var(--t-grande) !important;
+  color: var(--cobre-texto);
+}
+.convite-instalar-botao { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .convite-instalar { flex-wrap: wrap; padding: 18px; }
+  .convite-instalar-icone img { width: 52px; height: 52px; }
+  .convite-instalar-texto { flex-basis: calc(100% - 80px); }
+  .convite-instalar-botao { width: 100%; }
+}

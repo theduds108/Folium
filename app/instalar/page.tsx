@@ -14,7 +14,7 @@ export default function Instalar() {
         descricao="O Fólium funciona como aplicativo, sem baixar da loja. Ele ganha um ícone na tela inicial e abre em tela cheia, como qualquer outro app."
       >
         <p style={{ margin: "12px 0 0" }}>
-          <InstalarApp className="botao botao-verde" />
+          <InstalarApp className="botao botao-verde" rotulo="Instalar agora" />
         </p>
       </CabecalhoArquivo>
 

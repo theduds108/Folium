@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FolhaIcone } from "./Logo";
+import { InstalarApp } from "./InstalarApp";
 import { MenuPrincipal, type GrupoMenu } from "./MenuPrincipal";
 import { useConta, type TipoConta } from "@/lib/conta";
 
@@ -159,6 +160,7 @@ export function Cabecalho() {
             <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-primario">{acao.rotulo}</Link>
           </nav>
           <div className="cabecalho-direita">
+            <InstalarApp variante="cabecalho" />
             <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-contorno barra-entrar" style={{ minHeight: 40, padding: "6px 14px" }}>
               {acao.rotulo}
             </Link>
