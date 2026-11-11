@@ -162,7 +162,7 @@ export function Cabecalho() {
             <Link href={acao.href} data-tour={acao.href.slice(1)} className="botao botao-contorno barra-entrar" style={{ minHeight: 40, padding: "6px 14px" }}>
               {acao.rotulo}
             </Link>
-            <MenuPrincipal grupos={nav.menu} />
+            <MenuPrincipal grupos={nav.menu} logado={logado} />
           </div>
         </div>
       </header>
