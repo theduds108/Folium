@@ -3438,3 +3438,28 @@ html { scroll-padding-top: 84px; }
   .convite-instalar-texto { flex-basis: calc(100% - 80px); }
   .convite-instalar-botao { width: 100%; }
 }
+
+/* Faixa de preço sugerida ao publicar vaga (mesmos números do guia "Quanto cobrar") */
+.faixa-sugerida { display: grid; gap: 6px; justify-items: start; padding: 12px 14px; border: 1px dashed var(--linha); border-left: 3px solid var(--marrom-cobre); border-radius: 10px; background: var(--papel-claro); font-size: var(--t-sec); }
+.faixa-sugerida p { margin: 0; }
+
+/* Termos e privacidade */
+.pagina-legal { max-width: 820px; }
+.legal-indice { padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 18px; font-weight: var(--peso-medio); font-size: var(--t-sec); }
+.legal-secao { padding: clamp(18px, 4vw, 28px); margin-bottom: 18px; scroll-margin-top: 90px; }
+.legal-secao h2 { font-size: var(--t-tit-p); overflow-wrap: anywhere; margin: 0 0 10px; }
+.legal-secao h3 { font-size: var(--t-medio); margin: 16px 0 6px; }
+.legal-secao ol, .legal-secao ul { padding-left: 1.2em; display: grid; gap: 8px; }
+.legal-secao p { margin: 0 0 10px; }
+.botao-perigo { background: #a33a1f; border-color: #a33a1f; color: #fff; }
+.botao-perigo:hover { background: #87301a; }
+.botao-contorno.botao-perigo { background: transparent; color: #a33a1f; }
+.botao-contorno.botao-perigo:hover { background: rgba(163, 58, 31, 0.07); }
+.botao-perigo:disabled { opacity: 0.55; cursor: not-allowed; }
+.excluir-conta { display: grid; gap: 10px; max-width: 420px; }
+.excluir-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.cadastro-termos { margin: 0; }
+
+/* Chame um colega (editor do portfólio) */
+.convidar-colega { display: grid; gap: 6px; justify-items: start; margin-top: 14px; }
+.convidar-colega p { margin: 0; font-size: var(--t-sec); }
