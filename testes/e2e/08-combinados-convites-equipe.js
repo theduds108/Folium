@@ -119,7 +119,9 @@ const semRolagem = (page) => page.evaluate(() => document.documentElement.scroll
   await emp.locator(".equipe-item", { hasText: "Vaga pendente" }).getByRole("button", { name: "Aprovar" }).click(); await emp.waitForTimeout(1200);
   ok("equipe aprova vaga", (await estado()).db.oportunidades.find((o) => o.id === "v2").status === "aprovada");
   await emp.getByRole("tab", { name: /Planos/ }).click(); await emp.waitForTimeout(300);
-  await emp.locator(".equipe-conta", { hasText: "ana.123" }).getByRole("button", { name: "Liberar Premium" }).click(); await emp.waitForTimeout(1200);
+  await emp.locator(".equipe-conta", { hasText: "ana.123" }).getByRole("button", { name: "Liberar Premium" }).click(); await emp.waitForTimeout(300);
+  ok("pede confirmação antes de liberar", (await estado()).db.contas.find((c) => c.id === "u-aluna").plano === "gratis" && await emp.getByRole("button", { name: "Sim, liberar" }).isVisible());
+  await emp.getByRole("button", { name: "Sim, liberar" }).click(); await emp.waitForTimeout(1200);
   ok("planos sem rolagem lateral (celular)", await (async () => { await emp.setViewportSize({ width: 390, height: 844 }); await emp.waitForTimeout(300); const r = await semRolagem(emp); await emp.setViewportSize({ width: 1366, height: 800 }); return r; })());
   ok("equipe libera Premium", (await estado()).db.contas.find((c) => c.id === "u-aluna").plano === "premium");
   await emp.getByRole("button", { name: /Menu/ }).click(); await emp.waitForTimeout(400);
