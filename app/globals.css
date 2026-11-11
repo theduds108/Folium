@@ -3463,3 +3463,91 @@ html { scroll-padding-top: 84px; }
 /* Chame um colega (editor do portfólio) */
 .convidar-colega { display: grid; gap: 6px; justify-items: start; margin-top: 14px; }
 .convidar-colega p { margin: 0; font-size: var(--t-sec); }
+
+/* Link público do portfólio (editor) */
+.link-publico { display: grid; gap: 6px; margin-top: 6px; }
+.link-publico-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.link-publico-url { font-size: var(--t-pequeno); background: var(--creme-papel); border: 1px solid var(--linha); border-radius: 8px; padding: 4px 8px; overflow-wrap: anywhere; max-width: 100%; }
+
+/* Estatísticas do portfólio (editor) */
+.estatisticas { display: grid; gap: 10px; margin-top: 14px; }
+.estatisticas-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.estatisticas-grade div { border: 1px solid var(--linha); border-radius: 10px; padding: 8px 10px; background: var(--creme-papel); }
+.estatisticas-grade dt { font-size: var(--t-pequeno); color: var(--texto-suave); }
+.estatisticas-grade dd { margin: 2px 0 0; font-size: var(--t-grande); font-weight: var(--peso-forte); color: var(--verde-musgo); }
+.estatisticas-novas { font-weight: var(--peso-medio); color: var(--cobre-texto); }
+
+/* Portfólio em PDF: "Baixar em PDF" abre a impressão do navegador (Salvar como PDF). */
+.perfil-publico-aviso { margin: 4px 0 0; font-size: var(--t-sec); }
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; }
+  .cabecalho, .barra-inferior, .rodape, .visao-demo, .aba-feedback, aside[aria-label="Feedback"],
+  .perfil-voltar, .perfil-contato .botao, .perfil-contato button, .perfil-contato .compartilhar,
+  .perfil-contato form, .acoes-contratante, .tour-guiado, .faixa-senha, .aviso-senha, .galeria-controles,
+  .so-tela { display: none !important; }
+  .perfil-grade { display: block !important; }
+  .perfil-contato { position: static !important; box-shadow: none !important; margin: 12px 0 !important; break-inside: avoid; }
+  .cartao { box-shadow: none !important; }
+  .obra, .linha-tempo li, .avaliacao { break-inside: avoid; }
+  .revelar, .revelar-grupo > * { opacity: 1 !important; transform: none !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #555; word-break: break-all; }
+}
+
+/* Convites (mural do aluno) e ações do contratante no portfólio */
+.convites { display: grid; gap: 10px; padding: 18px 20px; margin-bottom: 20px; border-left: 4px solid var(--marrom-cobre); }
+.convites h2 { font-size: var(--t-tit-p); margin: 0; }
+.convites-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.convite { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--linha); border-radius: 10px; background: var(--creme-papel); }
+.convite-recado { margin: 4px 0; font-family: "Caveat", cursive; font-size: var(--t-grande); color: var(--castanho-cafe); }
+.convite-desc { margin: 0; font-size: var(--t-sec); }
+.convite-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 6px; }
+.acoes-contratante { display: grid; gap: 10px; }
+.acoes-contratante-botoes { display: grid; gap: 8px; }
+.form-compacto { display: grid; gap: 10px; padding: 12px; border: 1px dashed var(--linha); border-radius: 10px; background: var(--creme-papel); }
+
+/* Combinados */
+.combinados { display: grid; gap: 18px; max-width: 820px; }
+.combinado, .combinado-vazio, .convites-enviados { padding: clamp(16px, 4vw, 26px); display: grid; gap: 10px; }
+.combinado h2 { font-size: var(--t-tit-p); margin: 0; overflow-wrap: anywhere; }
+.combinado-topo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; font-size: var(--t-pequeno); }
+.combinado-partes { margin: 0; }
+.combinado-ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 0; }
+.combinado-ficha div { border: 1px solid var(--linha); border-radius: 10px; padding: 8px 10px; background: var(--creme-papel); }
+.combinado-ficha div:first-child { grid-column: 1 / -1; }
+.combinado-ficha dt { font-size: var(--t-pequeno); color: var(--texto-suave); }
+.combinado-ficha dd { margin: 2px 0 0; white-space: pre-line; overflow-wrap: anywhere; }
+.combinado-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.selo-status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: var(--t-micro); font-weight: var(--peso-forte); text-transform: uppercase; letter-spacing: var(--letras-rotulo); background: var(--creme-papel); border: 1px solid var(--linha); color: var(--verde-musgo); }
+.selo-aceito, .selo-concluido { background: #e5efdd; border-color: #b9cfa8; color: var(--verde-folio-escuro); }
+.selo-recusado, .selo-cancelado { background: #f5e3dc; border-color: #e3bfb1; color: #87301a; }
+.selo-proposto, .selo-enviado { background: #f7ead9; border-color: #e6c9a5; color: var(--cobre-texto); }
+.convites-enviados h2 { font-size: var(--t-medio); margin: 0; }
+.convites-enviados ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.estrelas-escolha { display: flex; gap: 4px; }
+.estrela-op { cursor: pointer; font-size: 1.8rem; line-height: 1; color: var(--linha); }
+.estrela-op.ativa { color: var(--marrom-cobre); }
+.estrela-op:focus-within { outline: 2px solid var(--verde-folio); outline-offset: 2px; border-radius: 4px; }
+.avaliar-estrelas { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; font-weight: var(--peso-medio); font-size: var(--t-sec); }
+.avaliar-estrelas legend { padding: 0; margin-bottom: 6px; }
+
+/* Vagas novas: bolinha no link do mural */
+.selo-novas { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 999px; background: var(--cobre-botao); color: #fff; font-size: 0.68rem; font-weight: var(--peso-forte); line-height: 1; vertical-align: middle; }
+.barra-inferior a { position: relative; }
+.barra-inferior .selo-novas { position: absolute; top: 2px; left: calc(50% + 6px); margin: 0; }
+
+/* Painel da equipe */
+.equipe .abas-equipe { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.aba-equipe { border: 1px solid var(--linha); background: var(--papel-claro); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: var(--peso-medio); cursor: pointer; color: var(--verde-musgo); min-height: 40px; }
+.aba-equipe.ativa { background: var(--verde-musgo); color: #fff; border-color: var(--verde-musgo); }
+.equipe-lista { display: grid; gap: 14px; }
+.equipe-item { padding: 16px 18px; display: grid; gap: 6px; }
+.equipe-item h2 { font-size: var(--t-medio); margin: 0; overflow-wrap: anywhere; }
+.equipe-item p { margin: 0; }
+.equipe-item.resolvida { opacity: 0.7; }
+.equipe-texto { white-space: pre-line; overflow-wrap: anywhere; }
+.equipe-tabela-moldura { overflow-x: auto; padding: 4px; }
+.equipe-tabela { width: 100%; border-collapse: collapse; font-size: var(--t-sec); }
+.equipe-tabela th, .equipe-tabela td { text-align: left; padding: 8px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+.equipe-plano-acao { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.equipe-plano-acao input { padding: 4px 6px; border: 1px solid var(--linha); border-radius: 8px; font: inherit; }
