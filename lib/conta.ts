@@ -216,6 +216,8 @@ export function useConta(): EstadoConta {
     }
     if (carregandoSessao) return;
     if (!usuario) {
+      // Saiu: esquece a conta guardada, para o próximo login ler tudo de novo (plano, tour…).
+      if (contaDe.current) cache.delete(contaDe.current);
       contaDe.current = null;
       setConta(null);
       setCarregando(false);
@@ -230,7 +232,11 @@ export function useConta(): EstadoConta {
       promessa = carregarConta(usuario);
       cache.set(usuario.id, promessa);
     }
-    promessa.then((c) => {
+    const esta = promessa;
+    esta.then((c) => {
+      // Não guarda falha (internet caiu, banco fora do ar): a próxima tela tenta ler de novo
+      // em vez de deixar a pessoa logada e "sem conta" até recarregar a página.
+      if (!c && cache.get(usuario.id) === esta) cache.delete(usuario.id);
       if (!ativo) return;
       contaDe.current = usuario.id;
       setConta(c);
