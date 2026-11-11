@@ -3355,8 +3355,9 @@ html { scroll-padding-top: 84px; }
   .instalar-cabecalho-app { display: none; }
 }
 /* Não cabe tudo: o "Entrar" do topo sai (ele continua na barra de baixo). */
-@media (max-width: 400px) {
+@media (max-width: 440px) {
   .cabecalho-direita:has(.instalar-cabecalho) .barra-entrar { display: none !important; }
+  .cabecalho-direita:has(.instalar-cabecalho) { gap: 10px; }
 }
 @media (max-width: 340px) {
   .instalar-cabecalho { padding: 0 11px; }
@@ -3367,11 +3368,17 @@ html { scroll-padding-top: 84px; }
 
 /* A janela fica acima do menu ☰ (z-index 1000) e do tour. */
 .janela-instalar-fundo { z-index: 1100; }
-.janela-instalar { position: relative; padding-top: 22px; }
+.janela-instalar {
+  position: relative;
+  padding: 28px 24px 20px;
+  border: 1.5px solid var(--verde-musgo);
+  box-shadow: 4px 4px 0 var(--verde-musgo);
+}
+@media (max-width: 380px) { .janela-instalar { padding: 24px 18px 18px; } }
 .janela-fechar {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 14px;
+  right: 14px;
   display: grid;
   place-items: center;
   width: 40px;
@@ -3391,12 +3398,12 @@ html { scroll-padding-top: 84px; }
   text-transform: uppercase;
   color: var(--cobre-texto);
 }
-.janela-titulo { font-size: var(--t-tit-p); margin: 0 40px 14px 0; }
-.janela-instalar .passos-instalar { gap: 12px; margin-bottom: 14px; }
+.janela-titulo { font-size: var(--t-tit-p); margin: 0 44px 16px 0; line-height: 1.1; }
+.janela-instalar .passos-instalar { gap: 14px; margin-bottom: 18px; padding-left: 22px; line-height: 1.5; }
 .janela-instalar .passos-instalar li::marker { font-weight: var(--peso-forte); color: var(--cobre-texto); }
 .icone-passo { display: inline-block; vertical-align: -3px; color: var(--verde-folio-escuro); }
-.janela-nota { font-size: var(--t-sec); margin: 0 0 14px; }
-.janela-rodape { margin: 12px 0 0; text-align: center; font-size: var(--t-sec); }
+.janela-nota { font-size: var(--t-sec); margin: 0 0 18px; padding: 10px 14px; border: 1px dashed var(--linha); border-radius: 10px; background: #fbf3dd; }
+.janela-rodape { margin: 14px 0 0; text-align: center; font-size: var(--t-sec); }
 .janela-rodape a { color: var(--castanho-cafe); text-underline-offset: 3px; }
 @media (prefers-reduced-motion: no-preference) {
   .janela-instalar { animation: janela-entra var(--mov-entrada) var(--ease-saida); }
