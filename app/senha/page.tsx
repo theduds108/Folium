@@ -24,7 +24,10 @@ export default function Senha() {
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [pronto, setPronto] = useState(false);
-  const temLogin = !!usuario?.user_metadata?.nome_usuario && !!usuario?.user_metadata?.tem_senha;
+  // Veio pelo link de "Esqueci a senha": a senha nova é obrigatória (não dá para "manter a atual").
+  // O Supabase limpa o endereço logo depois de ler o link, então a marca é lida já na primeira renderização.
+  const [recuperando] = useState(() => typeof window !== "undefined" && /type=recovery/.test(window.location.hash));
+  const temLogin = !recuperando && !!usuario?.user_metadata?.nome_usuario && !!usuario?.user_metadata?.tem_senha;
   const destino = conta ? INICIO_DA_AREA[conta.tipo] : "/";
 
   // Preenche com o nome atual, ou sugere um a partir do e-mail.
@@ -81,7 +84,7 @@ export default function Senha() {
       <div className="cartao pagina-estreita">
         {pronto ? (
           <>
-            <h1 style={{ fontSize: "var(--t-tit-m)" }}>Login criado</h1>
+            <h1 style={{ fontSize: "var(--t-tit-m)" }}>{recuperando ? "Senha nova salva" : "Login criado"}</h1>
             <div className="aviso" style={{ marginBottom: 16 }}>
               A partir de agora, este é o seu login: usuário <strong>{nome}</strong> e a senha que você criou. Não
               precisa mais esperar link no e-mail.
@@ -92,9 +95,11 @@ export default function Senha() {
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: "var(--t-tit-m)" }}>{temLogin ? "Trocar usuário ou senha" : "Crie seu usuário e senha"}</h1>
+            <h1 style={{ fontSize: "var(--t-tit-m)" }}>{recuperando ? "Crie uma senha nova" : temLogin ? "Trocar usuário ou senha" : "Crie seu usuário e senha"}</h1>
             <p className="suave">
-              {temLogin
+              {recuperando
+                ? "Escolha uma senha nova para entrar no Fólium. Se quiser, troque também o nome de usuário."
+                : temLogin
                 ? "Troque o que quiser. Deixe a senha em branco para manter a atual."
                 : "Seu e-mail já foi confirmado. Agora crie um nome de usuário e uma senha: esse será o seu login daqui em diante, sem precisar de link no e-mail."}{" "}
               Conta: <strong>{usuario.email}</strong>.
@@ -140,7 +145,7 @@ export default function Senha() {
               </label>
               {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
               <button className="botao botao-primario" type="submit" disabled={salvando}>
-                {salvando ? "Salvando…" : temLogin ? "Salvar" : "Criar meu login"}
+                {salvando ? "Salvando…" : recuperando ? "Salvar senha nova" : temLogin ? "Salvar" : "Criar meu login"}
               </button>
             </form>
             <p className="suave" style={{ marginTop: 20, marginBottom: 0, fontSize: "var(--t-sec)" }}>
