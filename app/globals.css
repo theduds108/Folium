@@ -2471,13 +2471,22 @@ html { scroll-padding-top: 84px; }
 .botao-sair:hover { color: var(--verde-musgo); border-color: var(--verde-musgo); }
 @media (max-width: 560px) {
   .barra-salvar-linha .botao-primario { flex: 1 1 100%; }
-  .barra-salvar-extra { margin-left: 0; width: 100%; justify-content: space-between; }
+  .barra-salvar-extra { margin-left: 0; width: 100%; justify-content: flex-start; }
 }
 .turbinar { margin: 0; }
+/* No celular: ações de conta numa faixa separada por linha tracejada; cada link inteiro numa linha
+   (sem quebrar "usuário e senha" ao meio) e "Sair da conta" desce para a direita se não couber */
 @media (max-width: 560px) {
-  .barra-salvar-extra { flex-wrap: nowrap; gap: 8px; }
+  .barra-salvar-extra {
+    flex-wrap: wrap;
+    gap: 4px 20px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--linha);
+  }
+  .barra-salvar-extra .link-mao,
+  .barra-salvar-extra .link-texto { white-space: nowrap; }
   .barra-salvar-extra .link-mao { font-size: var(--t-medio); }
-  .barra-salvar-extra .botao-sair { padding: 4px 12px; white-space: nowrap; }
+  .barra-salvar-extra .botao-sair { padding: 4px 14px; white-space: nowrap; margin-left: auto; }
 }
 .recuperado { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; }
 .link-ajuda { background: none; border: 0; padding: 0; min-height: 44px; font: inherit; font-size: var(--t-pequeno); color: var(--verde-folio-escuro); text-decoration: underline; cursor: pointer; text-align: left; }
@@ -3461,5 +3470,6 @@ html { scroll-padding-top: 84px; }
 .cadastro-termos { margin: 0; }
 
 /* Chame um colega (editor do portfólio) */
-.convidar-colega { display: grid; gap: 6px; justify-items: start; margin-top: 14px; }
-.convidar-colega p { margin: 0; font-size: var(--t-sec); }
+.convidar-colega { display: grid; gap: 8px; justify-items: start; margin-top: 14px; padding: 20px; }
+.convidar-colega strong { font-size: var(--t-medio); }
+.convidar-colega p { margin: 0 0 6px; font-size: var(--t-sec); line-height: 1.55; }
