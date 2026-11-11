@@ -1,6 +1,8 @@
 "use client";
 
 import { ConvidarColega } from "@/components/ConvidarColega";
+import { CopiarLinkPublico } from "@/components/CopiarLinkPublico";
+import { EstatisticasPerfil } from "@/components/EstatisticasPerfil";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -82,6 +84,7 @@ type Rascunho = {
   curriculo: string;
   disponivel: boolean;
   publicado: boolean;
+  linkPublico: boolean;
   trabalhos: TrabalhoRascunho[];
   experiencias: Experiencia[];
   certificados: Certificado[];
@@ -125,6 +128,7 @@ const VAZIO: Rascunho = {
   curriculo: "",
   disponivel: true,
   publicado: true,
+  linkPublico: false,
   trabalhos: [TRABALHO_VAZIO],
   experiencias: [],
   certificados: [],
@@ -320,6 +324,7 @@ function Editor(props: PropsEditor) {
             curriculo: p.curriculo_url ?? "",
             disponivel: p.disponivel,
             publicado: p.publicado,
+            linkPublico: !!p.link_publico,
             experiencias: p.experiencias ?? [],
             certificados: p.certificados ?? [],
             idiomas: p.idiomas ?? [],
@@ -439,6 +444,7 @@ function Editor(props: PropsEditor) {
           curriculo_url: r.curriculo || null,
           disponivel: r.disponivel,
           publicado: r.publicado,
+          link_publico: r.linkPublico,
           experiencias: r.experiencias
             .filter((x) => x.cargo.trim())
             .map((x) => ({ ...x, periodo: x.inicio || x.fim || x.atual ? formatarPeriodo(x.inicio, x.fim, x.atual) : x.periodo })),
@@ -868,6 +874,19 @@ function Editor(props: PropsEditor) {
               Mostrar meu portfólio na busca de talentos
             </label>
           )}
+          {real && (
+            <div className="link-publico">
+              <label className="filtro-check">
+                <input type="checkbox" checked={r.linkPublico} onChange={(e) => mudar("linkPublico", e.target.checked)} />
+                Link público para clientes
+              </label>
+              <span className="ajuda">
+                Quem receber o link vê seus trabalhos e o “sobre” sem precisar de conta. WhatsApp, e-mail, currículo e
+                certificados continuam só para quem tem conta. Vale depois de salvar.
+              </span>
+              {r.linkPublico && r.slug && r.publicado && <CopiarLinkPublico slug={r.slug} />}
+            </div>
+          )}
           </Ficha>
         )}
 
@@ -1127,6 +1146,7 @@ function Editor(props: PropsEditor) {
             <p className="salvo" style={{ margin: "10px 0 0" }}>Tudo preenchido. Seu portfólio está pronto para brilhar.</p>
           )}
         </div>
+        {real && <EstatisticasPerfil />}
         <ConvidarColega />
         <p className="suave" style={{ fontWeight: 600, margin: "20px 0 8px" }}>Prévia do seu cartão</p>
         <div style={{ maxWidth: 360, pointerEvents: "none" }}>

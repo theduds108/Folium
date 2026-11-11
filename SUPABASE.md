@@ -157,3 +157,15 @@ Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111000000_salvar_
 
 - `salvar_trabalhos`: o portfólio grava a lista de trabalhos numa transação só (tudo ou nada). Enquanto o SQL não for rodado, o site continua salvando do jeito antigo.
 - `excluir_minha_conta`: usada pelo botão **Excluir minha conta** em /privacidade. Sem o SQL, o botão avisa que a exclusão ainda não foi ativada.
+
+## Combinados, convites, avaliações, link público e painel da equipe (11/11/2026)
+
+1. Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111120000_combinados_convites_equipe.sql`.
+2. Coloque você (e quem mais for da equipe) na tabela `equipe`, trocando o e-mail:
+
+   ```sql
+   insert into public.equipe (id) select id from auth.users where email = 'SEU-EMAIL-AQUI' on conflict do nothing;
+   ```
+3. Entre no site com essa conta: o menu ☰ ganha **Painel da equipe** (/equipe), onde dá para aprovar vagas, ver denúncias e feedbacks e liberar o Premium sem abrir o Table Editor.
+
+Enquanto o SQL não rodar, o site continua funcionando: o link público, as estatísticas, os convites e os combinados só não aparecem (ou avisam que ainda não foram ativados).

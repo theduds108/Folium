@@ -73,12 +73,15 @@ export default function Privacidade() {
           <li><strong>Conta:</strong> e-mail, nome de usuário e senha (a senha fica embaralhada e ninguém da equipe consegue ler).</li>
           <li><strong>Aluno:</strong> o que você coloca no portfólio: nome, curso, semestre, cidade, foto, trabalhos, serviços, valores, contatos, experiências, certificados e currículo.</li>
           <li><strong>Contratante:</strong> nome, empresa, cidade, contato, vagas publicadas e talentos salvos.</li>
-          <li><strong>Uso:</strong> interesses em vagas, denúncias, feedbacks e tentativas de login erradas (para barrar quem tenta adivinhar senha).</li>
+          <li><strong>Combinados e avaliações:</strong> propostas entre aluno e contratante (o que foi combinado, prazo e valor) e as notas que um deu ao outro.</li>
+          <li><strong>Uso:</strong> interesses e convites em vagas, denúncias, feedbacks, tentativas de login erradas (para barrar quem tenta adivinhar senha) e visitas aos portfólios (só a contagem: o aluno vê os totais, nunca quem visitou).</li>
         </ul>
 
         <h3>Quem vê</h3>
         <ul>
           <li>Portfólios, vagas e talentos só aparecem para quem tem conta e está logado.</li>
+          <li>A exceção é o <strong>link público</strong>, que o aluno escolhe ligar: quem tem o link vê os trabalhos e o “sobre”, nunca WhatsApp, e-mail, currículo ou certificados.</li>
+          <li>Combinados só aparecem para as duas partes. Avaliações aparecem para quem tem conta.</li>
           <li>Fotos, currículos e certificados ficam em pastas privadas e abrem com links que expiram.</li>
           <li>Seu portfólio pode ser tirado da busca a qualquer momento no editor.</li>
           <li>A equipe do Fólium vê os dados para aprovar vagas, cuidar de denúncias e responder feedbacks. Não vendemos nem passamos seus dados para propaganda.</li>
@@ -107,8 +110,9 @@ export default function Privacidade() {
       <section id="excluir" className="cartao legal-secao" aria-labelledby="t-excluir">
         <h2 id="t-excluir">Excluir minha conta</h2>
         <p>
-          Apaga para sempre seu login, seu portfólio, trabalhos, fotos, currículo, certificados e talentos salvos. Vagas,
-          denúncias e feedbacks que você mandou ficam, mas sem o seu nome. Não dá para desfazer.
+          Apaga para sempre seu login, seu portfólio, trabalhos, fotos, currículo, certificados, talentos salvos, convites,
+          combinados e as avaliações que você recebeu. Vagas, denúncias, feedbacks e avaliações que você escreveu ficam, mas
+          sem o seu login. Não dá para desfazer.
         </p>
         <ExcluirConta />
       </section>

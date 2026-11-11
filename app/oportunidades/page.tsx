@@ -3,6 +3,7 @@ import { SoComConta } from "@/components/SoComConta";
 import { MuralOportunidades } from "./MuralOportunidades";
 import { AvisoEmpresa } from "./AreaVagas";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
+import { ConvitesRecebidos } from "@/components/ConvitesRecebidos";
 
 export const metadata: Metadata = { title: "Oportunidades" };
 
@@ -17,6 +18,7 @@ export default function Oportunidades() {
       >
         <AvisoEmpresa />
       </CabecalhoArquivo>
+      <ConvitesRecebidos />
       <MuralOportunidades />
     </div>
     </SoComConta>

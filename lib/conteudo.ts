@@ -180,10 +180,12 @@ export const PLANOS: Plano[] = [
     lema: "Monte seu portfólio e comece a ser encontrado, sem pagar nada.",
     itens: [
       "Portfólio com até 6 trabalhos",
-      "Link próprio para mandar a clientes",
+      "Link próprio para mandar a clientes, com opção de link público",
       "Selo de aluno verificado pela UNISAGRADO",
       "Mural de oportunidades e botão Tenho interesse",
       "Guia de quanto cobrar, com calculadora",
+      "Combinados por escrito e avaliações de quem te contratou",
+      "Visitas ao portfólio no último mês",
     ],
   },
   {
@@ -199,8 +201,9 @@ export const PLANOS: Plano[] = [
       "Mais trabalhos no portfólio, sem o limite de 6",
       "Jornal do Fólium da semana: vagas, quanto cobrar e matérias para quem está começando",
       "Chance de ser o perfil da semana no jornal",
+      "Estatísticas completas: visitas de contratantes e quantos te salvaram",
     ],
-    emBreve: ["Perfil em destaque nas buscas", "Estatísticas de visitas ao perfil"],
+    emBreve: ["Perfil em destaque nas buscas"],
   },
   {
     tipo: "contratante",
@@ -212,6 +215,7 @@ export const PLANOS: Plano[] = [
       "Todos os portfólios, com contato direto",
       "Vagas no mural sem limite, por enquanto",
       "Painel para acompanhar suas vagas e quem se interessou",
+      "Convide alunos para suas vagas e feche combinados por escrito",
       "Alunos com e-mail institucional verificado",
     ],
   },
@@ -240,7 +244,7 @@ export const PLANOS: Plano[] = [
   },
 ];
 
-export type Avaliacao = { nota: number; texto: string; autor: string };
+export type Avaliacao = { nota: number; texto: string; autor: string; /** Linha abaixo do nome. */ selo?: string };
 
 const AVALIACOES: Avaliacao[] = [
   { nota: 5, texto: "Entregou antes do prazo e explicou cada escolha. Contrataria de novo.", autor: "Padaria Sol" },
