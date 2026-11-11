@@ -1,7 +1,7 @@
 // Varredura: todas as páginas, 3 perfis, 2 telas. Erros de JS, rolagem horizontal, links internos em nova aba.
 const { chromium } = require("playwright");
 const BASE = "http://localhost:3100";
-const PAGS = ["/", "/talentos/", "/oportunidades/", "/jornal/", "/guia/", "/planos/", "/sobre/", "/feedback/", "/instalar/", "/entrar/", "/senha/", "/meu-perfil/", "/painel/", "/publicar/", "/perfil/?u=nao-existe", "/aluno/ana-ribeiro/", "/pagina-que-nao-existe/"];
+const PAGS = ["/", "/talentos/", "/oportunidades/", "/jornal/", "/guia/", "/planos/", "/sobre/", "/privacidade/", "/feedback/", "/instalar/", "/entrar/", "/senha/", "/meu-perfil/", "/painel/", "/publicar/", "/perfil/?u=nao-existe", "/aluno/ana-ribeiro/", "/pagina-que-nao-existe/"];
 const out = [];
 (async () => { const browser = await chromium.launch();
   for (const quem of ["visitante", "ana", "empresa"]) for (const vp of [{ n: "cel", v: { width: 390, height: 844 }, m: true }, { n: "pc", v: { width: 1366, height: 800 } }]) {

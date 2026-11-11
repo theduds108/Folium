@@ -42,7 +42,8 @@ const ok = (n, c, extra = "") => { out.push(`${c ? "PASS" : "FAIL"} ${n} ${extra
     const tokenDepois = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes("auth-token")));
     ok(P + " logout apaga sessão", tokenDepois.length === 0);
     await page.reload(); await page.waitForTimeout(1500);
-    ok(P + " depois do logout cabeçalho mostra Entrar", await page.locator(".cabecalho").getByRole("link", { name: "Entrar" }).first().isVisible().catch(() => false));
+    // No celular (até 440px) o "Entrar" sai do topo para caber o "Instalar" (PR #37) e fica na barra de baixo.
+    ok(P + " depois do logout aparece Entrar", (await page.locator("a:visible", { hasText: /^Entrar$/ }).count()) > 0);
     // 6. login por e-mail
     await page.goto(BASE + "/entrar/"); await page.waitForTimeout(1500); out.push("INFO url "+page.url()); await page.screenshot({path:__dirname+"/dbg.png"});
     await page.getByLabel("Nome de usuário ou e-mail").fill("CONTATO@empresa.com");

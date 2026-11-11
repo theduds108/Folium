@@ -24,3 +24,4 @@ Cada linha sai como `PASS` ou `FAIL`. As capturas de tela ficam em `testes/e2e/c
 | 04-editor-portfolio | perfil que não carregou não pode ser salvo por cima; salvar mantém os trabalhos |
 | 05-falhas-interesse-menu | "Tenho interesse" grava, desfaz e lembra; avisos de falha nas vagas/talentos; trabalhos voltam se a gravação falhar; sair pelo menu |
 | 06-modo-demo | site sem banco (modo demonstração) continua funcionando |
+| 07-melhorias-11-11 | faixa de preço ao publicar vaga, perfil sem conexão, convite de colegas, termos no cadastro, salvar trabalhos pela função do banco, excluir a conta |

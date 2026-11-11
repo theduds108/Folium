@@ -61,6 +61,22 @@ const server = http.createServer((req, res) => {
       const fn = p.split("/").pop();
       if (fn === "email_para_login") { const n = db.nomes_usuario.find((r) => r.nome === body.p_usuario); const u = n && users.find((x) => x.id === n.id); return send(res, 200, u && u.password === body.p_senha ? u.email : null); }
       if (fn === "nome_usuario_livre") { const me = who(req); const n = db.nomes_usuario.find((r) => r.nome === body.p_nome); return send(res, 200, !n || (me && n.id === me.id)); }
+      if (fn === "salvar_trabalhos") {
+        const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
+        // Transação: se a gravação falhar, nada muda (POST:trabalhos simula a falha).
+        if (falhar["POST:trabalhos"] > 0) { falhar["POST:trabalhos"]--; return send(res, 500, { message: "simulated" }); }
+        db.trabalhos = (db.trabalhos || []).filter((x) => x.perfil_id !== me.id);
+        (body.p_trabalhos || []).filter((t) => (t.titulo || "").trim()).forEach((t, i) => db.trabalhos.push({ ...t, id: crypto.randomUUID(), perfil_id: me.id, ordem: i }));
+        return send(res, 200, null);
+      }
+      if (fn === "excluir_minha_conta") {
+        const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
+        users.splice(users.indexOf(me), 1);
+        for (const t of ["perfis", "contas", "nomes_usuario"]) db[t] = (db[t] || []).filter((r) => r.id !== me.id);
+        db.trabalhos = (db.trabalhos || []).filter((r) => r.perfil_id !== me.id);
+        for (const [k, v] of tokens) if (v === me.id) tokens.delete(k);
+        return send(res, 200, null);
+      }
       return send(res, 200, null);
     }
     // ---------- tabelas ----------

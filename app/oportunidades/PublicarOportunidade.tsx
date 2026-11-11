@@ -9,6 +9,7 @@ import { bancoLigado } from "@/lib/supabase";
 import { enviarOportunidade, guardarVagaDemo } from "@/lib/repositorio";
 import { RECURSOS, type Conta } from "@/lib/conta";
 import { formatarData, mascaraReais, mascaraTelefone } from "@/lib/formato";
+import { SERVICOS_PRECO, brl, origemFaixa, redondo } from "@/lib/precos";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
 
@@ -28,6 +29,8 @@ export function PublicarOportunidade({ conta, premium = false }: { conta?: Conta
   const [orcamento, setOrcamento] = useState("");
   const [combinar, setCombinar] = useState(false);
   const [servico, setServico] = useState<string>(SERVICOS[0]);
+  // Faixa do guia "Quanto cobrar" para o serviço escolhido (mesmos números que os alunos veem).
+  const faixa = SERVICOS_PRECO.find((p) => p.vaga === servico);
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>("Freela");
 
   const hoje = new Date().toISOString().slice(0, 10);
@@ -151,6 +154,25 @@ export function PublicarOportunidade({ conta, premium = false }: { conta?: Conta
               <span className="ajuda">Deixe em branco se não tiver data.</span>
             </label>
           </div>
+
+          {faixa && (
+            <div className="faixa-sugerida" role="note" aria-live="polite">
+              <p>
+                <strong>Quanto costuma custar:</strong> para {faixa.servico.toLowerCase()}, alunos que estão começando cobram de{" "}
+                <strong>{brl(faixa.min)} a {brl(faixa.max)}</strong> {faixa.base}.
+              </p>
+              <p className="ajuda">{origemFaixa(faixa.fonte).titulo}</p>
+              {!combinar && (
+                <button
+                  type="button"
+                  className="botao botao-contorno botao-pequeno"
+                  onClick={() => setOrcamento(mascaraReais(String(redondo((faixa.min + faixa.max) / 2))))}
+                >
+                  Usar o meio da faixa ({brl(redondo((faixa.min + faixa.max) / 2))})
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="publicar-divisor"><span>Sobre você</span></div>
 

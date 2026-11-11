@@ -1,5 +1,6 @@
 "use client";
 
+import { ConvidarColega } from "@/components/ConvidarColega";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -1126,6 +1127,7 @@ function Editor(props: PropsEditor) {
             <p className="salvo" style={{ margin: "10px 0 0" }}>Tudo preenchido. Seu portfólio está pronto para brilhar.</p>
           )}
         </div>
+        <ConvidarColega />
         <p className="suave" style={{ fontWeight: 600, margin: "20px 0 8px" }}>Prévia do seu cartão</p>
         <div style={{ maxWidth: 360, pointerEvents: "none" }}>
           <CartaoAluno aluno={paraAluno(r)} semLink />

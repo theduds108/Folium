@@ -49,6 +49,6 @@ const entrar = async (page, u) => { await page.goto(BASE + "/entrar/"); await pa
   await page.getByRole("button", { name: /Menu/ }).click(); await page.waitForTimeout(500);
   await page.screenshot({ path: __dirname + "/capturas/shot-menu-logado.png" });
   await page.getByRole("button", { name: /Sair da conta/ }).last().click(); await page.waitForTimeout(1500);
-  ok("sair pelo menu volta ao início deslogado", page.url() === BASE + "/" && await page.locator(".cabecalho").getByRole("link", { name: "Entrar" }).first().isVisible(), page.url());
+  ok("sair pelo menu volta ao início deslogado", page.url() === BASE + "/" && (await page.locator("a:visible", { hasText: /^Entrar$/ }).count()) > 0, page.url());
   await ctx.close();
 } catch (e) { out.push("ERRO " + e.message.split("\n")[0]); } await browser.close(); console.log(out.join("\n")); })();
