@@ -51,7 +51,7 @@ export default function Entrar() {
 function FormEntrar() {
   const router = useRouter();
   const params = useSearchParams();
-  const { conta, logado } = useConta();
+  const { conta, logado, carregando: carregandoConta, recarregar } = useConta();
   const [tipo, setTipo] = useState<TipoConta>(params.get("como") === "contratante" ? "contratante" : "colaborador");
   const [modo, setModo] = useState<Modo>(params.get("modo") === "primeiro" ? "primeiro" : "entrar");
   const [login, setLogin] = useState("");
@@ -128,6 +128,19 @@ function FormEntrar() {
     }
     setAviso(modo);
   };
+
+  // Entrou, mas a conta não carregou (internet caiu, banco fora do ar): avisa e deixa tentar de novo,
+  // em vez de mostrar o formulário de novo como se nada tivesse acontecido.
+  if (bancoLigado && logado && !carregandoConta && !conta)
+    return (
+      <div className="container">
+        <div className="cartao pagina-estreita">
+          <h1 style={{ fontSize: "var(--t-tit-m)" }}>Você entrou, mas a conta não carregou</h1>
+          <p className="suave">Deve ter sido a internet. Confira a conexão e tente de novo; seu login continua salvo.</p>
+          <button className="botao botao-primario" style={{ width: "100%" }} onClick={recarregar}>Tentar de novo</button>
+        </div>
+      </div>
+    );
 
   if (aviso)
     return (

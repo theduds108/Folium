@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ReverTour } from "./TourGuiado";
+import { sair } from "@/lib/sessao";
 
 /**
  * Menu (☰) do cabeçalho.
@@ -22,8 +23,9 @@ function ativo(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function MenuPrincipal({ grupos }: { grupos: GrupoMenu[] }) {
+export function MenuPrincipal({ grupos, logado = false }: { grupos: GrupoMenu[]; logado?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [montado, setMontado] = useState(false);
   const refBotao = useRef<HTMLButtonElement>(null);
@@ -157,6 +159,33 @@ export function MenuPrincipal({ grupos }: { grupos: GrupoMenu[] }) {
                     </li>
                   </ul>
                 </section>
+
+                {logado && (
+                  <section className="menu-grupo menu-grupo-extra">
+                    <h2 className="menu-grupo-titulo">Sua conta</h2>
+                    <ul>
+                      <li>
+                        <Link href="/senha" className={`menu-link${ativo(pathname, "/senha") ? " ativo" : ""}`} onClick={() => fechar(false)}>
+                          <span className="menu-link-rotulo">Trocar usuário ou senha</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="menu-link"
+                          onClick={async () => {
+                            fechar(false);
+                            await sair();
+                            router.replace("/");
+                          }}
+                        >
+                          <span className="menu-link-rotulo">Sair da conta</span>
+                          <span className="menu-link-dica">Só neste aparelho</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </section>
+                )}
               </nav>
 
               <p className="menu-assinatura">Fólium · em parceria com a UNISAGRADO</p>

@@ -261,6 +261,9 @@ function Editor(props: PropsEditor) {
   const [salvando, setSalvando] = useState(false);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
+  /** O perfil salvo não carregou: o editor fica fechado para ninguém salvar um formulário vazio por cima dele. */
+  const [falhaCarga, setFalhaCarga] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
   const [msgArquivo, setMsgArquivo] = useState<{ chave: string; tipo: "erro" | "aviso"; texto: string } | null>(null);
   const [cursoOutro, setCursoOutro] = useState(false);
   const [passo, setPasso] = useState<Passo>("voce");
@@ -339,10 +342,10 @@ function Editor(props: PropsEditor) {
         setPronto(true);
       })
       .catch(() => {
-        setErro("Não consegui carregar seu perfil. Confira a internet e recarregue a página.");
-        setPronto(true);
+        // Não abre o editor vazio: salvar por cima apagaria o portfólio e os trabalhos do banco.
+        setFalhaCarga(true);
       });
-  }, [props.modo, userId, email]);
+  }, [props.modo, userId, email, tentativa]);
 
   const mudar = <K extends keyof Rascunho>(campo: K, valor: Rascunho[K]) => {
     setR((atual) => ({ ...atual, [campo]: valor }));
@@ -566,6 +569,22 @@ function Editor(props: PropsEditor) {
     setPasso(id);
   };
 
+  if (falhaCarga)
+    return (
+      <Aviso titulo="Não consegui carregar seu portfólio">
+        <p className="suave">Deve ter sido a internet. Nada foi apagado: confira a conexão e tente de novo.</p>
+        <button
+          className="botao botao-primario"
+          style={{ width: "100%" }}
+          onClick={() => {
+            setFalhaCarga(false);
+            setTentativa((t) => t + 1);
+          }}
+        >
+          Tentar de novo
+        </button>
+      </Aviso>
+    );
   if (!pronto) return <Aguarde texto="Carregando seu portfólio…" />;
 
   const feitas = fichasFeitas(r);
@@ -1109,7 +1128,7 @@ function Editor(props: PropsEditor) {
         </div>
         <p className="suave" style={{ fontWeight: 600, margin: "20px 0 8px" }}>Prévia do seu cartão</p>
         <div style={{ maxWidth: 360, pointerEvents: "none" }}>
-          <CartaoAluno aluno={paraAluno(r)} />
+          <CartaoAluno aluno={paraAluno(r)} semLink />
         </div>
       </aside>
     </div>
