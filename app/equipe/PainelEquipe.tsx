@@ -177,46 +177,89 @@ export function PainelEquipe() {
       )}
 
       {dados && aba === "planos" && (
-        <section className="equipe-lista" aria-label="Planos">
-          <p className="suave">Quem clicou em “Quero o Premium” aparece primeiro. Liberar sem data deixa o Premium sem prazo para acabar.</p>
-          <div className="cartao equipe-tabela-moldura">
-            <table className="equipe-tabela">
-              <thead>
-                <tr><th>Conta</th><th>Tipo</th><th>Plano</th><th>Ação</th></tr>
-              </thead>
-              <tbody>
-                {dados.contas.map((c) => <LinhaPlano key={c.id} c={c} onMudar={(plano, ate) => fazer(() => equipeMudarPlano(c.id, plano, ate), plano === "premium" ? "Premium liberado." : "Voltou para o plano grátis.")} />)}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ListaPlanos
+          contas={dados.contas}
+          onMudar={(c, plano, ate) => fazer(() => equipeMudarPlano(c.id, plano, ate), plano === "premium" ? "Premium liberado." : "Voltou para o plano grátis.")}
+        />
       )}
     </div>
   );
 }
 
-function LinhaPlano({ c, onMudar }: { c: ContaEquipe; onMudar: (plano: "gratis" | "premium", ate: string | null) => void }) {
-  const [ate, setAte] = useState(c.plano_ate ?? "");
+type FiltroPlano = "todos" | "pedidos" | "premium";
+
+/** Lista de contas em cartões: cabe no celular sem rolar para o lado. */
+function ListaPlanos({ contas, onMudar }: { contas: ContaEquipe[]; onMudar: (c: ContaEquipe, plano: "gratis" | "premium", ate: string | null) => void }) {
+  const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState<FiltroPlano>("todos");
+  const pediu = (c: ContaEquipe) => !!c.plano_pedido && c.plano === "gratis";
+  const n = { todos: contas.length, pedidos: contas.filter(pediu).length, premium: contas.filter((c) => c.plano === "premium").length };
+  const termo = busca.trim().toLowerCase();
+  const lista = contas.filter(
+    (c) =>
+      (filtro === "todos" || (filtro === "pedidos" ? pediu(c) : c.plano === "premium")) &&
+      (!termo || [c.nome, c.empresa, c.email].some((x) => x?.toLowerCase().includes(termo))),
+  );
+  const FILTROS: { id: FiltroPlano; rotulo: string }[] = [
+    { id: "todos", rotulo: "Todas" },
+    { id: "pedidos", rotulo: "Pediram Premium" },
+    { id: "premium", rotulo: "Já são Premium" },
+  ];
+
   return (
-    <tr>
-      <td>
-        <strong>{c.empresa || c.nome || "Sem nome"}</strong>
-        <br />
-        <span className="ajuda" style={{ overflowWrap: "anywhere" }}>{c.email}</span>
-        {c.plano_pedido && c.plano === "gratis" && <span className="selo-status selo-proposto" style={{ marginLeft: 6 }}>pediu Premium</span>}
-      </td>
-      <td>{c.tipo}</td>
-      <td>{c.plano}{c.plano_ate ? ` até ${formatarData(c.plano_ate)}` : ""}</td>
-      <td>
-        {c.plano === "gratis" ? (
-          <div className="equipe-plano-acao">
-            <input type="date" value={ate} onChange={(e) => setAte(e.target.value)} aria-label="Premium até (opcional)" />
-            <button type="button" className="botao botao-primario botao-pequeno" onClick={() => onMudar("premium", ate || null)}>Liberar Premium</button>
-          </div>
-        ) : (
-          <button type="button" className="botao botao-contorno botao-pequeno" onClick={() => onMudar("gratis", null)}>Voltar ao grátis</button>
-        )}
-      </td>
-    </tr>
+    <section className="equipe-lista" aria-label="Planos">
+      <p className="suave" style={{ margin: 0 }}>Quem pediu o Premium aparece primeiro. Sem data, o Premium não tem prazo para acabar.</p>
+      <div className="equipe-planos-filtros">
+        <label className="campo">
+          Buscar conta
+          <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Nome ou e-mail" />
+        </label>
+        <div className="equipe-filtro-chips" role="group" aria-label="Mostrar">
+          {FILTROS.map((f) => (
+            <button key={f.id} type="button" className={filtro === f.id ? "chip-filtro ativo" : "chip-filtro"} aria-pressed={filtro === f.id} onClick={() => setFiltro(f.id)}>
+              {f.rotulo} <span className="chip-contagem">{n[f.id]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      {lista.length === 0 && <p className="suave">Nenhuma conta encontrada.</p>}
+      {lista.map((c) => <CartaoPlano key={c.id} c={c} pediu={pediu(c)} onMudar={(plano, ate) => onMudar(c, plano, ate)} />)}
+    </section>
+  );
+}
+
+function CartaoPlano({ c, pediu, onMudar }: { c: ContaEquipe; pediu: boolean; onMudar: (plano: "gratis" | "premium", ate: string | null) => void }) {
+  const [ate, setAte] = useState(c.plano_ate ?? "");
+  const usuario = (c.email ?? "").split("@")[0];
+  const nome = c.empresa || c.nome || usuario || "Conta sem nome";
+  const premium = c.plano === "premium";
+  return (
+    <article className={pediu ? "cartao equipe-conta pediu" : "cartao equipe-conta"}>
+      <div className="equipe-conta-topo">
+        <div className="equipe-conta-nome">
+          <h2>{nome}</h2>
+          <span className="ajuda">{c.email}</span>
+        </div>
+        {pediu && <span className="selo-status selo-proposto">Pediu Premium</span>}
+      </div>
+      <div className="equipe-conta-selos">
+        <span className="etiqueta">{c.tipo === "contratante" ? "Contratante" : "Aluno"}</span>
+        <span className={premium ? "etiqueta etiqueta-premium" : "etiqueta"}>
+          {premium ? `Premium${c.plano_ate ? ` até ${formatarData(c.plano_ate)}` : " sem prazo"}` : "Grátis"}
+        </span>
+        {c.criada_em && <span className="suave equipe-conta-desde">desde {dia(c.criada_em)}</span>}
+      </div>
+      {premium ? (
+        <button type="button" className="botao botao-contorno equipe-conta-botao" onClick={() => onMudar("gratis", null)}>Voltar ao grátis</button>
+      ) : (
+        <div className="equipe-conta-acao">
+          <label className="campo">
+            Premium até (opcional)
+            <input type="date" value={ate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setAte(e.target.value)} />
+          </label>
+          <button type="button" className="botao botao-primario equipe-conta-botao" onClick={() => onMudar("premium", ate || null)}>Liberar Premium</button>
+        </div>
+      )}
+    </article>
   );
 }
