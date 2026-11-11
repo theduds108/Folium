@@ -7,7 +7,7 @@ import { Seletor } from "@/components/Seletor";
 import { EsqueletoVaga } from "@/components/Esqueleto";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { bancoLigado } from "@/lib/supabase";
-import { listarOportunidadesReais, marcarInteresse } from "@/lib/repositorio";
+import { desmarcarInteresse, listarOportunidadesReais, marcarInteresse, meusInteresses } from "@/lib/repositorio";
 import { useSessao } from "@/lib/sessao";
 import { useConta } from "@/lib/conta";
 import { Denunciar } from "@/components/Denunciar";
@@ -41,17 +41,34 @@ export function MuralOportunidades() {
   const [interesse, setInteresse] = useState<string[]>([]);
   const [reais, setReais] = useState<Oportunidade[]>([]);
   const [carregando, setCarregando] = useState(bancoLigado);
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
   const [anuncio, setAnuncio] = useState("");
+  const [erroInteresse, setErroInteresse] = useState<{ id: string; texto: string } | null>(null);
+
+  // Interesses já enviados continuam marcados depois de recarregar ou voltar à página.
+  const idUsuario = usuario?.id;
+  useEffect(() => {
+    if (!idUsuario) return;
+    let ativo = true;
+    meusInteresses(idUsuario).then((ids) => ativo && ids.length && setInteresse((x) => Array.from(new Set([...x, ...ids]))));
+    return () => {
+      ativo = false;
+    };
+  }, [idUsuario]);
 
   useEffect(() => {
     let ativo = true;
-    listarOportunidadesReais()
+    setFalhou(false);
+    if (tentativa) setCarregando(true);
+    listarOportunidadesReais(true)
       .then((r) => ativo && setReais(r))
+      .catch(() => ativo && setFalhou(true))
       .finally(() => ativo && setCarregando(false));
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [tentativa]);
 
   // Vagas em destaque (contratante Premium) vêm primeiro.
   const todas = (MOSTRAR_EXEMPLOS || !bancoLigado ? [...reais, ...OPORTUNIDADES] : [...reais]).sort(
@@ -61,15 +78,33 @@ export function MuralOportunidades() {
   const lista = porServico.filter((o) => !tipo || o.tipo === tipo);
   const contar = (t: string) => porServico.filter((o) => o.tipo === t).length;
 
-  const tenhoInteresse = (o: Oportunidade) => {
+  const tenhoInteresse = async (o: Oportunidade) => {
+    setErroInteresse(null);
     setInteresse((x) => (x.includes(o.id) ? x : [...x, o.id]));
     setAnuncio(`Interesse enviado: ${o.titulo}.${o.contato ? ` Contato da empresa: ${o.contato}.` : ""}`);
-    if (o.real && usuario) marcarInteresse(o.id, usuario.id).catch(() => {});
+    if (!o.real || !usuario) return;
+    try {
+      await marcarInteresse(o.id, usuario.id);
+    } catch (e) {
+      // Não deu para gravar: desmarca, para o aluno não achar que a empresa recebeu.
+      setInteresse((x) => x.filter((i) => i !== o.id));
+      setErroInteresse({ id: o.id, texto: (e as Error).message });
+      setAnuncio(`Interesse não enviado: ${(e as Error).message}`);
+    }
   };
 
-  const desfazer = (o: Oportunidade) => {
+  const desfazer = async (o: Oportunidade) => {
+    setErroInteresse(null);
     setInteresse((x) => x.filter((i) => i !== o.id));
     setAnuncio(`Interesse retirado: ${o.titulo}.`);
+    if (!o.real || !usuario) return;
+    try {
+      await desmarcarInteresse(o.id, usuario.id);
+    } catch (e) {
+      setInteresse((x) => (x.includes(o.id) ? x : [...x, o.id]));
+      setErroInteresse({ id: o.id, texto: (e as Error).message });
+      setAnuncio(`Não deu para retirar o interesse: ${(e as Error).message}`);
+    }
   };
 
   const limpar = () => {
@@ -115,7 +150,13 @@ export function MuralOportunidades() {
         </p>
         <p className="visualmente-oculto" aria-live="polite">{anuncio}</p>
 
-        {lista.length > 0 || carregando ? (
+        {falhou && !carregando && reais.length === 0 ? (
+          <div className="cartao vazio" role="alert">
+            <h3>Não deu para carregar as vagas</h3>
+            <p className="suave">Deve ter sido a internet. Confira a conexão e tente de novo.</p>
+            <button className="botao botao-contorno" onClick={() => setTentativa((t) => t + 1)}>Tentar de novo</button>
+          </div>
+        ) : lista.length > 0 || carregando ? (
           <div className="grade-vagas">
             {carregando && [0, 1].map((i) => <EsqueletoVaga key={`esq-${i}`} />)}
             {lista.map((o) => {
@@ -149,6 +190,9 @@ export function MuralOportunidades() {
                     <button type="button" className="botao botao-primario" onClick={() => tenhoInteresse(o)}>
                       Tenho interesse
                     </button>
+                  )}
+                  {erroInteresse?.id === o.id && (
+                    <p className="erro" role="alert" style={{ margin: 0 }}>{erroInteresse.texto}</p>
                   )}
                   {o.real && <Denunciar alvo={o.id} tipo="oportunidade" />}
                 </article>
