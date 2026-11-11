@@ -101,17 +101,17 @@ export function TravaPremium({ titulo, texto, compacto = false }: { titulo: stri
       {!logado ? (
         <Link href="/planos" className="botao botao-contorno">Ver planos</Link>
       ) : estado === "pedido" || conta?.planoPedido ? (
-        <p className="salvo" style={{ margin: 0 }}>Pedido enviado. O pagamento pelo site ainda está em desenvolvimento, então a equipe libera seu Premium em até 1 dia útil.</p>
+        <p className="salvo" style={{ margin: 0 }}>Pronto, você está na lista. Avisamos aqui no Fólium quando o Premium abrir.</p>
       ) : (
         <div className="trava-acoes">
           <button type="button" className="botao botao-primario" onClick={pedir} disabled={estado === "enviando"}>
-            {estado === "enviando" ? "Enviando…" : "Quero o Premium"}
+            {estado === "enviando" ? "Enviando…" : "Me avise quando abrir"}
           </button>
           <Link href="/planos" className="botao botao-contorno">Comparar planos</Link>
-          <p className="ajuda aviso-desenvolvimento">Pagamento pelo site em desenvolvimento. Por enquanto, a equipe confirma seu pedido e libera o Premium em até 1 dia útil.</p>
+          <p className="ajuda aviso-desenvolvimento">O Premium ainda não está à venda: estamos definindo como vai ser o pagamento. Entre na lista e avisamos quando abrir.</p>
         </div>
       )}
-      {estado === "erro" && <p className="erro" role="alert">Não deu para enviar o pedido. Tente de novo.</p>}
+      {estado === "erro" && <p className="erro" role="alert">Não deu para entrar na lista. Tente de novo.</p>}
     </div>
   );
 }

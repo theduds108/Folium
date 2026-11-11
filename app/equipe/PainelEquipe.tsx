@@ -202,13 +202,13 @@ function ListaPlanos({ contas, onMudar }: { contas: ContaEquipe[]; onMudar: (c: 
   );
   const FILTROS: { id: FiltroPlano; rotulo: string }[] = [
     { id: "todos", rotulo: "Todas" },
-    { id: "pedidos", rotulo: "Pediram Premium" },
+    { id: "pedidos", rotulo: "Na lista do Premium" },
     { id: "premium", rotulo: "Já são Premium" },
   ];
 
   return (
     <section className="equipe-lista" aria-label="Planos">
-      <p className="suave" style={{ margin: 0 }}>Quem pediu o Premium aparece primeiro. Sem data, o Premium não tem prazo para acabar.</p>
+      <p className="suave" style={{ margin: 0 }}>Quem entrou na lista do Premium aparece primeiro. Sem data, o Premium não tem prazo para acabar.</p>
       <div className="equipe-planos-filtros">
         <label className="campo">
           Buscar conta
@@ -243,7 +243,7 @@ function CartaoPlano({ c, pediu, onMudar }: { c: ContaEquipe; pediu: boolean; on
           <h2>{nome}</h2>
           <span className="ajuda">{c.email}</span>
         </div>
-        {pediu && <span className="selo-status selo-proposto">Pediu Premium</span>}
+        {pediu && <span className="selo-status selo-proposto">Na lista do Premium</span>}
       </div>
       <div className="equipe-conta-selos">
         <span className="etiqueta">{c.tipo === "contratante" ? "Contratante" : "Aluno"}</span>
