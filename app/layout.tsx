@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             {/* Os outros links (Guia, Sobre, Planos, Feedback, Rever o tour, Instalar) ficam no menu ☰ do cabeçalho. */}
             <span>
-              <Link href="/sobre">Sobre</Link> · <Link href="/feedback">Feedback</Link>
+              <Link href="/sobre">Sobre</Link> · <Link href="/privacidade">Privacidade</Link> · <Link href="/feedback">Feedback</Link>
             </span>
           </div>
         </footer>

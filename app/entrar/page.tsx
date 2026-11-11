@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { emailInstitucional } from "@/lib/config";
@@ -273,6 +274,12 @@ function FormEntrar() {
             </label>
           )}
           {erro && <p className="erro" role="alert" style={{ margin: 0 }}>{erro}</p>}
+          {modo === "primeiro" && (
+            <p className="ajuda cadastro-termos">
+              Ao continuar, você concorda com os <Link href="/privacidade#termos">Termos de uso</Link> e a{" "}
+              <Link href="/privacidade#privacidade">Política de privacidade</Link>.
+            </p>
+          )}
           <button className="botao botao-primario" type="submit" disabled={enviando}>
             {enviando ? BOTAO[modo][1] : BOTAO[modo][0]}
           </button>
