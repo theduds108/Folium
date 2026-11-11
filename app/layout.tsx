@@ -5,11 +5,13 @@ import "./globals.css";
 import { AbaFeedback } from "@/components/AbaFeedback";
 import { AvisoSenha } from "@/components/AvisoSenha";
 import { Cabecalho } from "@/components/Cabecalho";
+import { JanelaInstalar } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { TourGuiado } from "@/components/TourGuiado";
 import { VisaoDemo } from "@/components/VisaoDemo";
 import { Abertura } from "@/components/animacoes/Abertura";
 import { Revelar } from "@/components/animacoes/Revelar";
+import { SCRIPT_CAPTURA } from "@/lib/instalar-script";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
 const mao = Caveat({ subsets: ["latin"], variable: "--fonte-mao", display: "swap" });
@@ -33,6 +35,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className={`${titulo.variable} ${texto.variable} ${mao.variable}`}>
+      <head>
+        {/* Guarda o pedido de instalação do navegador antes do React carregar (ver lib/instalar.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_CAPTURA }} />
+      </head>
       <body>
         <Abertura />
         <Cabecalho />
@@ -52,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AbaFeedback />
         <VisaoDemo />
         <TourGuiado />
+        <JanelaInstalar />
         <RegistrarSW />
         <Revelar />
       </body>

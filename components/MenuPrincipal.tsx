@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { InstalarApp } from "./InstalarApp";
 import { ReverTour } from "./TourGuiado";
 import { sair } from "@/lib/sessao";
 
@@ -148,14 +149,7 @@ export function MenuPrincipal({ grupos, logado = false }: { grupos: GrupoMenu[];
                       </ReverTour>
                     </li>
                     <li>
-                      <Link
-                        href="/instalar"
-                        className={`menu-link${ativo(pathname, "/instalar") ? " ativo" : ""}`}
-                        onClick={() => fechar(false)}
-                      >
-                        <span className="menu-link-rotulo">Instalar no celular</span>
-                        <span className="menu-link-dica">Use o Fólium como um app</span>
-                      </Link>
+                      <InstalarApp variante="menu" antes={() => fechar(false)} />
                     </li>
                   </ul>
                 </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DEPOIMENTOS, MISSAO, VALORES } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { ConviteInstalar } from "@/components/InstalarApp";
 import { SoParaAluno, SoParaContratante } from "@/components/GuiaPorConta";
 import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
 import { Faixa, PapelRasgado } from "@/components/Zine";
@@ -90,6 +91,8 @@ export default function Inicio() {
         <Faixa itens={INDICE} />
         <PapelRasgado inverter />
       </div>
+
+      <ConviteInstalar />
 
       <section className="secao">
         <div className="container">
