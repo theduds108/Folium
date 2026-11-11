@@ -3555,8 +3555,30 @@ html { scroll-padding-top: 84px; }
 .equipe-item p { margin: 0; }
 .equipe-item.resolvida { opacity: 0.7; }
 .equipe-texto { white-space: pre-line; overflow-wrap: anywhere; }
-.equipe-tabela-moldura { overflow-x: auto; padding: 4px; }
-.equipe-tabela { width: 100%; border-collapse: collapse; font-size: var(--t-sec); }
-.equipe-tabela th, .equipe-tabela td { text-align: left; padding: 8px; border-bottom: 1px solid var(--linha); vertical-align: top; }
-.equipe-plano-acao { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.equipe-plano-acao input { padding: 4px 6px; border: 1px solid var(--linha); border-radius: 8px; font: inherit; }
+/* Planos: um cartão por conta (cabe no celular, sem tabela larga) */
+.equipe-planos-filtros { display: grid; gap: 10px; }
+.equipe-planos-filtros .campo { margin: 0; }
+.equipe-filtro-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-filtro { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border: 1.5px solid var(--linha); border-radius: 999px; background: var(--creme-papel); color: var(--verde-musgo); font: inherit; font-size: var(--t-sec); font-weight: var(--peso-medio); cursor: pointer; }
+.chip-filtro.ativo { background: var(--verde-musgo); border-color: var(--verde-musgo); color: #fff; }
+.chip-contagem { font-size: var(--t-pequeno); opacity: 0.8; }
+.equipe-conta { padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
+.equipe-conta.pediu { border-left: 4px solid var(--cobre-botao); }
+.equipe-conta-topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.equipe-conta-nome { display: grid; gap: 2px; min-width: 0; }
+.equipe-conta-nome h2 { font-size: var(--t-medio); margin: 0; overflow-wrap: anywhere; }
+.equipe-conta-nome .ajuda { margin: 0; overflow-wrap: anywhere; }
+.equipe-conta-selos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.etiqueta-premium { background: var(--cobre-botao); color: #fff; border-color: var(--cobre-botao); }
+.equipe-conta-desde { font-size: var(--t-pequeno); }
+.equipe-conta-acao { display: grid; gap: 8px; }
+.equipe-conta-acao .campo { margin: 0; }
+.equipe-conta-botao { width: 100%; }
+@media (min-width: 700px) {
+  .equipe-planos-filtros { grid-template-columns: minmax(220px, 1fr) auto; align-items: end; }
+  .equipe-conta-acao { grid-template-columns: 220px auto; align-items: end; justify-content: start; }
+  .equipe-conta-botao { width: auto; }
+}
+
+/* Aviso de que o pagamento pelo site ainda está em desenvolvimento (pedido de Premium) */
+.aviso-desenvolvimento { margin: 6px 0 0; flex-basis: 100%; font-size: var(--t-pequeno); }

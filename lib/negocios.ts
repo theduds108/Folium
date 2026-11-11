@@ -346,11 +346,12 @@ export type ContaEquipe = { id: string; email: string; tipo: string; plano: stri
 export async function equipeDados() {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
-  const [vagas, denuncias, feedbacks, contas] = await Promise.all([
+  const [vagas, denuncias, feedbacks, contas, perfis] = await Promise.all([
     sb.from("oportunidades").select("*").order("criada_em", { ascending: false }).limit(100),
     sb.from("denuncias").select("*").order("criada_em", { ascending: false }).limit(100),
     sb.from("feedbacks").select("*").order("criado_em", { ascending: false }).limit(100),
     sb.rpc("equipe_contas"),
+    sb.from("perfis").select("id, nome").limit(1000),
   ]);
   const erro = vagas.error || denuncias.error || feedbacks.error || contas.error;
   if (erro) throw traduzirErro(erro);
@@ -358,7 +359,11 @@ export async function equipeDados() {
     vagas: (vagas.data as VagaEquipe[]) ?? [],
     denuncias: (denuncias.data as DenunciaEquipe[]) ?? [],
     feedbacks: (feedbacks.data as FeedbackEquipe[]) ?? [],
-    contas: (contas.data as ContaEquipe[]) ?? [],
+    // O nome do portfólio completa contas que ainda não têm nome próprio.
+    contas: ((contas.data as ContaEquipe[]) ?? []).map((c) => ({
+      ...c,
+      nome: c.nome || ((perfis.data as { id: string; nome: string }[] | null) ?? []).find((p) => p.id === c.id)?.nome || "",
+    })),
   };
 }
 

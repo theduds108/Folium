@@ -75,7 +75,11 @@ function AcaoPlano({ plano, atual }: { plano: Plano; atual: boolean }) {
   if (premium) return <span className="ajuda plano-outro">Incluído no seu Premium.</span>;
 
   if (estado === "pedido" || conta.planoPedido)
-    return <p className="salvo" style={{ margin: 0 }}>Pedido enviado. A equipe libera em até 1 dia útil.</p>;
+    return (
+      <p className="salvo" style={{ margin: 0 }}>
+        Pedido enviado. O pagamento pelo site ainda está em desenvolvimento, então a equipe libera seu Premium em até 1 dia útil.
+      </p>
+    );
 
   return (
     <>
@@ -94,6 +98,7 @@ function AcaoPlano({ plano, atual }: { plano: Plano; atual: boolean }) {
       >
         {estado === "enviando" ? "Enviando…" : "Quero o Premium"}
       </button>
+      <p className="ajuda aviso-desenvolvimento">Pagamento pelo site em desenvolvimento. Por enquanto, a equipe confirma seu pedido e libera o Premium em até 1 dia útil.</p>
       {estado === "erro" && <p className="erro" role="alert">Não deu para enviar o pedido. Tente de novo.</p>}
     </>
   );
