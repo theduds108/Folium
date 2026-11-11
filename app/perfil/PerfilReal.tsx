@@ -4,17 +4,29 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Aluno } from "@/lib/data";
+import type { Avaliacao } from "@/lib/conteudo";
 import { buscarAlunoReal } from "@/lib/repositorio";
+import { avaliacoesDe, portfolioPublico, registrarVisita } from "@/lib/negocios";
+import { useConta } from "@/lib/conta";
 import { PerfilVista } from "@/components/PerfilVista";
 import { EsqueletoPerfil } from "@/components/Esqueleto";
+import { AcoesContratante } from "@/components/AcoesContratante";
+import { CartaoAviso } from "@/components/Area";
 
+/**
+ * Portfólio do banco, em /perfil/?u=slug.
+ * Com conta: portfólio completo. Sem conta: só se o aluno ligou o link público (sem contatos).
+ */
 export function PerfilReal() {
   const slug = useSearchParams().get("u") ?? "";
+  const { conta, logado, carregando } = useConta();
   const [aluno, setAluno] = useState<Aluno | null | undefined>(undefined);
+  const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [falhou, setFalhou] = useState(false);
   const [tentativa, setTentativa] = useState(0);
 
   useEffect(() => {
+    if (carregando) return;
     if (!slug) {
       setAluno(null);
       return;
@@ -22,11 +34,17 @@ export function PerfilReal() {
     let ativo = true;
     setFalhou(false);
     setAluno(undefined);
-    buscarAlunoReal(slug)
+    (logado ? buscarAlunoReal(slug) : portfolioPublico(slug))
       .then((a) => {
         if (!ativo) return;
         setAluno(a);
-        if (a) document.title = `${a.nome}, ${a.curso} · Fólium`;
+        if (!a) return;
+        document.title = `${a.nome}, ${a.curso} · Fólium`;
+        registrarVisita(slug);
+        if (logado && a.id)
+          avaliacoesDe(a.id).then((l) => {
+            if (ativo) setAvaliacoes(l.map((x) => ({ nota: x.nota, texto: x.texto, autor: x.autor_nome, selo: "trabalho combinado pelo Fólium" })));
+          });
       })
       .catch(() => {
         if (ativo) setFalhou(true);
@@ -34,7 +52,7 @@ export function PerfilReal() {
     return () => {
       ativo = false;
     };
-  }, [slug, tentativa]);
+  }, [slug, tentativa, logado, carregando]);
 
   if (falhou)
     return (
@@ -51,6 +69,21 @@ export function PerfilReal() {
 
   if (aluno === undefined) return <EsqueletoPerfil />;
 
+  // Sem conta e sem link público: o mesmo convite para entrar de antes.
+  if (!aluno && !logado)
+    return (
+      <CartaoAviso titulo="Entre para ver este portfólio">
+        <p className="suave">
+          Os portfólios dos alunos ficam visíveis só para quem tem conta no Fólium. A conta é grátis: aluno usa o e-mail
+          institucional, empresa ou contratante usa qualquer e-mail.
+        </p>
+        <Link href="/entrar" className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
+        <Link href="/entrar?modo=primeiro" className="botao botao-contorno" style={{ width: "100%", marginTop: 12 }}>
+          Fazer o primeiro acesso
+        </Link>
+      </CartaoAviso>
+    );
+
   if (!aluno)
     return (
       <div className="container">
@@ -62,5 +95,6 @@ export function PerfilReal() {
       </div>
     );
 
-  return <PerfilVista aluno={aluno} />;
+  const acoes = conta?.tipo === "contratante" && aluno.id ? <AcoesContratante aluno={aluno} /> : null;
+  return <PerfilVista aluno={aluno} avaliacoes={avaliacoes} acoes={acoes} />;
 }

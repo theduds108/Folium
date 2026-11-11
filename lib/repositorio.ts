@@ -34,6 +34,8 @@ export type PerfilBanco = {
   certificados: Certificado[];
   idiomas: Idioma[];
   curriculo_url: string | null;
+  /** Link público (migração 20261111120000): quem tem o link vê o portfólio sem login, sem contatos. */
+  link_publico?: boolean;
 };
 
 export type TrabalhoBanco = {
@@ -76,6 +78,7 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
       papel: t.papel ?? "",
     }));
   return {
+    id: p.id,
     slug: p.slug,
     nome: p.nome,
     curso: p.curso,
@@ -168,9 +171,17 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   if (!sb) throw new Error("Banco não configurado");
 
   let slug = perfil.slug || criarSlug(perfil.nome);
+  let dados: typeof perfil = perfil;
   for (let tentativa = 0; ; tentativa++) {
-    const { error } = await sb.from("perfis").upsert({ ...perfil, slug });
+    const { error } = await sb.from("perfis").upsert({ ...dados, slug });
     if (!error) break;
+    // Banco sem a coluna do link público (SQL de 11/11 ainda não rodado): salva o resto.
+    if ("link_publico" in dados && /link_publico/.test(error.message ?? "") && tentativa < 5) {
+      const { link_publico: _semColuna, ...resto } = dados;
+      void _semColuna;
+      dados = resto;
+      continue;
+    }
     if (error.code === "23505" && error.message.includes("slug") && tentativa < 5) {
       slug = `${criarSlug(perfil.nome).slice(0, 45)}-${Math.floor(100 + Math.random() * 900)}`;
       continue;

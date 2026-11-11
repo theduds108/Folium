@@ -38,6 +38,10 @@ export type Idioma = { idioma: string; nivel: string };
 export type Links = Partial<Record<(typeof REDES)[number]["chave"], string>>;
 
 export type Aluno = {
+  /** Id da conta (só nos perfis do banco), usado em convites, combinados e avaliações. */
+  id?: string;
+  /** Aberto pelo link público, sem login: sem contatos, currículo nem certificados. */
+  publico?: boolean;
   slug: string;
   nome: string;
   curso: string;
