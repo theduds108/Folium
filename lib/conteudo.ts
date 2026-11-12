@@ -244,7 +244,13 @@ export const PLANOS: Plano[] = [
   },
 ];
 
-export type Avaliacao = { nota: number; texto: string; autor: string; /** Linha abaixo do nome. */ selo?: string };
+export type Avaliacao = {
+  nota: number; texto: string; autor: string; /** Linha abaixo do nome. */ selo?: string;
+  /** Notas por critério (avaliações reais depois de 12/11/2026). */
+  criterios?: Record<string, number> | null;
+  /** Direito de resposta de quem recebeu. */
+  resposta?: string;
+};
 
 const AVALIACOES: Avaliacao[] = [
   { nota: 5, texto: "Entregou antes do prazo e explicou cada escolha. Contrataria de novo.", autor: "Padaria Sol" },

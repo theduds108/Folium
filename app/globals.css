@@ -3586,3 +3586,38 @@ html { scroll-padding-top: 84px; }
 
 /* Aviso de que o pagamento pelo site ainda está em desenvolvimento (pedido de Premium) */
 .aviso-desenvolvimento { margin: 6px 0 0; flex-basis: 100%; font-size: var(--t-pequeno); }
+
+/* Segurança das pessoas (12/11/2026): aceite, botão Preciso de ajuda, denúncias, defesa e avaliações */
+.faixa-suspensa { background: #f5e3dc; }
+.caixa-marcar { display: flex; align-items: flex-start; gap: 10px; font-size: var(--t-sec); line-height: 1.4; cursor: pointer; }
+.caixa-marcar input { margin-top: 3px; width: 18px; height: 18px; flex: none; accent-color: var(--verde-musgo); }
+.aceite-termos { display: grid; gap: 12px; margin-top: 8px; }
+.aceite-termos .botao { justify-self: start; }
+.combinado-seguranca { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-top: 10px; border-top: 1px dashed var(--linha); }
+.botao-ajuda { min-height: 44px; }
+.janela-ajuda { width: min(560px, calc(100vw - 24px)); }
+.ajuda-190 { display: grid; gap: 2px; padding: 12px 14px; margin: 4px 0 10px; border-radius: 10px; background: #a33a1f; color: #fff; text-decoration: none; }
+.ajuda-190 strong { font-size: var(--t-medio); }
+.ajuda-190 span { font-size: var(--t-pequeno); opacity: 0.92; }
+.ajuda-190:hover, .ajuda-190:focus-visible { background: #87301a; color: #fff; }
+.ajuda-telefones { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; }
+.ajuda-telefones li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--linha); border-radius: 10px; background: var(--creme-papel); }
+.ajuda-telefones a { font-weight: var(--peso-medio); }
+.ajuda-enviada { display: grid; gap: 8px; }
+.ajuda-enviada p { margin: 0; }
+.anexar-provas input[type="file"] { font-size: var(--t-pequeno); max-width: 100%; }
+.defesa { padding: clamp(16px, 4vw, 26px); display: grid; gap: 10px; border-left: 4px solid #a33a1f; }
+.defesa h2 { font-size: var(--t-tit-p); margin: 0; }
+.defesa-resumo { margin: 0; padding: 10px 14px; border-left: 3px solid var(--linha); background: var(--creme-papel); white-space: pre-line; overflow-wrap: anywhere; }
+.avaliar-criterio legend { font-size: var(--t-sec); }
+.avaliacao-recebida { display: grid; gap: 6px; padding: 12px; border: 1px dashed var(--linha); border-radius: 10px; }
+.avaliacao-criterios { margin: 4px 0 0; }
+.avaliacao-resposta { margin: 8px 0 0; font-size: var(--t-sec); padding-left: 10px; border-left: 2px solid var(--linha); }
+.selo-pausado { background: #f5e3dc; border-color: #e3bfb1; color: #87301a; }
+.ocorrencia-urgente { border-left: 4px solid #a33a1f; }
+.equipe-provas { display: flex; flex-wrap: wrap; gap: 12px; }
+.equipe-historico { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: var(--t-pequeno); }
+.equipe-fechadas summary { cursor: pointer; font-weight: var(--peso-medio); }
+.anexar-botao { justify-self: start; cursor: pointer; }
+.anexar-botao.desligado { opacity: 0.55; pointer-events: none; }
+.anexar-provas input:focus-visible + .ajuda, .anexar-provas:focus-within .anexar-botao { outline: 2px solid var(--verde-folio); outline-offset: 2px; }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { AbaFeedback } from "@/components/AbaFeedback";
 import { AvisoSenha } from "@/components/AvisoSenha";
+import { FaixaConta } from "@/components/seguranca/FaixaConta";
 import { Cabecalho } from "@/components/Cabecalho";
 import { JanelaInstalar } from "@/components/InstalarApp";
 import { RegistrarSW } from "@/components/RegistrarSW";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Abertura />
         <Cabecalho />
         <AvisoSenha />
+        <FaixaConta />
         <main>{children}</main>
         <footer className="rodape">
           <div className="container rodape-interno">
@@ -51,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             {/* Os outros links (Guia, Sobre, Planos, Feedback, Rever o tour, Instalar) ficam no menu ☰ do cabeçalho. */}
             <span>
-              <Link href="/sobre">Sobre</Link> · <Link href="/privacidade">Privacidade</Link> · <Link href="/feedback">Feedback</Link>
+              <Link href="/sobre">Sobre</Link> · <Link href="/conduta">Conduta e segurança</Link> · <Link href="/privacidade">Privacidade</Link> · <Link href="/feedback">Feedback</Link>
             </span>
           </div>
         </footer>

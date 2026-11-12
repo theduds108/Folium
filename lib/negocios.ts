@@ -213,7 +213,7 @@ export async function responderConvite(id: string, aceitar: boolean) {
 // ---------------------------------------------------------------------------------------------
 // Combinados (1)
 
-export type StatusCombinado = "proposto" | "aceito" | "recusado" | "concluido" | "cancelado";
+export type StatusCombinado = "proposto" | "aceito" | "pausado" | "recusado" | "concluido" | "cancelado";
 
 export type Combinado = {
   id: string;
@@ -232,6 +232,7 @@ export type Combinado = {
   criado_em: string;
   aceito_em: string | null;
   concluido_em: string | null;
+  pausado_em?: string | null;
   perfil?: { nome: string; slug: string; curso: string } | null;
 };
 
@@ -243,6 +244,7 @@ export type NovoCombinado = Pick<Combinado, "perfil_id" | "titulo" | "escopo" | 
 export const NOME_STATUS: Record<StatusCombinado, string> = {
   proposto: "Esperando o aluno",
   aceito: "Combinado fechado",
+  pausado: "Pausado pelo aluno",
   recusado: "Recusado",
   concluido: "Concluído",
   cancelado: "Cancelado",
@@ -269,7 +271,9 @@ export async function proporCombinado(c: NovoCombinado) {
   throw traduzirErro(error);
 }
 
-export async function mudarCombinado(id: string, acao: "aceitar" | "recusar" | "cancelar" | "concluir") {
+export type AcaoCombinado = "aceitar" | "recusar" | "cancelar" | "concluir" | "pausar" | "retomar" | "encerrar";
+
+export async function mudarCombinado(id: string, acao: AcaoCombinado) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
   const { error } = await sb.rpc("mudar_combinado", { p_id: id, p_acao: acao });
@@ -279,7 +283,14 @@ export async function mudarCombinado(id: string, acao: "aceitar" | "recusar" | "
 // ---------------------------------------------------------------------------------------------
 // Avaliações (2)
 
-export type AvaliacaoReal = { id: string; combinado_id: string; autor_id: string | null; alvo_id: string; autor_nome: string; nota: number; texto: string; criado_em: string };
+export type AvaliacaoReal = {
+  id: string; combinado_id: string; autor_id: string | null; alvo_id: string; autor_nome: string; nota: number; texto: string; criado_em: string;
+  /** Notas por critério (SQL de 12/11 à tarde). Avaliações antigas vêm vazias. */
+  criterios?: Record<string, number> | null;
+  resposta?: string;
+  resposta_em?: string | null;
+  oculta?: boolean;
+};
 
 export async function avaliacoesDe(alvoId: string): Promise<AvaliacaoReal[]> {
   const sb = supabase();
@@ -297,17 +308,26 @@ export async function minhasAvaliacoesFeitas(autorId: string): Promise<string[]>
   return ((data as { combinado_id: string }[] | null) ?? []).map((a) => a.combinado_id);
 }
 
-export async function avaliar(combinadoId: string, alvoId: string, nota: number, texto: string) {
+/**
+ * Avalia a outra parte. Com critérios, a nota geral é a média deles (o banco recalcula).
+ * A avaliação fica escondida até a outra parte avaliar também, ou por 14 dias.
+ */
+export async function avaliar(combinadoId: string, alvoId: string, criterios: Record<string, number>, texto: string) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
-  const { error } = await sb.from("avaliacoes").insert({ combinado_id: combinadoId, alvo_id: alvoId, nota, texto: texto.trim() });
+  const valores = Object.values(criterios);
+  const nota = Math.round(valores.reduce((s, v) => s + v, 0) / Math.max(1, valores.length));
+  let { error } = await sb.from("avaliacoes").insert({ combinado_id: combinadoId, alvo_id: alvoId, nota, criterios, texto: texto.trim() });
+  // SQL de 12/11 à tarde ainda não rodado: grava só a nota geral, como antes.
+  if (error && semMigracao(error)) ({ error } = await sb.from("avaliacoes").insert({ combinado_id: combinadoId, alvo_id: alvoId, nota, texto: texto.trim() }));
   if (!error) return;
   if (error.code === "23505") throw new Error("Você já avaliou esse trabalho.");
   throw traduzirErro(error);
 }
 
+/** Média das notas. Abaixo de 3 avaliações devolve null: poucas notas não dizem muito e expõem quem avaliou. */
 export function media(lista: { nota: number }[]) {
-  if (!lista.length) return null;
+  if (lista.length < 3) return null;
   return Math.round((lista.reduce((s, a) => s + a.nota, 0) / lista.length) * 10) / 10;
 }
 
@@ -343,7 +363,10 @@ export type DenunciaEquipe = { id: string; alvo_tipo: string; alvo: string; moti
 export type FeedbackEquipe = { id: string; tipo: string; mensagem: string; pagina: string; nota: number | null; criado_em: string };
 export type ContaEquipe = { id: string; email: string; tipo: string; plano: string; plano_ate: string | null; plano_pedido: string | null; nome: string; empresa: string; criada_em: string;
   /** Vazio = contratante em análise. Ausente = SQL de 12/11 ainda não rodado. */
-  aprovada_em?: string | null };
+  aprovada_em?: string | null;
+  /** SQL de 12/11 à tarde: aceite dos termos e suspensão. */
+  termos_aceitos_em?: string | null;
+  suspensa_ate?: string | null };
 
 export async function equipeDados() {
   const sb = supabase();

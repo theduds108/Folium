@@ -5,7 +5,7 @@ import { ExcluirConta } from "./ExcluirConta";
 
 export const metadata: Metadata = { title: "Termos e privacidade" };
 
-const ATUALIZADO_EM = "11 de novembro de 2026";
+const ATUALIZADO_EM = "12 de novembro de 2026";
 
 /**
  * Termos de uso e política de privacidade (LGPD), numa página só e em linguagem simples.
@@ -37,6 +37,11 @@ export default function Privacidade() {
             não participa da negociação, não recebe pagamentos e não é parte do contrato entre aluno e contratante.
           </li>
           <li>
+            <strong>Sem vínculo com o Fólium.</strong> O Fólium não é empregador, agência nem intermediador de pagamento.
+            Aluno e contratante respondem pelo que combinam e fazem, inclusive pelo que acontecer no local de trabalho.
+            Quem usa o Fólium aceita também o <Link href="/conduta">código de conduta</Link>.
+          </li>
+          <li>
             <strong>Quem pode usar.</strong> Alunos entram com o e-mail institucional da faculdade. Contratantes
             (empresas ou pessoas) entram com qualquer e-mail. Cada pessoa usa só a própria conta e guarda a própria senha.
           </li>
@@ -58,8 +63,10 @@ export default function Privacidade() {
             sem você pedir.
           </li>
           <li>
-            <strong>Denúncias.</strong> Viu algo errado? Use o botão de denúncia no perfil ou mande pela página{" "}
-            <Link href="/feedback">Feedback</Link>.
+            <strong>Denúncias e pedidos de ajuda.</strong> Em cada combinado, o aluno tem o botão “Preciso de ajuda” e as duas
+            partes podem denunciar a outra. A equipe ouve os dois lados e pode advertir, suspender ou banir uma conta, como
+            explica o <Link href="/conduta#denuncias">código de conduta</Link>. Em perigo, ligue 190: o Fólium não é serviço de
+            emergência. Viu algo errado num perfil ou vaga? Use o botão de denúncia ou a página <Link href="/feedback">Feedback</Link>.
           </li>
         </ol>
       </section>
@@ -74,6 +81,7 @@ export default function Privacidade() {
           <li><strong>Aluno:</strong> o que você coloca no portfólio: nome, curso, semestre, cidade, foto, trabalhos, serviços, valores, contatos, experiências, certificados e currículo.</li>
           <li><strong>Contratante:</strong> nome, empresa, cidade, contato, vagas publicadas e talentos salvos.</li>
           <li><strong>Combinados e avaliações:</strong> propostas entre aluno e contratante (o que foi combinado, prazo e valor) e as notas que um deu ao outro.</li>
+          <li><strong>Segurança:</strong> pedidos de ajuda e denúncias (relato, prints, andamento, defesa da outra parte e decisão da equipe), a data em que você aceitou os termos e o código de conduta e, se houver, suspensões. Esses registros ficam guardados mesmo se a conta for excluída, para proteger as duas partes.</li>
           <li><strong>Uso:</strong> interesses e convites em vagas, denúncias, feedbacks, tentativas de login erradas (para barrar quem tenta adivinhar senha) e visitas aos portfólios (só a contagem: o aluno vê os totais, nunca quem visitou).</li>
         </ul>
 
@@ -81,7 +89,8 @@ export default function Privacidade() {
         <ul>
           <li>Portfólios, vagas e talentos só aparecem para quem tem conta e está logado.</li>
           <li>A exceção é o <strong>link público</strong>, que o aluno escolhe ligar: quem tem o link vê os trabalhos e o “sobre”, nunca WhatsApp, e-mail, currículo ou certificados.</li>
-          <li>Combinados só aparecem para as duas partes. Avaliações aparecem para quem tem conta.</li>
+          <li>Combinados só aparecem para as duas partes. Avaliações aparecem para quem tem conta aprovada, e só depois que as duas partes avaliaram (ou 14 dias depois).</li>
+          <li>Relatos e prints de denúncias e pedidos de ajuda são vistos só por quem enviou e pela equipe. A outra parte nunca vê. A faculdade só é avisada se o aluno pedir.</li>
           <li>Fotos, currículos e certificados ficam em pastas privadas e abrem com links que expiram.</li>
           <li>Seu portfólio pode ser tirado da busca a qualquer momento no editor.</li>
           <li>A equipe do Fólium vê os dados para aprovar vagas, cuidar de denúncias e responder feedbacks. Não vendemos nem passamos seus dados para propaganda.</li>
@@ -111,8 +120,8 @@ export default function Privacidade() {
         <h2 id="t-excluir">Excluir minha conta</h2>
         <p>
           Apaga para sempre seu login, seu portfólio, trabalhos, fotos, currículo, certificados, talentos salvos, convites,
-          combinados e as avaliações que você recebeu. Vagas, denúncias, feedbacks e avaliações que você escreveu ficam, mas
-          sem o seu login. Não dá para desfazer.
+          combinados e as avaliações que você recebeu. Vagas, denúncias, pedidos de ajuda, feedbacks e avaliações que você escreveu
+          ficam, mas sem o seu login. Não dá para desfazer.
         </p>
         <ExcluirConta />
       </section>

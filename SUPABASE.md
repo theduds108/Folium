@@ -181,3 +181,18 @@ Enquanto o SQL não rodar, o site continua funcionando: o link público, as esta
 3. Authentication > URL Configuration > Redirect URLs: só `https://folium-phi.vercel.app/**` e `http://localhost:3000/**` (nunca `https://*.vercel.app/**`).
 
 Os headers de segurança do site (CSP, HSTS etc.) ficam em `vercel.json`. Se o projeto do Supabase mudar de endereço, troque o endereço `clpxenmytonfniwkmmuy.supabase.co` lá também, senão o site não consegue falar com o banco.
+
+## Segurança das pessoas (12/11/2026, à tarde)
+
+Rode **depois** do SQL da auditoria (acima). No **SQL Editor** (sem texto selecionado), rode `20261112180000_seguranca_pessoas.sql`. Ele:
+
+- guarda o **aceite dos termos e do código de conduta** (data e versão). Sem o aceite, ninguém propõe nem aceita combinado. Todas as contas, inclusive as que já existem, veem uma faixa pedindo o aceite;
+- cria as **ocorrências**: o botão **Preciso de ajuda** (só aluno, em combinado em andamento, prazo de 24 horas) e a **denúncia de combinado** nos dois sentidos (prazo de 5 dias úteis), com prints no bucket privado `provas`;
+- deixa o aluno **pausar** o combinado sem penalidade;
+- dá à equipe a aba **/equipe > Segurança**: começar análise, pedir a versão da outra parte (ela lê só o resumo que a equipe escrever), decidir (arquivar, advertência, suspensão de 30 dias, banimento, má-fé de quem denunciou) e encerrar o combinado. Tudo fica no histórico;
+- conta **suspensa** não publica vaga, não convida, não propõe nem aceita combinado; banida também sai da busca;
+- muda as **avaliações**: notas por critério, às cegas (aparecem quando os dois avaliaram ou 14 dias depois), só para contas aprovadas, com direito de resposta. A média só aparece a partir de 3 avaliações.
+
+Se o **Feedback por e-mail** já estiver configurado (Resend no Vault), a equipe recebe também um e-mail a cada pedido de ajuda ou denúncia, sem o relato (que só se lê no painel).
+
+O pedido de "avisar a faculdade" não manda nada sozinho: ele aparece no cartão da ocorrência para a equipe entrar em contato com a faculdade.
