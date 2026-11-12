@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { formatarData } from "@/lib/formato";
 import {
+  equipeAprovarContratante,
   equipeDados,
   equipeMudarPlano,
   equipeMudarVaga,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/negocios";
 
 type Dados = { vagas: VagaEquipe[]; denuncias: DenunciaEquipe[]; feedbacks: FeedbackEquipe[]; contas: ContaEquipe[] };
-type Aba = "vagas" | "denuncias" | "feedbacks" | "planos";
+type Aba = "vagas" | "contratantes" | "denuncias" | "feedbacks" | "planos";
 
 const dia = (iso: string) => formatarData(iso.slice(0, 10));
 
@@ -73,8 +74,12 @@ export function PainelEquipe() {
   const pendentes = dados?.vagas.filter((v) => v.status === "pendente") ?? [];
   const abertas = dados?.denuncias.filter((d) => !d.resolvida) ?? [];
   const pedidos = dados?.contas.filter((c) => c.plano_pedido && c.plano === "gratis") ?? [];
+  // aprovada_em ausente = SQL de 12/11 ainda não rodado: ninguém aparece como "em análise".
+  const contratantes = dados?.contas.filter((c) => c.tipo === "contratante" && c.aprovada_em !== undefined) ?? [];
+  const emAnalise = contratantes.filter((c) => !c.aprovada_em);
   const ABAS: { id: Aba; rotulo: string; n?: number }[] = [
     { id: "vagas", rotulo: "Vagas", n: pendentes.length },
+    { id: "contratantes", rotulo: "Contratantes", n: emAnalise.length },
     { id: "denuncias", rotulo: "Denúncias", n: abertas.length },
     { id: "feedbacks", rotulo: "Feedbacks" },
     { id: "planos", rotulo: "Planos", n: pedidos.length },
@@ -82,7 +87,7 @@ export function PainelEquipe() {
 
   return (
     <div className="container pagina equipe">
-      <CabecalhoArquivo rotulo="Só a equipe vê" titulo="Painel da equipe" descricao="Aprovar vagas, cuidar de denúncias, ler feedbacks e liberar o Premium." />
+      <CabecalhoArquivo rotulo="Só a equipe vê" titulo="Painel da equipe" descricao="Aprovar vagas e contratantes, cuidar de denúncias, ler feedbacks e liberar o Premium." />
       {erro && (
         <p className="erro" role="alert">{erro} <button type="button" className="link-texto" onClick={recarregar}>Tentar de novo</button></p>
       )}
@@ -120,6 +125,39 @@ export function PainelEquipe() {
               </div>
             </article>
           ))}
+        </section>
+      )}
+
+      {dados && aba === "contratantes" && (
+        <section className="equipe-lista" aria-label="Contratantes">
+          <p className="suave" style={{ margin: 0 }}>
+            Contratante em análise vê os portfólios, mas não vê WhatsApp, e-mail, currículo nem certificados dos alunos, e não manda convites nem propostas. Confira se a empresa ou pessoa existe antes de aprovar.
+          </p>
+          {!contratantes.length && <p className="suave">Nenhum contratante ainda (ou o SQL de 12/11 ainda não foi rodado).</p>}
+          {[...emAnalise, ...contratantes.filter((c) => c.aprovada_em)].map((c) => {
+            const nome = c.empresa || c.nome || (c.email ?? "").split("@")[0] || "Conta sem nome";
+            return (
+              <article key={c.id} className="cartao equipe-item">
+                <div className="combinado-topo">
+                  <span className={`selo-status ${c.aprovada_em ? "selo-aceito" : "selo-proposto"}`}>{c.aprovada_em ? "aprovado" : "em análise"}</span>
+                  {c.criada_em && <span className="suave">desde {dia(c.criada_em)}</span>}
+                </div>
+                <h2>{nome}</h2>
+                <p className="suave">{[c.nome !== nome ? c.nome : "", c.email].filter(Boolean).join(" · ")}</p>
+                <div className="combinado-acoes">
+                  {c.aprovada_em ? (
+                    <button type="button" className="botao botao-contorno botao-pequeno" onClick={() => { if (window.confirm(`Voltar ${nome} para análise? Os contatos dos alunos somem para essa conta na hora.`)) fazer(() => equipeAprovarContratante(c.id, false), "Contratante voltou para análise."); }}>
+                      Voltar para análise
+                    </button>
+                  ) : (
+                    <button type="button" className="botao botao-primario botao-pequeno" onClick={() => fazer(() => equipeAprovarContratante(c.id, true), "Contratante aprovado: já vê os contatos dos alunos.")}>
+                      Aprovar
+                    </button>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </section>
       )}
 

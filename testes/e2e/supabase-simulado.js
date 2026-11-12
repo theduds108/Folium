@@ -96,6 +96,14 @@ const server = http.createServer((req, res) => {
         if (!novo) return send(res, 400, { code: "P0001", message: "Essa mudança não é possível agora" });
         c.status = novo; return send(res, 200, novo);
       }
+      if (fn === "contatos_perfis") {
+        // Contratante com aprovada_em = null está em análise: só vê os próprios (nenhum).
+        const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
+        const conta = (db.contas || []).find((c) => c.id === me.id);
+        const pode = !(conta && conta.tipo === "contratante" && conta.aprovada_em === null) || (db.equipe || []).some((e) => e.id === me.id);
+        return send(res, 200, (db.perfis || []).filter((r) => (body.p_ids || []).includes(r.id) && (r.id === me.id || pode))
+          .map((r) => ({ id: r.id, whatsapp: r.whatsapp || "", email_contato: r.email_contato || "", curriculo_url: r.curriculo_url || null, certificados: r.certificados || [] })));
+      }
       if (fn === "eh_equipe") { const me = who(req); return send(res, 200, !!me && (db.equipe || []).some((e) => e.id === me.id)); }
       if (fn === "equipe_contas") {
         const me = who(req); if (!me || !(db.equipe || []).some((e) => e.id === me.id)) return send(res, 400, { code: "42501", message: "Só para a equipe" });

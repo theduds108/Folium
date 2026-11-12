@@ -70,6 +70,8 @@ export type Aluno = {
   idiomas?: Idioma[];
   /** Currículo em PDF (URL). */
   curriculo?: string;
+  /** Quem está vendo é contratante em análise: WhatsApp, e-mail, currículo e certificados vêm vazios. */
+  contatosOcultos?: boolean;
   whatsapp: string;
   email: string;
   trabalhos: Trabalho[];

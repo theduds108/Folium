@@ -95,6 +95,7 @@ export function PerfilReal() {
       </div>
     );
 
-  const acoes = conta?.tipo === "contratante" && aluno.id ? <AcoesContratante aluno={aluno} /> : null;
+  // Convites e propostas só depois que a equipe aprovar o contratante (o banco também barra).
+  const acoes = conta?.tipo === "contratante" && conta.aprovada && aluno.id ? <AcoesContratante aluno={aluno} /> : null;
   return <PerfilVista aluno={aluno} avaliacoes={avaliacoes} acoes={acoes} />;
 }

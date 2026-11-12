@@ -31,6 +31,8 @@ export type Conta = {
   email: string;
   /** Já viu o tour guiado (guardado na conta, vale em qualquer aparelho). */
   tourVisto: boolean;
+  /** Contratante aprovado pela equipe (só então vê os contatos dos alunos). Colaborador: sempre true. */
+  aprovada: boolean;
 };
 
 type LinhaConta = {
@@ -45,6 +47,8 @@ type LinhaConta = {
   cidade: string;
   /** Coluna da migração 20261108000000_tour_visto.sql; some se ela ainda não rodou. */
   tour_visto_em?: string | null;
+  /** Coluna da migração 20261112000000_seguranca_auditoria.sql; some se ela ainda não rodou. */
+  aprovada_em?: string | null;
 };
 
 /** O que cada plano libera. Usado nas telas para decidir o que mostrar ou bloquear. */
@@ -84,6 +88,8 @@ const DE_LINHA = (l: LinhaConta, email: string): Conta => ({
   cidade: l.cidade,
   email,
   tourVisto: !!l.tour_visto_em,
+  // Sem a coluna (SQL ainda não rodado) ninguém fica em análise, como era antes.
+  aprovada: l.tipo !== "contratante" || l.aprovada_em === undefined || !!l.aprovada_em,
 });
 
 /* ---------- Modo demonstração (sem banco): a conta fica no navegador ---------- */
@@ -110,6 +116,7 @@ function lerDemo(): Conta | null {
       whatsapp: c.whatsapp ?? "",
       cidade: c.cidade ?? "Bauru, SP",
       tourVisto: !!c.tourVisto,
+      aprovada: true,
       email: c.tipo === "colaborador" ? "aluna.25111585@alunos.unisagrado.edu.br" : "contato@empresa.com",
     };
   } catch {

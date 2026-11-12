@@ -53,7 +53,7 @@ export type TrabalhoBanco = {
   galeria: string[];
 };
 
-type PerfilComTrabalhos = PerfilBanco & { trabalhos: TrabalhoBanco[] | null };
+type PerfilComTrabalhos = PerfilBanco & { trabalhos: TrabalhoBanco[] | null; contatos_ocultos?: boolean };
 
 /** Só os dígitos, com 55 na frente se faltar (formato do wa.me). */
 export function whatsappParaLink(numero: string) {
@@ -104,10 +104,44 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
     certificados: p.certificados ?? [],
     idiomas: p.idiomas ?? [],
     curriculo: p.curriculo_url ?? undefined,
+    contatosOcultos: p.contatos_ocultos || undefined,
   };
 }
 
-const CAMPOS_PERFIL = "*, trabalhos(*)";
+/**
+ * Colunas do portfólio que qualquer conta lê. WhatsApp, e-mail, currículo e certificados ficam de
+ * fora: vêm de contatos_perfis(), que só entrega para alunos, equipe e contratantes aprovados
+ * (migração 20261112000000_seguranca_auditoria.sql).
+ */
+const CAMPOS_PERFIL = "id, slug, nome, curso, semestre, cidade, bio, servicos, habilidades, valor_referencia, foto_url, disponivel, publicado, titulo, sobre_longo, conclusao, modalidades, tipos_vaga, links, experiencias, idiomas, link_publico, trabalhos(*)" as const;
+
+type Contatos = Pick<PerfilBanco, "id" | "whatsapp" | "email_contato" | "curriculo_url" | "certificados">;
+
+/**
+ * Junta os contatos aos perfis. Quem não pode ver (contratante em análise) recebe os perfis
+ * sem contatos e com `contatos_ocultos`. Se a função ainda não existe no banco (SQL não rodado),
+ * lê as colunas direto, como antes.
+ */
+async function comContatos(perfis: PerfilComTrabalhos[]): Promise<PerfilComTrabalhos[]> {
+  const sb = supabase();
+  if (!sb || !perfis.length) return perfis;
+  const ids = perfis.map((p) => p.id);
+  let lista: Contatos[] | null = null;
+  const r = await sb.rpc("contatos_perfis", { p_ids: ids });
+  if (!r.error) lista = (r.data as Contatos[] | null) ?? [];
+  else if (funcaoAusente(r.error)) {
+    const d = await sb.from("perfis").select("id, whatsapp, email_contato, curriculo_url, certificados").in("id", ids);
+    if (d.error) throw traduzirErro(d.error);
+    lista = (d.data as Contatos[]) ?? [];
+  } else throw traduzirErro(r.error);
+  const porId = new Map(lista.map((c) => [c.id, c]));
+  return perfis.map((p) => {
+    const c = porId.get(p.id);
+    return c
+      ? { ...p, ...c }
+      : { ...p, whatsapp: "", email_contato: "", curriculo_url: null, certificados: [], contatos_ocultos: true };
+  });
+}
 
 /** Perfis publicados, mais recentes primeiro. Com `lancarErro`, a falha vira erro (a tela avisa em vez de mostrar "nenhum"). */
 export async function listarAlunosReais(lancarErro = false): Promise<Aluno[]> {
@@ -124,7 +158,13 @@ export async function listarAlunosReais(lancarErro = false): Promise<Aluno[]> {
     if (lancarErro) throw traduzirErro(error);
     return [];
   }
-  return (data as PerfilComTrabalhos[]).map(paraAluno);
+  try {
+    return (await comContatos(data as unknown as PerfilComTrabalhos[])).map(paraAluno);
+  } catch (e) {
+    console.error("Erro ao ler contatos", e);
+    if (lancarErro) throw e;
+    return [];
+  }
 }
 
 export async function buscarAlunoReal(slug: string): Promise<Aluno | null> {
@@ -133,7 +173,9 @@ export async function buscarAlunoReal(slug: string): Promise<Aluno | null> {
   const { data, error } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("slug", slug).maybeSingle();
   // Falha de rede ou do banco: avisa quem chamou, para não confundir com "portfólio não encontrado".
   if (error) throw traduzirErro(error);
-  return data ? paraAluno(data as PerfilComTrabalhos) : null;
+  if (!data) return null;
+  const [completo] = await comContatos([data as unknown as PerfilComTrabalhos]);
+  return paraAluno(completo!);
 }
 
 /** Perfil e trabalhos do usuário logado, para o editor. */
@@ -142,7 +184,9 @@ export async function meuPerfil(userId: string) {
   if (!sb) return null;
   const { data, error } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("id", userId).maybeSingle();
   if (error) throw error;
-  return data as PerfilComTrabalhos | null;
+  if (!data) return null;
+  const [completo] = await comContatos([data as unknown as PerfilComTrabalhos]);
+  return completo!;
 }
 
 /** Transforma o nome em endereço: "Eduarda Corrêa" vira "eduarda-correa". */
@@ -173,7 +217,11 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   let slug = perfil.slug || criarSlug(perfil.nome);
   let dados: typeof perfil = perfil;
   for (let tentativa = 0; ; tentativa++) {
-    const { error } = await sb.from("perfis").upsert({ ...dados, slug });
+    // Atualiza se já existe; senão cria. (Sem upsert: o upsert pediria leitura das colunas de
+    // contato, que o banco só libera pela função contatos_perfis.)
+    const atualizado = await sb.from("perfis").update({ ...dados, slug }).eq("id", dados.id).select("id");
+    let error = atualizado.error;
+    if (!error && !atualizado.data?.length) error = (await sb.from("perfis").insert({ ...dados, slug })).error;
     if (!error) break;
     // Banco sem a coluna do link público (SQL de 11/11 ainda não rodado): salva o resto.
     if ("link_publico" in dados && /link_publico/.test(error.message ?? "") && tentativa < 5) {

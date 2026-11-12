@@ -120,6 +120,12 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
             </>
           ) : (
             <>
+            {aluno.contatosOcultos && (
+              <p className="aviso perfil-publico-aviso" role="status">
+                Seu cadastro de contratante está em análise pela equipe do Fólium. Assim que for aprovado,
+                o WhatsApp, o e-mail e o currículo de {primeiroNome} aparecem aqui.
+              </p>
+            )}
             {aluno.whatsapp && (
               <a className="botao botao-verde" href={`https://wa.me/${aluno.whatsapp}?text=${mensagem}`} target="_blank" rel="noopener noreferrer">
                 Conversar no WhatsApp

@@ -176,6 +176,7 @@ Enquanto o SQL não rodar, o site continua funcionando: o link público, as esta
    - tira de quem está sem login o acesso às funções `plano_de`, `tipo_de` e `eh_aluno_institucional`;
    - passa a exigir e-mail **confirmado** para alguém ser tratado como aluno UNISAGRADO;
    - faz quem tem conta abrir só fotos, currículos e certificados de portfólios **publicados** (e os próprios). A equipe continua vendo tudo.
+   - deixa **contratante novo em análise**: ele vê os portfólios, mas WhatsApp, e-mail, currículo e certificados dos alunos só aparecem depois que a equipe aprova em **/equipe > Contratantes**. Convites e propostas também só depois da aprovação. **Os contratantes que já existem começam em análise**: aprove-os logo depois de rodar o SQL.
 2. Authentication > Sign In / Providers > Email: confira **Confirm email** ligado e ligue **Secure password change**.
 3. Authentication > URL Configuration > Redirect URLs: só `https://folium-phi.vercel.app/**` e `http://localhost:3000/**` (nunca `https://*.vercel.app/**`).
 
