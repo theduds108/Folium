@@ -169,3 +169,15 @@ Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111000000_salvar_
 3. Entre no site com essa conta: o menu ☰ ganha **Painel da equipe** (/equipe), onde dá para aprovar vagas, ver denúncias e feedbacks e liberar o Premium sem abrir o Table Editor.
 
 Enquanto o SQL não rodar, o site continua funcionando: o link público, as estatísticas, os convites e os combinados só não aparecem (ou avisam que ainda não foram ativados).
+
+## Ajustes da auditoria de segurança (12/11/2026)
+
+1. Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261112000000_seguranca_auditoria.sql`. Ele:
+   - tira de quem está sem login o acesso às funções `plano_de`, `tipo_de` e `eh_aluno_institucional`;
+   - passa a exigir e-mail **confirmado** para alguém ser tratado como aluno UNISAGRADO;
+   - faz quem tem conta abrir só fotos, currículos e certificados de portfólios **publicados** (e os próprios). A equipe continua vendo tudo.
+   - deixa **contratante novo em análise**: ele vê os portfólios, mas WhatsApp, e-mail, currículo e certificados dos alunos só aparecem depois que a equipe aprova em **/equipe > Contratantes**. Convites e propostas também só depois da aprovação. **Os contratantes que já existem começam em análise**: aprove-os logo depois de rodar o SQL.
+2. Authentication > Sign In / Providers > Email: confira **Confirm email** ligado e ligue **Secure password change**.
+3. Authentication > URL Configuration > Redirect URLs: só `https://folium-phi.vercel.app/**` e `http://localhost:3000/**` (nunca `https://*.vercel.app/**`).
+
+Os headers de segurança do site (CSP, HSTS etc.) ficam em `vercel.json`. Se o projeto do Supabase mudar de endereço, troque o endereço `clpxenmytonfniwkmmuy.supabase.co` lá também, senão o site não consegue falar com o banco.

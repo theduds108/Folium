@@ -57,6 +57,14 @@ function PainelContratante({ conta, premium }: { conta: Conta; premium: boolean 
         <p className="cabecalho-arquivo-desc">Publique vagas, acompanhe quem se interessou e guarde os talentos que chamaram sua atenção.</p>
       </header>
 
+      {!conta.aprovada && (
+        <p className="aviso" role="status">
+          <strong>Cadastro em análise.</strong> Para proteger os alunos, a equipe do Fólium confere cada contratante novo.
+          Enquanto isso, você já vê os portfólios e pode publicar vagas. Depois da aprovação, aparecem o WhatsApp, o e-mail e o
+          currículo dos alunos, e você pode mandar convites e propostas.
+        </p>
+      )}
+
       <nav className="painel-atalhos" aria-label="Atalhos">
         <Link href="/talentos" className="cartao atalho-painel">
           <strong>Encontrar talentos</strong>

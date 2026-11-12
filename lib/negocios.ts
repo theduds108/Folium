@@ -341,7 +341,9 @@ export type VagaEquipe = {
 };
 export type DenunciaEquipe = { id: string; alvo_tipo: string; alvo: string; motivo: string; detalhes: string; criada_em: string; resolvida: boolean };
 export type FeedbackEquipe = { id: string; tipo: string; mensagem: string; pagina: string; nota: number | null; criado_em: string };
-export type ContaEquipe = { id: string; email: string; tipo: string; plano: string; plano_ate: string | null; plano_pedido: string | null; nome: string; empresa: string; criada_em: string };
+export type ContaEquipe = { id: string; email: string; tipo: string; plano: string; plano_ate: string | null; plano_pedido: string | null; nome: string; empresa: string; criada_em: string;
+  /** Vazio = contratante em análise. Ausente = SQL de 12/11 ainda não rodado. */
+  aprovada_em?: string | null };
 
 export async function equipeDados() {
   const sb = supabase();
@@ -393,5 +395,13 @@ export async function equipeTirarPerfil(slug: string) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
   const { error } = await sb.from("perfis").update({ publicado: false }).eq("slug", slug);
+  if (error) throw traduzirErro(error);
+}
+
+/** Aprova (ou volta para análise) um contratante: só aprovado vê contatos dos alunos. */
+export async function equipeAprovarContratante(id: string, aprovar: boolean) {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  const { error } = await sb.from("contas").update({ aprovada_em: aprovar ? new Date().toISOString() : null }).eq("id", id);
   if (error) throw traduzirErro(error);
 }
