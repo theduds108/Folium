@@ -43,7 +43,7 @@ export function PerfilReal() {
         registrarVisita(slug);
         if (logado && a.id)
           avaliacoesDe(a.id).then((l) => {
-            if (ativo) setAvaliacoes(l.map((x) => ({ nota: x.nota, texto: x.texto, autor: x.autor_nome, selo: "trabalho combinado pelo Fólium" })));
+            if (ativo) setAvaliacoes(l.map((x) => ({ nota: x.nota, texto: x.texto, autor: x.autor_nome, selo: "trabalho combinado pelo Fólium", criterios: x.criterios, resposta: x.resposta })));
           });
       })
       .catch(() => {

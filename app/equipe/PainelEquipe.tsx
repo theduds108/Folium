@@ -16,9 +16,15 @@ import {
   type FeedbackEquipe,
   type VagaEquipe,
 } from "@/lib/negocios";
+import { atrasada, equipeOcorrencias, type HistoricoOcorrencia, type Ocorrencia } from "@/lib/seguranca";
+import { SegurancaEquipe } from "./SegurancaEquipe";
 
-type Dados = { vagas: VagaEquipe[]; denuncias: DenunciaEquipe[]; feedbacks: FeedbackEquipe[]; contas: ContaEquipe[] };
-type Aba = "vagas" | "contratantes" | "denuncias" | "feedbacks" | "planos";
+type Dados = {
+  vagas: VagaEquipe[]; denuncias: DenunciaEquipe[]; feedbacks: FeedbackEquipe[]; contas: ContaEquipe[];
+  /** null = SQL de segurança (12/11 à tarde) ainda não rodado. */
+  ocorrencias: Ocorrencia[] | null; historico: HistoricoOcorrencia[];
+};
+type Aba = "seguranca" | "vagas" | "contratantes" | "denuncias" | "feedbacks" | "planos";
 
 const dia = (iso: string) => formatarData(iso.slice(0, 10));
 
@@ -30,15 +36,22 @@ export function PainelEquipe() {
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState("");
   const [negado, setNegado] = useState(false);
-  const [aba, setAba] = useState<Aba>("vagas");
+  const [aba, setAba] = useState<Aba | null>(null);
   const [versao, setVersao] = useState(0);
   const [aviso, setAviso] = useState("");
   const recarregar = useCallback(() => setVersao((v) => v + 1), []);
 
   useEffect(() => {
     let ativo = true;
-    equipeDados()
-      .then((d) => ativo && (setDados(d), setErro("")))
+    Promise.all([equipeDados(), equipeOcorrencias().catch(() => null)])
+      .then(([d, s]) => {
+        if (!ativo) return;
+        setDados({ ...d, ocorrencias: s?.ocorrencias ?? null, historico: s?.historico ?? [] });
+        setErro("");
+        // Na primeira carga, pedido de ajuda aberto ou prazo vencido abre a aba Segurança. Depois, a aba fica onde está.
+        const urgente = (s?.ocorrencias ?? []).some((o) => o.status !== "resolvida" && o.status !== "arquivada" && (o.urgente || atrasada(o)));
+        setAba((atual) => atual ?? (urgente ? "seguranca" : "vagas"));
+      })
       .catch((e: Error) => {
         if (!ativo) return;
         if (/equipe|permission|42501/i.test(e.message)) setNegado(true);
@@ -77,23 +90,28 @@ export function PainelEquipe() {
   // aprovada_em ausente = SQL de 12/11 ainda não rodado: ninguém aparece como "em análise".
   const contratantes = dados?.contas.filter((c) => c.tipo === "contratante" && c.aprovada_em !== undefined) ?? [];
   const emAnalise = contratantes.filter((c) => !c.aprovada_em);
+  const segurancaAbertas = dados?.ocorrencias?.filter((o) => o.status !== "resolvida" && o.status !== "arquivada") ?? [];
+  // Pedido de ajuda aberto ou prazo vencido: a aba Segurança abre primeiro.
+  const segurancaUrgente = segurancaAbertas.some((o) => o.urgente || atrasada(o));
+  const abaAtual: Aba = aba ?? "vagas";
   const ABAS: { id: Aba; rotulo: string; n?: number }[] = [
+    { id: "seguranca", rotulo: segurancaUrgente ? "Segurança ⚠" : "Segurança", n: segurancaAbertas.length },
     { id: "vagas", rotulo: "Vagas", n: pendentes.length },
     { id: "contratantes", rotulo: "Contratantes", n: emAnalise.length },
-    { id: "denuncias", rotulo: "Denúncias", n: abertas.length },
+    { id: "denuncias", rotulo: "Perfis e vagas denunciados", n: abertas.length },
     { id: "feedbacks", rotulo: "Feedbacks" },
     { id: "planos", rotulo: "Planos", n: pedidos.length },
   ];
 
   return (
     <div className="container pagina equipe">
-      <CabecalhoArquivo rotulo="Só a equipe vê" titulo="Painel da equipe" descricao="Aprovar vagas e contratantes, cuidar de denúncias, ler feedbacks e liberar o Premium." />
+      <CabecalhoArquivo rotulo="Só a equipe vê" titulo="Painel da equipe" descricao="Responder pedidos de ajuda e denúncias, aprovar vagas e contratantes, ler feedbacks e liberar o Premium." />
       {erro && (
         <p className="erro" role="alert">{erro} <button type="button" className="link-texto" onClick={recarregar}>Tentar de novo</button></p>
       )}
       <div className="abas-equipe" role="tablist" aria-label="Seções do painel">
         {ABAS.map((a) => (
-          <button key={a.id} type="button" role="tab" aria-selected={aba === a.id} className={aba === a.id ? "aba-equipe ativa" : "aba-equipe"} onClick={() => setAba(a.id)}>
+          <button key={a.id} type="button" role="tab" aria-selected={abaAtual === a.id} className={abaAtual === a.id ? "aba-equipe ativa" : "aba-equipe"} onClick={() => setAba(a.id)}>
             {a.rotulo}{a.n ? <span className="selo-novas">{a.n}</span> : null}
           </button>
         ))}
@@ -102,7 +120,11 @@ export function PainelEquipe() {
       {aviso && <p className="aviso" role="status">{aviso}</p>}
       {!dados && !erro && <p className="suave">Carregando…</p>}
 
-      {dados && aba === "vagas" && (
+      {dados && abaAtual === "seguranca" && (
+        <SegurancaEquipe ocorrencias={dados.ocorrencias} historico={dados.historico} contas={dados.contas} fazer={fazer} />
+      )}
+
+      {dados && abaAtual === "vagas" && (
         <section className="equipe-lista" aria-label="Vagas">
           {!dados.vagas.length && <p className="suave">Nenhuma vaga ainda.</p>}
           {[...pendentes, ...dados.vagas.filter((v) => v.status !== "pendente")].map((v) => (
@@ -128,7 +150,7 @@ export function PainelEquipe() {
         </section>
       )}
 
-      {dados && aba === "contratantes" && (
+      {dados && abaAtual === "contratantes" && (
         <section className="equipe-lista" aria-label="Contratantes">
           <p className="suave" style={{ margin: 0 }}>
             Contratante em análise vê os portfólios, mas não vê WhatsApp, e-mail, currículo nem certificados dos alunos, e não manda convites nem propostas. Confira se a empresa ou pessoa existe antes de aprovar.
@@ -161,7 +183,7 @@ export function PainelEquipe() {
         </section>
       )}
 
-      {dados && aba === "denuncias" && (
+      {dados && abaAtual === "denuncias" && (
         <section className="equipe-lista" aria-label="Denúncias">
           {!dados.denuncias.length && <p className="suave">Nenhuma denúncia.</p>}
           {dados.denuncias.map((d) => (
@@ -199,7 +221,7 @@ export function PainelEquipe() {
         </section>
       )}
 
-      {dados && aba === "feedbacks" && (
+      {dados && abaAtual === "feedbacks" && (
         <section className="equipe-lista" aria-label="Feedbacks">
           {!dados.feedbacks.length && <p className="suave">Nenhum feedback ainda.</p>}
           {dados.feedbacks.map((f) => (
@@ -214,7 +236,7 @@ export function PainelEquipe() {
         </section>
       )}
 
-      {dados && aba === "planos" && (
+      {dados && abaAtual === "planos" && (
         <ListaPlanos
           contas={dados.contas}
           onMudar={(c, plano, ate) => fazer(() => equipeMudarPlano(c.id, plano, ate), plano === "premium" ? "Premium liberado." : "Voltou para o plano grátis.")}

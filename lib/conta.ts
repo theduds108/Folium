@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { emailInstitucional, VAGAS_LIBERADAS } from "./config";
 import { supabase } from "./supabase";
 import { useSessao } from "./sessao";
+import { VERSAO_TERMOS } from "./versao-termos";
 
 /**
  * Tipos de conta e planos do Fólium.
@@ -33,6 +34,10 @@ export type Conta = {
   tourVisto: boolean;
   /** Contratante aprovado pela equipe (só então vê os contatos dos alunos). Colaborador: sempre true. */
   aprovada: boolean;
+  /** Já aceitou a versão atual dos termos e do código de conduta (true se o SQL de 12/11 à tarde não rodou). */
+  termosAceitos: boolean;
+  /** Suspensa pela equipe até essa data (ISO). null = conta normal. */
+  suspensaAte: string | null;
 };
 
 type LinhaConta = {
@@ -49,6 +54,10 @@ type LinhaConta = {
   tour_visto_em?: string | null;
   /** Coluna da migração 20261112000000_seguranca_auditoria.sql; some se ela ainda não rodou. */
   aprovada_em?: string | null;
+  /** Colunas da migração 20261112180000_seguranca_pessoas.sql; somem se ela ainda não rodou. */
+  termos_aceitos_em?: string | null;
+  termos_versao?: string | null;
+  suspensa_ate?: string | null;
 };
 
 /** O que cada plano libera. Usado nas telas para decidir o que mostrar ou bloquear. */
@@ -90,6 +99,8 @@ const DE_LINHA = (l: LinhaConta, email: string): Conta => ({
   tourVisto: !!l.tour_visto_em,
   // Sem a coluna (SQL ainda não rodado) ninguém fica em análise, como era antes.
   aprovada: l.tipo !== "contratante" || l.aprovada_em === undefined || !!l.aprovada_em,
+  termosAceitos: l.termos_aceitos_em === undefined || (!!l.termos_aceitos_em && l.termos_versao === VERSAO_TERMOS),
+  suspensaAte: l.suspensa_ate && l.suspensa_ate > new Date().toISOString() ? l.suspensa_ate : null,
 });
 
 /* ---------- Modo demonstração (sem banco): a conta fica no navegador ---------- */
@@ -117,6 +128,8 @@ function lerDemo(): Conta | null {
       cidade: c.cidade ?? "Bauru, SP",
       tourVisto: !!c.tourVisto,
       aprovada: true,
+      termosAceitos: true,
+      suspensaAte: null,
       email: c.tipo === "colaborador" ? "aluna.25111585@alunos.unisagrado.edu.br" : "contato@empresa.com",
     };
   } catch {

@@ -26,3 +26,5 @@ Cada linha sai como `PASS` ou `FAIL`. As capturas de tela ficam em `testes/e2e/c
 | 06-modo-demo | site sem banco (modo demonstração) continua funcionando |
 | 07-melhorias-11-11 | faixa de preço ao publicar vaga, perfil sem conexão, convite de colegas, termos no cadastro, salvar trabalhos pela função do banco, excluir a conta |
 | 08-combinados-convites-equipe | link público sem contatos, PDF, estatísticas, aviso de vaga nova, convite, combinado (propor, aceitar, concluir), avaliações dos dois lados e painel da equipe |
+| 09-contratante-em-analise | contratante novo só vê contatos depois que a equipe aprova |
+| 10-seguranca-pessoas | aceite do código de conduta, botão Preciso de ajuda (telefones, pausa, faculdade, contratante não vê), denúncia do contratante, pedido de defesa, decisão e suspensão pela equipe, avaliação por critérios às cegas e resposta |

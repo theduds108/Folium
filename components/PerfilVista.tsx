@@ -10,6 +10,7 @@ import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
 import { BotaoPdf } from "@/components/BotaoPdf";
 import type { Avaliacao } from "@/lib/conteudo";
+import { MINIMO_PARA_MEDIA, ROTULO_CRITERIO, mediasPorCriterio } from "@/lib/seguranca-dados";
 import { formatarMes, formatarPeriodo } from "@/lib/formato";
 
 /**
@@ -269,6 +270,7 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
           {avaliacoes.length > 0 && (
             <section className="perfil-secao" aria-labelledby="avaliacoes-titulo">
               <h2 id="avaliacoes-titulo">Avaliações</h2>
+              <ResumoAvaliacoes avaliacoes={avaliacoes} />
               <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
                 {avaliacoes.map((a, i) => (
                   <figure key={`${i}-${a.autor}`} className="cartao lado avaliacao">
@@ -277,7 +279,11 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
                       <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
                     </span>
                     <blockquote>{a.texto}</blockquote>
+                    {a.criterios && Object.keys(a.criterios).length > 0 && (
+                      <p className="ajuda avaliacao-criterios">{Object.entries(a.criterios).map(([k, v]) => `${ROTULO_CRITERIO[k] ?? k} ${v}`).join(" · ")}</p>
+                    )}
                     <figcaption className="suave">{a.autor} · {a.selo ?? "contratante verificado"}</figcaption>
+                    {a.resposta && <p className="avaliacao-resposta"><strong>Resposta de {aluno.nome.split(" ")[0]}:</strong> {a.resposta}</p>}
                   </figure>
                 ))}
               </div>
@@ -286,5 +292,19 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
         </div>
       </div>
     </div>
+  );
+}
+
+/** Média geral e por critério. Só aparece a partir de 3 avaliações. */
+function ResumoAvaliacoes({ avaliacoes }: { avaliacoes: Avaliacao[] }) {
+  if (avaliacoes.length < MINIMO_PARA_MEDIA)
+    return <p className="suave" style={{ margin: "6px 0 0" }}>A média aparece a partir de {MINIMO_PARA_MEDIA} avaliações.</p>;
+  const geral = Math.round((avaliacoes.reduce((s, a) => s + a.nota, 0) / avaliacoes.length) * 10) / 10;
+  const criterios = mediasPorCriterio(avaliacoes);
+  return (
+    <p className="resumo-avaliacoes" style={{ margin: "6px 0 0" }}>
+      <strong>{geral.toLocaleString("pt-BR")} de 5</strong> em {avaliacoes.length} avaliações
+      {criterios.length > 0 && <span className="suave"> · {criterios.map((c) => `${c.rotulo} ${c.media.toLocaleString("pt-BR")}`).join(" · ")}</span>}
+    </p>
   );
 }

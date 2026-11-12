@@ -35,6 +35,15 @@ end $$;
 
 -- 2. Aluno institucional = e-mail da instituição E confirmado -----------------------------------
 
+-- A lista de domínios aceitos pode não existir em bancos criados com uma versão antiga do SQL inicial.
+create table if not exists public.dominios_institucionais (
+  dominio text primary key
+);
+insert into public.dominios_institucionais values ('unisagrado.edu.br') on conflict do nothing;
+alter table public.dominios_institucionais enable row level security;
+drop policy if exists "todos leem dominios" on public.dominios_institucionais;
+create policy "todos leem dominios" on public.dominios_institucionais for select using (true);
+
 create or replace function public.eh_aluno_institucional()
 returns boolean
 language sql stable security definer set search_path = public

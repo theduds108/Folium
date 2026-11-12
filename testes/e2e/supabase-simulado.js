@@ -92,7 +92,7 @@ const server = http.createServer((req, res) => {
         const me = who(req); const c = (db.combinados || []).find((x) => x.id === body.p_id);
         if (!c || !me || ![c.perfil_id, c.contratante_id].includes(me.id)) return send(res, 404, { code: "P0002", message: "Combinado não encontrado" });
         const a = body.p_acao, aluno = me.id === c.perfil_id;
-        const novo = a === "aceitar" && c.status === "proposto" && aluno ? "aceito" : a === "recusar" && c.status === "proposto" && aluno ? "recusado" : a === "cancelar" && c.status === "proposto" && !aluno ? "cancelado" : a === "concluir" && c.status === "aceito" && !aluno ? "concluido" : null;
+        const novo = a === "aceitar" && c.status === "proposto" && aluno ? "aceito" : a === "recusar" && c.status === "proposto" && aluno ? "recusado" : a === "cancelar" && c.status === "proposto" && !aluno ? "cancelado" : a === "concluir" && c.status === "aceito" && !aluno ? "concluido" : a === "pausar" && c.status === "aceito" && aluno ? "pausado" : a === "retomar" && c.status === "pausado" && aluno ? "aceito" : null;
         if (!novo) return send(res, 400, { code: "P0001", message: "Essa mudança não é possível agora" });
         c.status = novo; return send(res, 200, novo);
       }
@@ -104,6 +104,26 @@ const server = http.createServer((req, res) => {
         return send(res, 200, (db.perfis || []).filter((r) => (body.p_ids || []).includes(r.id) && (r.id === me.id || pode))
           .map((r) => ({ id: r.id, whatsapp: r.whatsapp || "", email_contato: r.email_contato || "", curriculo_url: r.curriculo_url || null, certificados: r.certificados || [] })));
       }
+      // ---- Segurança das pessoas (12/11 à tarde)
+      if (fn === "aceitar_termos") { const me = who(req); const c = (db.contas || []).find((x) => me && x.id === me.id); if (c) { c.termos_aceitos_em = new Date().toISOString(); c.termos_versao = body.p_versao; } return send(res, 200, null); }
+      if (fn === "meus_pedidos_de_defesa") { const me = who(req); return send(res, 200, (db.ocorrencias || []).filter((o) => me && o.alvo_id === me.id && o.tipo === "denuncia" && o.resumo_defesa).map((o) => ({ id: o.id, categoria: o.categoria, resumo_defesa: o.resumo_defesa, titulo_combinado: ((db.combinados || []).find((c) => c.id === o.combinado_id) || {}).titulo || "Combinado", defesa: o.defesa, defesa_em: o.defesa_em, status: o.status }))); }
+      if (fn === "enviar_defesa") { const me = who(req); const o = (db.ocorrencias || []).find((x) => x.id === body.p_id && me && x.alvo_id === me.id && x.status === "aguardando_defesa"); if (!o) return send(res, 404, { code: "P0002", message: "Esse pedido de defesa não está aberto" }); o.defesa = body.p_texto; o.defesa_em = new Date().toISOString(); o.status = "em_analise"; return send(res, 200, null); }
+      if (fn === "equipe_ocorrencia") {
+        const me = who(req); if (!me || !(db.equipe || []).some((e) => e.id === me.id)) return send(res, 400, { code: "42501", message: "Só para a equipe" });
+        const o = (db.ocorrencias || []).find((x) => x.id === body.p_id); if (!o) return send(res, 404, { code: "P0002", message: "Ocorrência não encontrada" });
+        if (body.p_acao === "analisar") o.status = "em_analise";
+        if (body.p_acao === "pedir_defesa") { o.status = "aguardando_defesa"; o.resumo_defesa = body.p_texto; }
+        if (body.p_acao === "decidir") {
+          o.status = body.p_decisao === "arquivada" ? "arquivada" : "resolvida"; o.decisao = body.p_decisao; o.decisao_texto = body.p_texto || ""; o.decidida_em = new Date().toISOString();
+          const alvo = (db.contas || []).find((c) => c.id === (body.p_decisao === "ma_fe" ? o.autor_id : o.alvo_id));
+          if (alvo && body.p_decisao === "suspensao") alvo.suspensa_ate = new Date(Date.now() + 30 * 86400000).toISOString();
+          if (alvo && body.p_decisao === "banimento") alvo.suspensa_ate = "infinity";
+        }
+        db.ocorrencias_historico ??= []; db.ocorrencias_historico.push({ id: db.ocorrencias_historico.length + 1, ocorrencia_id: o.id, quem: me.id, acao: body.p_acao, texto: body.p_texto || "", em: new Date().toISOString() });
+        return send(res, 200, null);
+      }
+      if (fn === "equipe_tirar_suspensao") { const c = (db.contas || []).find((x) => x.id === body.p_id); if (c) c.suspensa_ate = null; return send(res, 200, null); }
+      if (fn === "responder_avaliacao") { const me = who(req); const a = (db.avaliacoes || []).find((x) => x.id === body.p_id && me && x.alvo_id === me.id && !x.resposta); if (!a) return send(res, 404, { code: "P0002", message: "Não dá para responder essa avaliação" }); a.resposta = body.p_texto; return send(res, 200, null); }
       if (fn === "eh_equipe") { const me = who(req); return send(res, 200, !!me && (db.equipe || []).some((e) => e.id === me.id)); }
       if (fn === "equipe_contas") {
         const me = who(req); if (!me || !(db.equipe || []).some((e) => e.id === me.id)) return send(res, 400, { code: "42501", message: "Só para a equipe" });
@@ -129,6 +149,15 @@ const server = http.createServer((req, res) => {
       if (req.method === "GET" && t === "perfis" && (url.searchParams.get("select") || "").includes("trabalhos(")) { const l = rows.filter((r) => casa(r, f)).map((r) => ({ ...r, trabalhos: (db.trabalhos || []).filter((x) => x.perfil_id === r.id) })); return volta(l); }
       if (t === "interesses" && req.method === "POST" && !(db.perfis || []).some((x) => x.id === body.perfil_id)) return send(res, 409, { code: "23503", message: "insert or update on table \"interesses\" violates foreign key constraint" });
       if (req.method === "GET" || req.method === "HEAD") { if (t === "contas" && failContas > 0) { failContas--; return send(res, 500, { message: "simulated network error" }); } return volta(rows.filter((r) => casa(r, f))); }
+      if (req.method === "POST" && t === "ocorrencias") {
+        const me = who(req);
+        for (const b of (Array.isArray(body) ? body : [body])) {
+          const c = (db.combinados || []).find((x) => x.id === b.combinado_id);
+          if (!c || !me || ![c.perfil_id, c.contratante_id].includes(me.id) || (b.tipo === "ajuda" && me.id !== c.perfil_id)) return send(res, 403, { code: "42501", message: "new row violates row-level security policy" });
+          Object.assign(b, { autor_id: me.id, alvo_id: me.id === c.perfil_id ? c.contratante_id : c.perfil_id, autor_lado: me.id === c.perfil_id ? "aluno" : "contratante", urgente: b.tipo === "ajuda", status: "aberta", criada_em: new Date().toISOString(), prazo_em: new Date(Date.now() + (b.tipo === "ajuda" ? 1 : 7) * 86400000).toISOString(), resumo_defesa: "", defesa: "", defesa_em: null, decisao: null, decisao_texto: "", sigilo: true });
+          if (b.tipo === "ajuda" && b.pausou_combinado && c.status === "aceito") c.status = "pausado";
+        }
+      }
       if (req.method === "POST" && (t === "convites" || t === "combinados" || t === "avaliacoes")) { const me = who(req); for (const b of (Array.isArray(body) ? body : [body])) { if (t === "avaliacoes") { b.autor_id = me && me.id; b.autor_nome = ((db.contas || []).find((c) => c.id === b.autor_id) || {}).empresa || ((db.perfis || []).find((p) => p.id === b.autor_id) || {}).nome || "Usuário"; b.criado_em = new Date().toISOString(); } else { b.contratante_id = me && me.id; b.status = t === "convites" ? "enviado" : "proposto"; b.criado_em = new Date().toISOString(); if (t === "combinados") b.contratante_nome = ((db.contas || []).find((c) => c.id === b.contratante_id) || {}).empresa || "Contratante"; } } }
       if (req.method === "POST") { const novos = (Array.isArray(body) ? body : [body]).map((b) => { const oc = url.searchParams.get("on_conflict") || "id"; const ex = rows.find((r) => b[oc] !== undefined && r[oc] === b[oc]); if (ex) { if ((req.headers.prefer || "").includes("merge-duplicates")) { Object.assign(ex, b); return ex; } return null; } const n = { ...(DEFAULTS[t] || {}), id: b.id ?? crypto.randomUUID(), ...b }; rows.push(n); return n; }); if (novos.includes(null)) return send(res, 409, { code: "23505", message: "duplicate key" }); return (req.headers.prefer || "").includes("return=representation") ? volta(novos) : send(res, 201); }
       if (req.method === "PATCH") { const alvo = rows.filter((r) => casa(r, f)); alvo.forEach((r) => Object.assign(r, body)); return (req.headers.prefer || "").includes("return=representation") ? volta(alvo) : send(res, 204); }

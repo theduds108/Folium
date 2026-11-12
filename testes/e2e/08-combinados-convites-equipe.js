@@ -93,7 +93,8 @@ const semRolagem = (page) => page.evaluate(() => document.documentElement.scroll
   ok("contratante vê convite enviado", await emp.getByText("Convites que você enviou").isVisible());
   await emp.getByRole("button", { name: /concluir/ }).click(); await emp.waitForTimeout(1200);
   ok("combinado concluído", (await estado()).db.combinados[0].status === "concluido");
-  await emp.locator(".estrela-op").nth(4).click();
+  // Avaliação por critérios (12/11): 5 estrelas em cada um dos 4 critérios.
+  for (let i = 0; i < 4; i++) await emp.locator(".avaliar-criterio").nth(i).locator(".estrela-op").nth(4).click();
   await emp.getByLabel(/Comentário/).fill("Entregou antes do prazo.");
   await emp.getByRole("button", { name: "Enviar avaliação" }).click(); await emp.waitForTimeout(1200);
   ok("avaliação do contratante gravada", (await estado()).db.avaliacoes?.some((a) => a.alvo_id === "u-aluna" && a.nota === 5));
@@ -101,7 +102,7 @@ const semRolagem = (page) => page.evaluate(() => document.documentElement.scroll
 
   // ---- Aluna avalia o contratante
   await aluna.goto(BASE + "/combinados/"); await aluna.waitForTimeout(1500);
-  await aluna.locator(".estrela-op").nth(3).click({ timeout: 5000 });
+  for (let i = 0; i < 4; i++) await aluna.locator(".avaliar-criterio").nth(i).locator(".estrela-op").nth(3).click({ timeout: 5000 });
   ok("avaliar sem rolagem lateral (celular)", await semRolagem(aluna));
   await aluna.getByRole("button", { name: "Enviar avaliação" }).click(); await aluna.waitForTimeout(1200);
   ok("avaliação da aluna gravada", (await estado()).db.avaliacoes?.some((a) => a.alvo_id === "u-empresa" && a.nota === 4));
