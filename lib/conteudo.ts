@@ -22,13 +22,56 @@ export const EXPANSAO = ["UNESP", "FIB", "ITE", "UNIP", "FACOP", "USP", "UNINOVE
 
 export const EQUIPE = ["Giovana Buscariolo de Lima", "Eduarda Ferreira Corrêa", "Lauren Zareski de Oliveira"];
 
-/** Comparação com as alternativas que o aluno e o contratante usam hoje. */
+/** Comparação com as alternativas que o aluno e o contratante usam hoje: o que falta lá e o que o Fólium faz. */
 export const COMPARACAO = [
-  { nome: "LinkedIn", forte: "Rede enorme e conhecida", fraco: "Genérico, sem portfólio visual; quem não tem experiência some" },
-  { nome: "Start Carreiras", forte: "Muitas empresas e estudantes", fraco: "Foco em estágio e trainee, sem vínculo com a faculdade local" },
-  { nome: "CIEE", forte: "Presente em quase todas as faculdades de Bauru", fraco: "Só estágio formal e processo burocrático" },
-  { nome: "Workana, 99Freelas, Fiverr", forte: "Muitos pedidos de freela", fraco: "Público geral, sem curadoria nem selo de instituição" },
-  { nome: "Grupos de WhatsApp e Instagram", forte: "Rápido e gratuito", fraco: "Desorganizado, sem segurança e com risco de golpe" },
+  { nome: "LinkedIn", fraco: "Genérico, sem portfólio visual; quem ainda não tem experiência some.", folium: "Portfólio visual, feito para quem está começando." },
+  { nome: "Start Carreiras", fraco: "Foco em estágio e trainee, sem vínculo com a faculdade local.", folium: "Freela, projeto e estágio com alunos da faculdade da sua cidade." },
+  { nome: "CIEE", fraco: "Só estágio formal, com processo burocrático.", folium: "Você vê o trabalho e fala direto com quem fez." },
+  { nome: "Workana, 99Freelas, Fiverr", fraco: "Público geral, sem curadoria nem selo de instituição.", folium: "Só universitários com vínculo conferido e contratantes aprovados." },
+  { nome: "Grupos de WhatsApp e Instagram", fraco: "Desorganizado, sem segurança e com risco de golpe.", folium: "Código de conduta, denúncia e combinado registrado." },
+];
+
+/**
+ * Diferenciais do Fólium: só o que já existe na plataforma (nada de promessa).
+ * Os três primeiros também aparecem no bloco "Por que o Fólium" da página inicial.
+ */
+export const DIFERENCIAIS = [
+  {
+    titulo: "Só aluno de verdade",
+    curto: "Vínculo com a universidade conferido pelo e-mail institucional.",
+    texto: "Para criar portfólio, o aluno entra com o e-mail institucional da UNISAGRADO. Quem aparece aqui estuda aqui.",
+    link: { href: "/talentos", rotulo: "ver os talentos" },
+  },
+  {
+    titulo: "Quem contrata passa pela equipe",
+    curto: "Todo contratante novo fica em análise até a equipe aprovar.",
+    texto: "Conta de contratante nasce em análise. Só depois da aprovação ela convida alunos e fecha combinados, e os contatos dos alunos só aparecem para quem entrou.",
+    link: null,
+  },
+  {
+    titulo: "Segurança nos dois sentidos",
+    curto: "Código de conduta, denúncia dos dois lados e botão “Preciso de ajuda”.",
+    texto: "Aluno e contratante aceitam o mesmo código de conduta. Os dois podem denunciar, e o aluno tem o botão “Preciso de ajuda” dentro do combinado, com resposta da equipe em até 24 horas.",
+    link: { href: "/conduta", rotulo: "ler o código de conduta" },
+  },
+  {
+    titulo: "Portfólio de verdade, não currículo",
+    curto: "Obras com fotos e ficha técnica, num link só do aluno.",
+    texto: "Cada trabalho entra com fotos, ficha técnica e o que o aluno fez. O portfólio ganha um endereço próprio para mandar a quem quiser.",
+    link: null,
+  },
+  {
+    titulo: "Avaliação justa",
+    curto: "Por critérios, às cegas e com direito de resposta.",
+    texto: "As avaliações são por critérios e às cegas: só aparecem quando os dois avaliaram. A média só aparece a partir de 3 avaliações, e quem foi avaliado pode responder.",
+    link: { href: "/conduta#avaliacoes", rotulo: "como funciona" },
+  },
+  {
+    titulo: "Preço sem chute",
+    curto: "Faixas de preço por serviço, com a fonte de mercado de cada uma.",
+    texto: "O guia de preços mostra faixas de referência para cada tipo de serviço, com a fonte de onde veio cada número. O aluno não se desvaloriza e quem contrata sabe o que é justo.",
+    link: { href: "/guia#precos", rotulo: "abrir o guia de preços" },
+  },
 ];
 
 export type Oportunidade = {
