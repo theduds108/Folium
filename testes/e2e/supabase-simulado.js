@@ -176,7 +176,7 @@ const server = http.createServer((req, res) => {
       const volta = (lista) => { if (objeto) { if (lista.length !== 1) return send(res, 406, { code: "PGRST116", message: "JSON object requested, multiple (or no) rows returned" }); return send(res, 200, lista[0]); } return send(res, 200, lista, { "content-range": `0-${Math.max(0, lista.length - 1)}/${lista.length}` }); };
       if (falhar["POST:" + t] > 0 && req.method === "POST") { falhar["POST:" + t]--; return send(res, 500, { message: "simulated" }); }
       if (falhar[t] > 0 && req.method === "GET") { falhar[t]--; return send(res, 500, { message: "simulated" }); }
-      if (req.method === "GET" && t === "perfis" && (url.searchParams.get("select") || "").includes("trabalhos(")) { const l = rows.filter((r) => casa(r, f)).map((r) => ({ ...r, trabalhos: (db.trabalhos || []).filter((x) => x.perfil_id === r.id) })); return volta(l); }
+      if (req.method === "GET" && t === "perfis" && /trabalhos(!\w+)?\(/.test(url.searchParams.get("select") || "")) { const l = rows.filter((r) => casa(r, f)).map((r) => ({ ...r, trabalhos: (db.trabalhos || []).filter((x) => x.perfil_id === r.id) })); return volta(l); }
       if (t === "interesses" && req.method === "POST" && !(db.perfis || []).some((x) => x.id === body.perfil_id)) return send(res, 409, { code: "23503", message: "insert or update on table \"interesses\" violates foreign key constraint" });
       if (req.method === "GET" || req.method === "HEAD") { if (t === "contas" && failContas > 0) { failContas--; return send(res, 500, { message: "simulated network error" }); } return volta(rows.filter((r) => casa(r, f))); }
       if (req.method === "POST" && t === "ocorrencias") {
