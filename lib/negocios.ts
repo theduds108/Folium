@@ -6,7 +6,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Aluno } from "./data";
-import { collabsDoPerfil, paraAluno, traduzirErro, type PerfilBanco, type TrabalhoBanco } from "./repositorio";
+import { collabsDoPerfil, meusConvitesCollab, paraAluno, traduzirErro, type PerfilBanco, type TrabalhoBanco } from "./repositorio";
 import { supabase } from "./supabase";
 import { useConta } from "./conta";
 
@@ -129,6 +129,29 @@ export async function minhasEstatisticas(): Promise<Estatisticas | null> {
  * Quantas vagas foram aprovadas desde a última vez que a pessoa abriu o mural.
  * Para aluno, conta só as dos serviços que ele oferece (se ele marcou algum).
  */
+/** Quantos convites de collab esperam resposta do aluno logado (bolinha no "Meu portfólio"). */
+export function useConvitesCollabPendentes() {
+  const { conta } = useConta();
+  const [pendentes, setPendentes] = useState(0);
+  const contaId = conta?.id;
+  const tipo = conta?.tipo;
+  const pathname = usePathname() ?? "";
+  useEffect(() => {
+    if (!contaId || tipo !== "colaborador") {
+      setPendentes(0);
+      return;
+    }
+    let ativo = true;
+    meusConvitesCollab()
+      .then((l) => ativo && setPendentes(l.filter((c) => c.status === "pendente").length))
+      .catch(() => ativo && setPendentes(0));
+    return () => {
+      ativo = false;
+    };
+  }, [contaId, tipo, pathname]);
+  return pendentes;
+}
+
 export function useVagasNovas() {
   const { conta } = useConta();
   const [novas, setNovas] = useState(0);

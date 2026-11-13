@@ -3616,6 +3616,7 @@ html { scroll-padding-top: 84px; }
 .selo-novas { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 999px; background: var(--cobre-botao); color: #fff; font-size: 0.68rem; font-weight: var(--peso-forte); line-height: 1; vertical-align: middle; }
 .barra-inferior a { position: relative; }
 .barra-inferior .selo-novas { position: absolute; top: 2px; left: calc(50% + 6px); margin: 0; }
+.botao-primario .selo-novas { background: #fff; color: #94532c; }
 
 /* Painel da equipe */
 .equipe .abas-equipe { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
