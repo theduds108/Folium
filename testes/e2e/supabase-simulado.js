@@ -34,7 +34,7 @@ function send(res, code, body, extra = {}) {
   res.end(body === undefined ? "" : JSON.stringify(body));
 }
 function filtros(url) { const f = []; for (const [k, v] of url.searchParams) { if (["select", "order", "limit", "offset", "on_conflict", "columns"].includes(k)) continue; const m = /^(eq|neq|in|is)\.(.*)$/.exec(v); if (m) f.push([k, m[1], m[2]]); } return f; }
-function casa(row, f) { return f.every(([k, op, v]) => { const val = row[k]; if (op === "eq") return String(val) === v; if (op === "neq") return String(val) !== v; if (op === "is") return v === "null" ? val == null : String(val) === v; if (op === "in") return v.replace(/[()]/g, "").split(",").map((s) => s.replace(/"/g, "")).includes(String(val)); return true; }); }
+function casa(row, f) { return f.every(([k, op, v]) => { const val = row[k]; if (op === "eq") return String(val) === v; if (op === "neq") return String(val) !== v; if (op === "ilike") return String(val ?? "").toLowerCase().includes(v.replace(/[%*]/g, "").toLowerCase()); if (op === "is") return v === "null" ? val == null : String(val) === v; if (op === "in") return v.replace(/[()]/g, "").split(",").map((s) => s.replace(/"/g, "")).includes(String(val)); return true; }); }
 const server = http.createServer((req, res) => {
   let corpo = ""; req.on("data", (c) => (corpo += c)); req.on("end", () => {
     const url = new URL(req.url, "http://x");

@@ -11,7 +11,7 @@ import { Denunciar } from "@/components/Denunciar";
 import { BotaoPdf } from "@/components/BotaoPdf";
 import type { Avaliacao } from "@/lib/conteudo";
 import { MINIMO_PARA_MEDIA, ROTULO_CRITERIO, mediasPorCriterio } from "@/lib/seguranca-dados";
-import { formatarMes, formatarPeriodo } from "@/lib/formato";
+import { detalhesCurso, etapaCurso, formatarMes, formatarPeriodo } from "@/lib/formato";
 
 /**
  * Uma obra do portfólio, como peça editorial: imagens inteiras num passe-partout
@@ -28,6 +28,17 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
         {meta && <span className="obra-meta">{meta}</span>}
         <h3 className="obra-titulo">{t.titulo}</h3>
         {t.descricao && <p className="obra-desc">{t.descricao}</p>}
+        {t.coautores && t.coautores.length > 0 && (
+          <p className="obra-collab">
+            <span className="obra-collab-rotulo">Em collab com</span>{" "}
+            {t.coautores.map((c, i) => (
+              <span key={`${c.nome}-${i}`}>
+                {i > 0 && (i === t.coautores!.length - 1 ? " e " : ", ")}
+                {c.slug ? <Link href={`/perfil/?u=${encodeURIComponent(c.slug)}`}>{c.nome}</Link> : c.nome}
+              </span>
+            ))}
+          </p>
+        )}
         {t.papel && <p className="obra-papel"><strong>Minha parte:</strong> {t.papel}</p>}
         {t.link && (
           <a className="link-mao obra-link" href={linkExterno(t.link)} target="_blank" rel="noopener noreferrer nofollow">
@@ -47,6 +58,7 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
   const links = REDES.filter((r) => aluno.links?.[r.chave]);
   const experiencias = aluno.experiencias ?? [];
   const certificados = aluno.certificados ?? [];
+  const outras = aluno.formacao?.outras ?? [];
   const idiomas = aluno.idiomas ?? [];
   const interesses = [...(aluno.tiposVaga ?? []), ...(aluno.modalidades ?? [])];
   const [destaque, ...demais] = aluno.trabalhos;
@@ -72,7 +84,10 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
           <h1 className="perfil-nome">{aluno.nome}</h1>
           {aluno.titulo && <p className="perfil-titulo">{aluno.titulo}</p>}
           <Anotacao className="anotacao-perfil">
-            {aluno.semestre}º semestre, UNISAGRADO{aluno.conclusao ? ` · forma em ${formatarMes(aluno.conclusao)}` : ""}
+            {etapaCurso(aluno)}, UNISAGRADO
+            {aluno.conclusao && aluno.formacao?.situacao !== "Trancado"
+              ? ` · ${aluno.formacao?.situacao === "Concluído" ? "formou em" : "forma em"} ${formatarMes(aluno.conclusao)}`
+              : ""}
           </Anotacao>
 
           <div className="perfil-apresenta">
@@ -198,10 +213,31 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
               <div>
                 <dt><span>{num()}</span> Formação</dt>
                 <dd>
-                  <strong>{aluno.curso}</strong>
-                  <span className="suave"> · UNISAGRADO · {aluno.semestre}º semestre{aluno.conclusao ? ` · conclusão em ${formatarMes(aluno.conclusao)}` : ""}</span>
-                  {certificados.length > 0 && (
-                    <ul className="lista-cursos ficha-sublista">
+                  <ul className="lista-cursos ficha-sublista lista-formacao">
+                    <li>
+                      <span className="curso-nome">
+                        {aluno.formacao?.grau ? `${aluno.formacao.grau} em ${aluno.curso}` : aluno.curso}
+                      </span>
+                      <span className="curso-meta">UNISAGRADO · {detalhesCurso(aluno)}</span>
+                    </li>
+                    {outras.map((o, i) => (
+                      <li key={i}>
+                        <span className="curso-nome">{o.curso}</span>
+                        <span className="curso-meta">
+                          {[o.nivel, o.instituicao, o.andamento ? (o.inicio ? `desde ${o.inicio} · em andamento` : "em andamento") : [o.inicio, o.fim].filter(Boolean).join(" – ")]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+              {certificados.length > 0 && (
+                <div>
+                  <dt><span>{num()}</span> Cursos e certificados</dt>
+                  <dd>
+                    <ul className="lista-cursos ficha-sublista lista-certificados">
                       {certificados.map((c, i) => (
                         <li key={i}>
                           <span className="curso-nome">
@@ -220,9 +256,9 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
                         </li>
                       ))}
                     </ul>
-                  )}
-                </dd>
-              </div>
+                  </dd>
+                </div>
+              )}
               {experiencias.length > 0 && (
                 <div>
                   <dt><span>{num()}</span> Experiência</dt>

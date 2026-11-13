@@ -18,9 +18,14 @@ export type Trabalho = {
   ano?: string;
   /** O que o aluno fez no trabalho, quando foi em grupo. */
   papel?: string;
+  /** Colegas que fizeram o trabalho junto (collab). */
+  coautores?: Coautor[];
   /** Link externo: Behance, site no ar, vídeo, matéria publicada. */
   link?: string;
 };
+
+/** Colega de um trabalho em collab. Com slug, o nome vira link para o portfólio dele no Fólium. */
+export type Coautor = { nome: string; slug?: string };
 
 export type Experiencia = {
   cargo: string;
@@ -35,6 +40,32 @@ export type Experiencia = {
 };
 export type Certificado = { nome: string; instituicao: string; ano: string; link?: string; /** PDF ou imagem do certificado enviado pelo aluno. */ arquivo?: string };
 export type Idioma = { idioma: string; nivel: string };
+
+/** Outra formação além da graduação na UNISAGRADO: técnico, outra graduação, pós. */
+export type OutraFormacao = {
+  nivel: string;
+  curso: string;
+  instituicao: string;
+  /** Ano de início e de fim (AAAA). */
+  inicio: string;
+  fim: string;
+  andamento?: boolean;
+};
+
+/** Detalhes da graduação (o curso e o semestre ficam nas colunas próprias do perfil). */
+export type Formacao = {
+  grau?: string;
+  situacao?: string;
+  turno?: string;
+  /** Mês de ingresso no formato AAAA-MM. */
+  inicio?: string;
+  outras?: OutraFormacao[];
+};
+
+export const GRAUS = ["Bacharelado", "Licenciatura", "Tecnólogo"] as const;
+export const SITUACOES_CURSO = ["Cursando", "Trancado", "Concluído"] as const;
+export const TURNOS = ["Matutino", "Vespertino", "Noturno", "Integral", "EAD"] as const;
+export const NIVEIS_FORMACAO = ["Ensino médio", "Ensino técnico", "Graduação", "Pós-graduação", "MBA", "Mestrado", "Doutorado", "Outro"] as const;
 export type Links = Partial<Record<(typeof REDES)[number]["chave"], string>>;
 
 export type Aluno = {
@@ -62,6 +93,7 @@ export type Aluno = {
   sobre?: string;
   /** Previsão de conclusão do curso, ex.: "Dez/2027". */
   conclusao?: string;
+  formacao?: Formacao;
   modalidades?: string[];
   tiposVaga?: string[];
   links?: Links;
