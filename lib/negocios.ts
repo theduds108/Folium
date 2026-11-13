@@ -57,10 +57,40 @@ function idNavegador() {
   }
 }
 
-/** Conta a visita no portfólio (o próprio dono não conta; um visitante por dia). */
+const MEUS_PORTFOLIOS = "folium-meus-portfolios";
+
+/**
+ * Guarda neste navegador o endereço do portfólio de quem está logado, para que o dono
+ * não conte como visita quando abrir o próprio link público sem estar logado.
+ */
+export function lembrarMeuPortfolio(slug: string) {
+  if (!slug) return;
+  try {
+    const lista: string[] = JSON.parse(localStorage.getItem(MEUS_PORTFOLIOS) ?? "[]");
+    if (!lista.includes(slug)) localStorage.setItem(MEUS_PORTFOLIOS, JSON.stringify([...lista, slug].slice(-5)));
+  } catch {
+    /* sem armazenamento: o banco ainda barra o dono quando ele está logado */
+  }
+}
+
+function ehMeuPortfolio(slug: string) {
+  try {
+    return (JSON.parse(localStorage.getItem(MEUS_PORTFOLIOS) ?? "[]") as string[]).includes(slug);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Conta a visita no portfólio. Não contam: o próprio dono (logado ou não, neste navegador),
+ * navegadores automáticos (robôs) e a mesma pessoa mais de uma vez no dia.
+ * O banco ainda limita quantos visitantes anônimos diferentes a mesma conexão soma por dia.
+ */
 export async function registrarVisita(slug: string) {
   const sb = supabase();
   if (!sb) return;
+  if (typeof navigator !== "undefined" && navigator.webdriver) return;
+  if (ehMeuPortfolio(slug)) return;
   await sb.rpc("registrar_visita", { p_slug: slug, p_visitante: idNavegador() }).then(
     () => undefined,
     () => undefined,
