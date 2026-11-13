@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Aluno } from "@/lib/data";
 import { iniciais, linkPerfil, unsplash } from "@/lib/data";
 import { FotoEnquadrada } from "@/components/FotoEnquadrada";
+import { etapaCurso } from "@/lib/formato";
 
 const FUNDOS = ["#2F3E2A", "#B0673B", "#4F7A3A", "#6B4A34"];
 
@@ -57,7 +58,7 @@ export function CartaoAluno({ aluno, semLink = false }: { aluno: Aluno; /** Só 
             )}
           </span>
         )}
-        <span className="suave polaroide-sub">{aluno.semestre}º semestre · {aluno.cidade}</span>
+        <span className="suave polaroide-sub">{etapaCurso(aluno)} · {aluno.cidade}</span>
       </span>
     </>
   );

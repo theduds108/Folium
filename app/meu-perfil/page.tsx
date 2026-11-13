@@ -8,17 +8,24 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   CURSOS,
+  GRAUS,
   MODALIDADES,
+  NIVEIS_FORMACAO,
   NIVEIS_IDIOMA,
   REDES,
   SERVICOS,
   SERVICOS_POR_AREA,
+  SITUACOES_CURSO,
   TIPOS_VAGA,
+  TURNOS,
   linkPerfil,
   unsplash,
   type Aluno,
   type Certificado,
+  type Coautor,
   type Experiencia,
+  type Formacao,
+  type OutraFormacao,
   type Idioma,
   type Links,
 } from "@/lib/data";
@@ -42,6 +49,7 @@ import { BuscaEmpresa } from "@/components/BuscaEmpresa";
 import { ImportarCurriculo } from "@/components/ImportarCurriculo";
 import { mesmoTexto, type DadosCurriculo } from "@/lib/curriculo";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
+import { CampoCoautores } from "@/components/CampoCoautores";
 
 const CHAVE = "folium-rascunho-perfil";
 /** Rascunho automático de quem está logado: guarda o que ainda não foi salvo no banco. */
@@ -61,6 +69,7 @@ type TrabalhoRascunho = {
   ano: string;
   papel: string;
   link: string;
+  coautores: Coautor[];
 };
 
 type Rascunho = {
@@ -70,6 +79,7 @@ type Rascunho = {
   curso: string;
   semestre: number;
   conclusao: string;
+  formacao: Formacao & { outras: OutraFormacao[] };
   cidade: string;
   bio: string;
   sobre: string;
@@ -102,10 +112,14 @@ const TRABALHO_VAZIO: TrabalhoRascunho = {
   ano: "",
   papel: "",
   link: "",
+  coautores: [],
 };
 const EXPERIENCIA_VAZIA: Experiencia = { cargo: "", lugar: "", periodo: "", descricao: "", inicio: "", fim: "", atual: false };
 const CERTIFICADO_VAZIO: Certificado = { nome: "", instituicao: "", ano: "", link: "" };
 const IDIOMA_VAZIO: Idioma = { idioma: "", nivel: NIVEIS_IDIOMA[1] };
+const OUTRA_FORMACAO_VAZIA: OutraFormacao = { nivel: "Ensino técnico", curso: "", instituicao: "", inicio: "", fim: "", andamento: false };
+const FORMACAO_VAZIA: Rascunho["formacao"] = { grau: "", situacao: "Cursando", turno: "", inicio: "", outras: [] };
+const MAX_OUTRAS_FORMACOES = 6;
 
 const VAZIO: Rascunho = {
   slug: "",
@@ -114,6 +128,7 @@ const VAZIO: Rascunho = {
   curso: CURSOS[0],
   semestre: 1,
   conclusao: "",
+  formacao: FORMACAO_VAZIA,
   cidade: "Bauru, SP",
   bio: "",
   sobre: "",
@@ -141,12 +156,13 @@ const VAZIO: Rascunho = {
  * (com elas o portfólio já pode ir ao ar); as outras "turbinam" o perfil quando o aluno quiser.
  */
 const PASSOS = [
-  { id: "voce", rotulo: "Você", tempo: "1 min", essencial: true, dica: "Quem é você e o que estuda. Uma foto ajuda muito." },
+  { id: "voce", rotulo: "Você", tempo: "1 min", essencial: true, dica: "Quem é você e o que faz. Uma foto ajuda muito." },
+  { id: "graduacao", rotulo: "Formação", tempo: "1 min", essencial: true, dica: "Seu curso na UNISAGRADO e, se tiver, outras formações." },
   { id: "obra", rotulo: "Sua obra", tempo: "2 min", essencial: true, dica: "Mostre um trabalho de que você se orgulha. Pode ser de aula." },
   { id: "contato", rotulo: "Como te contratar", tempo: "1 min", essencial: true, dica: "O que você oferece e por onde falam com você." },
-  { id: "detalhes", rotulo: "Sobre mim", tempo: "2 min", essencial: false, dica: "Sua história, habilidades, valor e formatura." },
+  { id: "detalhes", rotulo: "Sobre mim", tempo: "2 min", essencial: false, dica: "Sua história, habilidades, valor e cidade." },
   { id: "experiencia", rotulo: "Experiência", tempo: "2 min", essencial: false, dica: "Estágio, freela, empresa júnior, monitoria, voluntariado. Tudo conta." },
-  { id: "formacao", rotulo: "Cursos e idiomas", tempo: "1 min", essencial: false, dica: "Cursos livres, certificados, prêmios e idiomas." },
+  { id: "cursos", rotulo: "Cursos e idiomas", tempo: "1 min", essencial: false, dica: "Cursos livres, certificados, prêmios e idiomas." },
   { id: "links", rotulo: "Links e currículo", tempo: "1 min", essencial: false, dica: "Instagram, Behance, LinkedIn e um PDF para baixar." },
 ] as const;
 type Passo = (typeof PASSOS)[number]["id"];
@@ -154,12 +170,13 @@ type Passo = (typeof PASSOS)[number]["id"];
 /** Quais fichas já têm o mínimo preenchido. */
 function fichasFeitas(r: Rascunho): Record<Passo, boolean> {
   return {
-    voce: preenchido(r.nome) && preenchido(r.curso),
+    voce: preenchido(r.nome),
+    graduacao: preenchido(r.curso),
     obra: r.trabalhos.some((t) => preenchido(t.titulo)),
     contato: r.servicos.length > 0 && (preenchido(r.whatsapp) || preenchido(r.emailContato)),
     detalhes: r.sobre.trim().length >= 120 || r.habilidades.split(",").filter((h) => h.trim()).length >= 3,
     experiencia: r.experiencias.some((e) => preenchido(e.cargo)),
-    formacao: r.certificados.some((c) => preenchido(c.nome)) || r.idiomas.some((i) => preenchido(i.idioma)),
+    cursos: r.certificados.some((c) => preenchido(c.nome)) || r.idiomas.some((i) => preenchido(i.idioma)),
     links: Object.values(r.links).some((l) => l && preenchido(l)) || preenchido(r.curriculo),
   };
 }
@@ -292,7 +309,12 @@ function Editor(props: PropsEditor) {
         if (guardado) {
           const g = JSON.parse(guardado);
           setCursoOutro(Boolean(g.curso) && !(CURSOS as readonly string[]).includes(g.curso));
-          setR({ ...VAZIO, ...g, trabalhos: (g.trabalhos ?? [TRABALHO_VAZIO]).map((t: TrabalhoRascunho) => ({ ...TRABALHO_VAZIO, ...t })) });
+          setR({
+            ...VAZIO,
+            ...g,
+            formacao: { ...FORMACAO_VAZIA, ...g.formacao },
+            trabalhos: (g.trabalhos ?? [TRABALHO_VAZIO]).map((t: TrabalhoRascunho) => ({ ...TRABALHO_VAZIO, ...t })),
+          });
         }
       } catch {
         /* sem acesso ao armazenamento: começa vazio */
@@ -311,6 +333,7 @@ function Editor(props: PropsEditor) {
             curso: p.curso,
             semestre: p.semestre,
             conclusao: p.conclusao ?? "",
+            formacao: { ...FORMACAO_VAZIA, ...p.formacao, outras: p.formacao?.outras ?? [] },
             cidade: p.cidade,
             bio: p.bio,
             sobre: p.sobre_longo ?? "",
@@ -341,6 +364,7 @@ function Editor(props: PropsEditor) {
                   ano: t.ano ?? "",
                   papel: t.papel ?? "",
                   link: t.link ?? "",
+                  coautores: t.coautores ?? [],
                 }))
               : [TRABALHO_VAZIO],
           });
@@ -362,6 +386,11 @@ function Editor(props: PropsEditor) {
 
   const alternar = (campo: "servicos" | "modalidades" | "tiposVaga", valor: string) =>
     mudar(campo, r[campo].includes(valor) ? r[campo].filter((x) => x !== valor) : [...r[campo], valor]);
+
+  const mudarFormacao = (mudanca: Partial<Rascunho["formacao"]>) => {
+    setR((atual) => ({ ...atual, formacao: { ...atual.formacao, ...mudanca } }));
+    setSalvo(false);
+  };
 
   const mudarTrabalho = (i: number, mudanca: Partial<TrabalhoRascunho>) => {
     setR((atual) => ({ ...atual, trabalhos: atual.trabalhos.map((t, j) => (j === i ? { ...t, ...mudanca } : t)) }));
@@ -404,9 +433,14 @@ function Editor(props: PropsEditor) {
       setSalvo(true);
       return;
     }
-    if (r.nome.trim().length < 2 || !r.curso.trim()) {
-      setErro("Falta seu nome e curso, na ficha \"Você\".");
+    if (r.nome.trim().length < 2) {
+      setErro("Falta seu nome, na ficha \"Você\".");
       irPara("voce");
+      return;
+    }
+    if (!r.curso.trim()) {
+      setErro("Falta o seu curso, na ficha \"Formação\".");
+      irPara("graduacao");
       return;
     }
     if (!telefoneValido(r.whatsapp)) {
@@ -431,6 +465,15 @@ function Editor(props: PropsEditor) {
           curso: r.curso,
           semestre: r.semestre,
           conclusao: r.conclusao.trim(),
+          formacao: {
+            grau: r.formacao.grau || "",
+            situacao: r.formacao.situacao || "Cursando",
+            turno: r.formacao.turno || "",
+            inicio: r.formacao.inicio || "",
+            outras: r.formacao.outras
+              .filter((o) => o.curso.trim())
+              .map((o) => ({ ...o, curso: o.curso.trim(), instituicao: o.instituicao.trim(), fim: o.andamento ? "" : o.fim })),
+          },
           cidade: r.cidade.trim() || "Bauru, SP",
           bio: r.bio.trim(),
           sobre_longo: r.sobre.trim(),
@@ -464,6 +507,7 @@ function Editor(props: PropsEditor) {
           papel: t.papel.trim(),
           link: t.link.trim(),
           galeria: t.galeria,
+          coautores: t.coautores,
         }))
       );
       setR((atual) => ({ ...atual, slug }));
@@ -571,7 +615,7 @@ function Editor(props: PropsEditor) {
     setCursoOutro(Boolean(d.curso) && ok.has("curso") ? !(CURSOS as readonly string[]).includes(d.curso!) : cursoOutro);
     setSalvo(false);
     setImportado(true);
-    irPara("voce");
+    irPara(ok.has("curso") || ok.has("semestre") || ok.has("conclusao") ? "graduacao" : "voce");
   };
 
   const irPara = (id: Passo) => {
@@ -620,7 +664,7 @@ function Editor(props: PropsEditor) {
           </div>
           <p className="suave" style={{ margin: 0 }}>
             {real ? <>Você entrou como <strong style={{ overflowWrap: "anywhere" }}>{email}</strong>. </> : null}
-            Três fichas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
+            Quatro fichas rápidas e seu portfólio já pode ir ao ar. O resto você turbina quando quiser.
           </p>
           {recuperado && (
             <div className="aviso recuperado" role="status">
@@ -703,6 +747,28 @@ function Editor(props: PropsEditor) {
             Nome
             <input value={r.nome} onChange={(e) => mudar("nome", e.target.value)} placeholder="Como quer aparecer" required minLength={2} maxLength={80} />
           </label>
+          <label className="campo">
+            Título profissional
+            <input value={r.titulo} onChange={(e) => mudar("titulo", e.target.value)} maxLength={80} placeholder="Ex.: Designer gráfica e ilustradora" />
+            <span className="ajuda">Aparece logo abaixo do seu nome. Diga o que você faz em poucas palavras.</span>
+          </label>
+          <label className="campo">
+            Resumo
+            <textarea value={r.bio} onChange={(e) => mudar("bio", e.target.value)} maxLength={280} rows={3} placeholder="Em duas frases: o que você faz e para quem." />
+            <span className="ajuda">{r.bio.length}/280. Aparece no seu cartão na busca.</span>
+          </label>
+          </Ficha>
+        )}
+
+        {passo === "graduacao" && (
+          <Ficha id="graduacao" titulo={tituloRef}>
+          <div className="campo">
+            Instituição
+            <p className="campo-fixo">
+              <strong>UNISAGRADO</strong>
+              <span className="suave">Conferida pelo seu e-mail institucional. Por isso o portfólio ganha o selo de aluno verificado.</span>
+            </p>
+          </div>
           <div className="linha-dupla">
             <div className="campo">
               Curso
@@ -720,21 +786,84 @@ function Editor(props: PropsEditor) {
               )}
             </div>
             <div className="campo">
-              Semestre atual
-              <Contador aria-label="Semestre" valor={r.semestre} onMudar={(n) => mudar("semestre", n)} min={1} max={12} sufixo="º" />
+              Grau
+              <Seletor
+                aria-label="Grau"
+                valor={r.formacao.grau ?? ""}
+                placeholder="Não informar"
+                onMudar={(v) => mudarFormacao({ grau: v })}
+                grupos={[{ opcoes: [{ valor: "", rotulo: "Não informar" }, ...GRAUS] }]}
+              />
             </div>
           </div>
+          <fieldset className="campo">
+            <legend>Situação do curso</legend>
+            <div className="opcoes">
+              {SITUACOES_CURSO.map((x) => (
+                <label key={x} className="opcao">
+                  <input type="radio" name="situacao-curso" checked={(r.formacao.situacao || "Cursando") === x} onChange={() => mudarFormacao({ situacao: x })} />
+                  {x}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className="linha-dupla">
+            {r.formacao.situacao !== "Concluído" && (
+              <div className="campo">
+                Semestre atual
+                <Contador aria-label="Semestre" valor={r.semestre} onMudar={(n) => mudar("semestre", n)} min={1} max={12} sufixo="º" />
+              </div>
+            )}
+            <div className="campo">
+              Turno
+              <Seletor
+                aria-label="Turno"
+                valor={r.formacao.turno ?? ""}
+                placeholder="Não informar"
+                onMudar={(v) => mudarFormacao({ turno: v })}
+                grupos={[{ opcoes: [{ valor: "", rotulo: "Não informar" }, ...TURNOS] }]}
+              />
+            </div>
+          </div>
+          <div className="linha-dupla">
+            <label className="campo">
+              Início do curso
+              <input type="month" value={/^\d{4}-\d{2}$/.test(r.formacao.inicio ?? "") ? r.formacao.inicio : ""} onChange={(e) => mudarFormacao({ inicio: e.target.value })} min="2010-01" max="2040-12" />
+            </label>
+            <label className="campo">
+              {r.formacao.situacao === "Concluído" ? "Formatura" : "Previsão de formatura"}
+              <input type="month" value={/^\d{4}-\d{2}$/.test(r.conclusao) ? r.conclusao : ""} onChange={(e) => mudar("conclusao", e.target.value)} min="2010-01" max="2040-12" />
+            </label>
+          </div>
 
-          <label className="campo">
-            Título profissional
-            <input value={r.titulo} onChange={(e) => mudar("titulo", e.target.value)} maxLength={80} placeholder="Ex.: Designer gráfica e ilustradora" />
-            <span className="ajuda">Aparece logo abaixo do seu nome. Diga o que você faz em poucas palavras.</span>
-          </label>
-          <label className="campo">
-            Resumo
-            <textarea value={r.bio} onChange={(e) => mudar("bio", e.target.value)} maxLength={280} rows={3} placeholder="Em duas frases: o que você faz e para quem." />
-            <span className="ajuda">{r.bio.length}/280. Aparece no seu cartão na busca.</span>
-          </label>
+          <h3 style={{ marginTop: 8 }}>Outras formações</h3>
+          <p className="suave ajuda-secao">Ensino técnico, outra graduação, pós. Cursos livres e certificados ficam na ficha &quot;Cursos e idiomas&quot;.</p>
+          {r.formacao.outras.map((o, i) => (
+            <div key={i} className="item-lista">
+              <div className="item-lista-topo">
+                <strong>Formação {i + 1}</strong>
+                <button type="button" className="link-denuncia" onClick={() => mudarFormacao({ outras: r.formacao.outras.filter((_, j) => j !== i) })}>Remover</button>
+              </div>
+              <div className="linha-dupla">
+                <Seletor aria-label={`Nível da formação ${i + 1}`} valor={o.nivel} onMudar={(v) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { nivel: v }) })} grupos={[{ opcoes: NIVEIS_FORMACAO }]} />
+                <input className="entrada" value={o.curso} onChange={(e) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { curso: e.target.value }) })} placeholder="Curso" maxLength={100} aria-label={`Curso da formação ${i + 1}`} />
+              </div>
+              <input className="entrada" value={o.instituicao} onChange={(e) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { instituicao: e.target.value }) })} placeholder="Instituição (ex.: ETEC Bauru)" maxLength={80} aria-label={`Instituição da formação ${i + 1}`} />
+              <div className="linha-dupla">
+                <input className="entrada" value={o.inicio} onChange={(e) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { inicio: mascaraAno(e.target.value) }) })} placeholder="Ano de início" inputMode="numeric" aria-label={`Ano de início da formação ${i + 1}`} />
+                <input className="entrada" value={o.andamento ? "" : o.fim} disabled={!!o.andamento} onChange={(e) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { fim: mascaraAno(e.target.value) }) })} placeholder="Ano de conclusão" inputMode="numeric" aria-label={`Ano de conclusão da formação ${i + 1}`} />
+              </div>
+              <label className="filtro-check">
+                <input type="checkbox" checked={!!o.andamento} onChange={(e) => mudarFormacao({ outras: trocar(r.formacao.outras, i, { andamento: e.target.checked }) })} />
+                Ainda estou cursando
+              </label>
+            </div>
+          ))}
+          {r.formacao.outras.length < MAX_OUTRAS_FORMACOES && (
+            <button type="button" className="botao botao-contorno botao-add" onClick={() => mudarFormacao({ outras: [...r.formacao.outras, OUTRA_FORMACAO_VAZIA] })}>
+              + Adicionar outra formação
+            </button>
+          )}
           </Ficha>
         )}
 
@@ -800,6 +929,16 @@ function Editor(props: PropsEditor) {
                 <textarea className="entrada" rows={6} value={t.descricao} onChange={(e) => mudarTrabalho(i, { descricao: e.target.value })} placeholder="O que foi o trabalho, o problema que resolve, como foi feito e qual foi o resultado" maxLength={MAX_DESCRICAO} />
                 <span className="ajuda">{t.descricao.length}/{MAX_DESCRICAO}. Pode usar parágrafos.</span>
               </label>
+              <div className="campo campo-pequeno">
+                Fez em collab?
+                <CampoCoautores
+                  rotulo={`Colegas do trabalho ${i + 1}`}
+                  valor={t.coautores}
+                  meuId={userId || undefined}
+                  onMudar={(lista) => mudarTrabalho(i, { coautores: lista })}
+                />
+                <span className="ajuda">Marque quem fez com você. Se a pessoa tem portfólio no Fólium, o nome vira link para ele.</span>
+              </div>
               <details className="mais-detalhes" open={Boolean(t.cliente || t.ano || t.papel || t.link)}>
                 <summary>Mais detalhes (opcional): cliente, ano, sua parte, link</summary>
                 <div className="mais-detalhes-corpo">
@@ -932,16 +1071,10 @@ function Editor(props: PropsEditor) {
               ))}
             </div>
           </fieldset>
-          <div className="linha-dupla">
-            <label className="campo">
-              Previsão de formatura
-              <input type="month" value={/^\d{4}-\d{2}$/.test(r.conclusao) ? r.conclusao : ""} onChange={(e) => mudar("conclusao", e.target.value)} min="2020-01" max="2040-12" />
-            </label>
-            <label className="campo">
-              Cidade
-              <input value={r.cidade} onChange={(e) => mudar("cidade", e.target.value)} placeholder="Bauru, SP" />
-            </label>
-          </div>
+          <label className="campo">
+            Cidade
+            <input value={r.cidade} onChange={(e) => mudar("cidade", e.target.value)} placeholder="Bauru, SP" />
+          </label>
           </Ficha>
         )}
 
@@ -983,8 +1116,8 @@ function Editor(props: PropsEditor) {
           </Ficha>
         )}
 
-        {passo === "formacao" && (
-          <Ficha id="formacao" titulo={tituloRef}>
+        {passo === "cursos" && (
+          <Ficha id="cursos" titulo={tituloRef}>
           {r.certificados.map((c, i) => (
             <div key={i} className="item-lista">
               <div className="item-lista-topo">
