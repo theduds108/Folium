@@ -3479,11 +3479,15 @@ html { scroll-padding-top: 84px; }
 .link-publico-url { font-size: var(--t-pequeno); background: var(--creme-papel); border: 1px solid var(--linha); border-radius: 8px; padding: 4px 8px; overflow-wrap: anywhere; max-width: 100%; }
 
 /* Estatísticas do portfólio (editor) */
-.estatisticas { display: grid; gap: 10px; margin-top: 14px; }
-.estatisticas-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
-.estatisticas-grade div { border: 1px solid var(--linha); border-radius: 10px; padding: 8px 10px; background: var(--creme-papel); }
-.estatisticas-grade dt { font-size: var(--t-pequeno); color: var(--texto-suave); }
-.estatisticas-grade dd { margin: 2px 0 0; font-size: var(--t-grande); font-weight: var(--peso-forte); color: var(--verde-musgo); }
+.estatisticas { display: grid; gap: 16px; margin-top: 14px; padding: 20px; }
+.estatisticas > strong { font-size: var(--t-medio); }
+.estatisticas .ajuda { line-height: 1.55; }
+.estatisticas-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.estatisticas-grade div { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; border: 1px solid var(--linha); border-radius: 12px; padding: 14px 16px; background: var(--creme-papel); }
+/* Número ímpar de cartões: o último ocupa a linha inteira, com rótulo à esquerda e número à direita. */
+.estatisticas-grade div:last-child:nth-child(odd) { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+.estatisticas-grade dt { font-size: var(--t-pequeno); line-height: 1.4; color: var(--texto-suave); }
+.estatisticas-grade dd { margin: 0; font-size: var(--t-grande); line-height: 1; font-weight: var(--peso-forte); color: var(--verde-musgo); }
 .estatisticas-novas { font-weight: var(--peso-medio); color: var(--cobre-texto); }
 
 /* Portfólio em PDF: "Baixar em PDF" abre a impressão do navegador (Salvar como PDF). */
