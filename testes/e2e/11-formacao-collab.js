@@ -39,8 +39,8 @@ const base = { cidade: "Bauru, SP", bio: "bio", servicos: ["Identidade visual"],
   await page.goto(BASE + "/perfil/?u=ana-souza"); await page.waitForTimeout(2500);
   ok("perfil mostra curso concluído", await page.getByText("Curso concluído").first().isVisible());
   ok("perfil mostra outra formação", await page.getByText("Técnico em Comunicação Visual").isVisible());
-  const link = page.locator(".obra-collab a", { hasText: "Gi Lima" });
+  const link = page.locator(".obra-collab a", { hasText: "Gi Lima" }).first();
   ok("colega do Fólium vira link na mesma aba", (await link.getAttribute("href"))?.includes("/perfil/?u=gi-lima") && !(await link.getAttribute("target")));
-  ok("colega sem portfólio aparece só com nome", await page.locator(".obra-collab", { hasText: "Carlos Mendes" }).isVisible());
+  ok("colega sem portfólio aparece só com nome", await page.locator(".obra-collab", { hasText: "Carlos Mendes" }).first().isVisible());
   await ctx.close();
 } catch (e) { out.push("ERRO " + e.message.split("\n")[0]); } await browser.close(); console.log(out.join("\n")); })();

@@ -63,7 +63,9 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
   const idiomas = aluno.idiomas ?? [];
   const interesses = [...(aluno.tiposVaga ?? []), ...(aluno.modalidades ?? [])];
   const [destaque, ...demais] = aluno.trabalhos;
-  const collabs = aluno.collabs ?? [];
+  // Aba Collabs, como no Instagram: os trabalhos do próprio aluno em que ele marcou colegas
+  // e os de colegas em que ele aceitou o convite.
+  const collabs = [...aluno.trabalhos.filter((t) => t.coautores && t.coautores.length > 0), ...(aluno.collabs ?? [])];
 
   // Ficha técnica: cada bloco ganha um rótulo editorial numerado, sem painéis novos.
   let n = 0;
