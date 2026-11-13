@@ -9,6 +9,7 @@ import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
 import { Denunciar } from "@/components/Denunciar";
 import { BotaoPdf } from "@/components/BotaoPdf";
+import { AbasObras } from "@/components/AbasObras";
 import type { Avaliacao } from "@/lib/conteudo";
 import { MINIMO_PARA_MEDIA, ROTULO_CRITERIO, mediasPorCriterio } from "@/lib/seguranca-dados";
 import { detalhesCurso, etapaCurso, formatarMes, formatarPeriodo } from "@/lib/formato";
@@ -170,35 +171,49 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
         </aside>
 
         <div className="perfil-corpo">
-          {destaque && (
-            <section className="perfil-secao" aria-labelledby="obras-titulo">
-              <div className="secao-titulo">
-                <h2 id="obras-titulo">Obras</h2>
-                <span className="rotulos"><span>{aluno.trabalhos.length} {aluno.trabalhos.length === 1 ? "peça" : "peças"}</span></span>
-              </div>
-              <Obra t={destaque} destaque />
-              {demais.length > 0 && (
+          {collabs.length > 0 ? (
+            <AbasObras
+              nObras={aluno.trabalhos.length}
+              nCollabs={collabs.length}
+              obras={
+                destaque && (
+                  <>
+                    <Obra t={destaque} destaque />
+                    {demais.length > 0 && (
+                      <div className="obras-grade">
+                        {demais.map((t, i) => (
+                          <Obra key={`${i}-${t.titulo}`} t={t} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              }
+              collabs={
                 <div className="obras-grade">
-                  {demais.map((t, i) => (
-                    <Obra key={`${i}-${t.titulo}`} t={t} />
+                  {collabs.map((t, i) => (
+                    <Obra key={`c${i}-${t.titulo}`} t={t} />
                   ))}
                 </div>
-              )}
-            </section>
-          )}
-
-          {collabs.length > 0 && (
-            <section className="perfil-secao" aria-labelledby="collabs-titulo">
-              <div className="secao-titulo">
-                <h2 id="collabs-titulo">Em collab</h2>
-                <span className="rotulos"><span>{collabs.length} {collabs.length === 1 ? "peça" : "peças"} com colegas</span></span>
-              </div>
-              <div className="obras-grade">
-                {collabs.map((t, i) => (
-                  <Obra key={`c${i}-${t.titulo}`} t={t} />
-                ))}
-              </div>
-            </section>
+              }
+            />
+          ) : (
+            destaque && (
+              <section className="perfil-secao" aria-labelledby="obras-titulo">
+                <div className="secao-titulo">
+                  <h2 id="obras-titulo">Obras</h2>
+                  <span className="rotulos"><span>{aluno.trabalhos.length} {aluno.trabalhos.length === 1 ? "peça" : "peças"}</span></span>
+                </div>
+                <Obra t={destaque} destaque />
+                {demais.length > 0 && (
+                  <div className="obras-grade">
+                    {demais.map((t, i) => (
+                      <Obra key={`${i}-${t.titulo}`} t={t} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )
           )}
 
           {aluno.sobre && (

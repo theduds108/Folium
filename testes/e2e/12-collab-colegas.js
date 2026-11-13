@@ -41,8 +41,9 @@ async function entrar(browser, usuario) {
   db = await estado();
   ok("aceite grava a parte da Gi", db.collab[0].status === "aceito" && db.collab[0].papel === "Entrevistas e texto final");
   await page.goto(BASE + "/perfil/?u=gi-lima"); await page.waitForTimeout(2500);
-  const sec = page.locator("section", { has: page.locator("#collabs-titulo") });
-  ok("portfólio da Gi mostra a seção Em collab", await sec.isVisible());
+  await page.getByRole("tab", { name: /Collabs/ }).click();
+  const sec = page.getByRole("tabpanel", { name: /Collabs/ });
+  ok("portfólio da Gi mostra a aba Collabs", await sec.isVisible());
   ok("com a parte dela", await sec.getByText("Entrevistas e texto final").isVisible());
   const link = sec.locator(".obra-collab a", { hasText: "Ana Souza" });
   ok("crédito para quem publicou, com link na mesma aba", (await link.getAttribute("href"))?.includes("/perfil/?u=ana-souza") && !(await link.getAttribute("target")));
