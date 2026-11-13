@@ -62,6 +62,7 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
   const idiomas = aluno.idiomas ?? [];
   const interesses = [...(aluno.tiposVaga ?? []), ...(aluno.modalidades ?? [])];
   const [destaque, ...demais] = aluno.trabalhos;
+  const collabs = aluno.collabs ?? [];
 
   // Ficha técnica: cada bloco ganha um rótulo editorial numerado, sem painéis novos.
   let n = 0;
@@ -183,6 +184,20 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
                   ))}
                 </div>
               )}
+            </section>
+          )}
+
+          {collabs.length > 0 && (
+            <section className="perfil-secao" aria-labelledby="collabs-titulo">
+              <div className="secao-titulo">
+                <h2 id="collabs-titulo">Em collab</h2>
+                <span className="rotulos"><span>{collabs.length} {collabs.length === 1 ? "peça" : "peças"} com colegas</span></span>
+              </div>
+              <div className="obras-grade">
+                {collabs.map((t, i) => (
+                  <Obra key={`c${i}-${t.titulo}`} t={t} />
+                ))}
+              </div>
             </section>
           )}
 

@@ -28,4 +28,5 @@ Cada linha sai como `PASS` ou `FAIL`. As capturas de tela ficam em `testes/e2e/c
 | 08-combinados-convites-equipe | link público sem contatos, PDF, estatísticas, aviso de vaga nova, convite, combinado (propor, aceitar, concluir), avaliações dos dois lados e painel da equipe |
 | 09-contratante-em-analise | contratante novo só vê contatos depois que a equipe aprova |
 | 11-formacao-collab | ficha Formação (situação, turno, outras formações) salva e aparece no perfil; colegas do trabalho em collab com link na mesma aba |
+| 12-collab-colegas | colega marcado recebe convite, aceita com "minha parte" e o trabalho entra no portfólio dele; aceite sobrevive a novas gravações; desmarcar tira |
 | 10-seguranca-pessoas | aceite do código de conduta, botão Preciso de ajuda (telefones, pausa, faculdade, contratante não vê), denúncia do contratante, pedido de defesa, decisão e suspensão pela equipe, avaliação por critérios às cegas e resposta |
