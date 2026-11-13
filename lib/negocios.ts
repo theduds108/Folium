@@ -6,7 +6,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Aluno } from "./data";
-import { paraAluno, traduzirErro, type PerfilBanco, type TrabalhoBanco } from "./repositorio";
+import { collabsDoPerfil, paraAluno, traduzirErro, type PerfilBanco, type TrabalhoBanco } from "./repositorio";
 import { supabase } from "./supabase";
 import { useConta } from "./conta";
 
@@ -40,7 +40,7 @@ export async function portfolioPublico(slug: string): Promise<Aluno | null> {
     curriculo_url: null,
     publicado: true,
   });
-  return { ...aluno, publico: true };
+  return { ...aluno, publico: true, collabs: await collabsDoPerfil(slug) };
 }
 
 /** Id anônimo deste navegador, só para contar visitas sem login (um por dia). */

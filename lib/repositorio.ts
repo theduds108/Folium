@@ -215,8 +215,8 @@ export async function buscarAlunoReal(slug: string): Promise<Aluno | null> {
   // Falha de rede ou do banco: avisa quem chamou, para não confundir com "portfólio não encontrado".
   if (error) throw traduzirErro(error);
   if (!data) return null;
-  const [completo] = await comContatos([data as unknown as PerfilComTrabalhos]);
-  return paraAluno(completo!);
+  const [[completo], collabs] = await Promise.all([comContatos([data as unknown as PerfilComTrabalhos]), collabsDoPerfil(slug)]);
+  return { ...paraAluno(completo!), collabs };
 }
 
 /** Perfil e trabalhos do usuário logado, para o editor. */
@@ -288,6 +288,7 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   const validos = trabalhos
     .filter((t) => t.titulo.trim())
     .map((t, i) => ({
+      ...(t.id ? { id: t.id } : {}),
       titulo: t.titulo,
       tipo: t.tipo,
       descricao: t.descricao,
@@ -304,7 +305,9 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   // Caminho principal: o banco troca a lista inteira numa transação só (tudo ou nada).
   // Ver supabase/migrations/20261111000000_salvar_trabalhos_excluir_conta.sql.
   const rpc = await sb.rpc("salvar_trabalhos", { p_trabalhos: validos });
-  if (!rpc.error) return slug;
+  // A função nova (SQL de 13/11, collab) devolve os ids na ordem: o editor guarda para a próxima
+  // gravação atualizar os mesmos trabalhos e os convites de collab não se perderem.
+  if (!rpc.error) return { slug, idsTrabalhos: Array.isArray(rpc.data) ? (rpc.data as string[]) : null };
   if (!funcaoAusente(rpc.error)) throw traduzirErro(rpc.error);
 
   // Banco ainda sem a função (SQL de 11/11 não rodado): troca em duas etapas e, se a gravação
@@ -314,16 +317,16 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   const apagar = await sb.from("trabalhos").delete().eq("perfil_id", perfil.id);
   if (apagar.error) throw traduzirErro(apagar.error);
   if (validos.length) {
-    let { error } = await sb.from("trabalhos").insert(validos.map((t) => ({ ...t, perfil_id: perfil.id })));
+    let { error } = await sb.from("trabalhos").insert(validos.map(({ id: _id, ...t }) => (void _id, { ...t, perfil_id: perfil.id })));
     // Banco sem a coluna coautores: grava sem ela.
     if (colunaAusente(error, "coautores"))
-      ({ error } = await sb.from("trabalhos").insert(validos.map(({ coautores: _c, ...t }) => (void _c, { ...t, perfil_id: perfil.id }))));
+      ({ error } = await sb.from("trabalhos").insert(validos.map(({ coautores: _c, id: _id, ...t }) => (void _c, void _id, { ...t, perfil_id: perfil.id }))));
     if (error) {
       if (antigos.data?.length) await sb.from("trabalhos").insert(antigos.data);
       throw traduzirErro(error);
     }
   }
-  return slug;
+  return { slug, idsTrabalhos: null };
 }
 
 /**
@@ -728,4 +731,65 @@ export async function buscarColegas(texto: string, meuId?: string): Promise<Cole
   const { data, error } = await q;
   if (error) return [];
   return ((data ?? []) as (Colega & { id: string })[]).map(({ slug, nome, curso, foto_url }) => ({ slug, nome, curso, foto_url }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Trabalho em collab no portfólio dos colegas (migração 20261113180000_collab_no_portfolio.sql)
+
+/** Convite de collab que chegou para quem foi marcado num trabalho. */
+export type ConviteCollab = {
+  trabalho_id: string;
+  titulo: string;
+  tipo: string;
+  imagem_url: string | null;
+  status: "pendente" | "aceito";
+  papel: string;
+  dono_nome: string;
+  dono_slug: string;
+};
+
+/** Convites pendentes e aceitos da pessoa logada. Banco sem o SQL: lista vazia. */
+export async function meusConvitesCollab(): Promise<ConviteCollab[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("meus_convites_collab");
+  if (error) {
+    if (funcaoAusente(error)) return [];
+    throw traduzirErro(error);
+  }
+  return Array.isArray(data) ? (data as ConviteCollab[]) : [];
+}
+
+/** Aceita (com a parte da pessoa), edita a parte, recusa ou tira do portfólio. */
+export async function responderCollab(trabalhoId: string, aceitar: boolean, papel = "") {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  const { error } = await sb.rpc("responder_collab", { p_trabalho: trabalhoId, p_aceitar: aceitar, p_papel: papel.trim().slice(0, 200) });
+  if (error) throw traduzirErro(error);
+}
+
+type CollabBanco = TrabalhoBanco & { dono_nome: string; dono_slug: string };
+
+/**
+ * Trabalhos de outros alunos em que esta pessoa aceitou o collab, prontos para o portfólio dela:
+ * os créditos mostram quem publicou e os outros colegas, e "Minha parte" é a dela.
+ */
+export async function collabsDoPerfil(slug: string): Promise<Trabalho[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("collabs_do_perfil", { p_slug: slug });
+  if (error || !Array.isArray(data)) return [];
+  return (data as CollabBanco[]).map((t, i) => ({
+    titulo: t.titulo,
+    tipo: t.tipo,
+    descricao: t.descricao ?? "",
+    cor: CORES[(i + 3) % CORES.length]!,
+    imagem: t.imagem_url ?? undefined,
+    galeria: t.galeria ?? [],
+    cliente: t.cliente ?? "",
+    ano: t.ano ?? "",
+    link: t.link ?? "",
+    papel: t.papel ?? "",
+    coautores: coautoresValidos([{ nome: t.dono_nome, slug: t.dono_slug }, ...coautoresValidos(t.coautores).filter((c) => c.slug !== slug)]),
+  }));
 }

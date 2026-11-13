@@ -98,6 +98,8 @@ export type Aluno = {
   tiposVaga?: string[];
   links?: Links;
   experiencias?: Experiencia[];
+  /** Trabalhos de colegas em que este aluno aceitou o collab (com a parte dele). */
+  collabs?: Trabalho[];
   certificados?: Certificado[];
   idiomas?: Idioma[];
   /** Currículo em PDF (URL). */

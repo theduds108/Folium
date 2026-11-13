@@ -7,14 +7,16 @@ const log = [];
 const users = [
   { id: "u-aluna", email: "ana.123@alunos.unisagrado.edu.br", password: "Senha#123", user_metadata: { nome_usuario: "ana", tem_senha: true } },
   { id: "u-empresa", email: "contato@empresa.com", password: "Senha#123", user_metadata: { nome_usuario: "empresa", tem_senha: true } },
+  { id: "u-gi", email: "gi.789@alunos.unisagrado.edu.br", password: "Senha#123", user_metadata: { nome_usuario: "gi", tem_senha: true } },
   { id: "u-novo", email: "bia.456@alunos.unisagrado.edu.br", password: null, user_metadata: {} },
 ];
 const db = {
   contas: [
     { id: "u-aluna", tipo: "colaborador", plano: "gratis", plano_ate: null, plano_pedido: null, nome: "", empresa: "", whatsapp: "", cidade: "Bauru, SP", tour_visto_em: null },
+    { id: "u-gi", tipo: "colaborador", plano: "gratis", plano_ate: null, plano_pedido: null, nome: "", empresa: "", whatsapp: "", cidade: "Bauru, SP", tour_visto_em: "2026-11-01T00:00:00Z" },
     { id: "u-empresa", tipo: "contratante", plano: "gratis", plano_ate: null, plano_pedido: null, nome: "Empresa", empresa: "Empresa X", whatsapp: "", cidade: "Bauru, SP", tour_visto_em: "2026-11-01T00:00:00Z" },
   ],
-  nomes_usuario: [ { id: "u-aluna", nome: "ana" }, { id: "u-empresa", nome: "empresa" } ],
+  nomes_usuario: [ { id: "u-aluna", nome: "ana" }, { id: "u-empresa", nome: "empresa" }, { id: "u-gi", nome: "gi" } ],
 };
 const DEFAULTS = { contas: { plano: "gratis", plano_ate: null, plano_pedido: null, nome: "", empresa: "", whatsapp: "", cidade: "Bauru, SP", tour_visto_em: null } };
 const tokens = new Map(); // access -> userId
@@ -65,9 +67,37 @@ const server = http.createServer((req, res) => {
         const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
         // Transação: se a gravação falhar, nada muda (POST:trabalhos simula a falha).
         if (falhar["POST:trabalhos"] > 0) { falhar["POST:trabalhos"]--; return send(res, 500, { message: "simulated" }); }
-        db.trabalhos = (db.trabalhos || []).filter((x) => x.perfil_id !== me.id);
-        (body.p_trabalhos || []).filter((t) => (t.titulo || "").trim()).forEach((t, i) => db.trabalhos.push({ ...t, id: crypto.randomUUID(), perfil_id: me.id, ordem: i }));
+        // Como no banco (SQL 20261113180000): mantém o id dos que já existem e sincroniza os convites de collab.
+        const lista = (body.p_trabalhos || []).filter((t) => (t.titulo || "").trim());
+        const manter = new Set(lista.map((t) => t.id).filter(Boolean));
+        const sai = (db.trabalhos || []).filter((x) => x.perfil_id === me.id && !manter.has(x.id)).map((x) => x.id);
+        db.trabalhos = (db.trabalhos || []).filter((x) => !sai.includes(x.id));
+        db.collab = (db.collab || []).filter((c) => !sai.includes(c.trabalho_id));
+        const ids = lista.map((t, i) => {
+          const atual = db.trabalhos.find((x) => x.id === t.id && x.perfil_id === me.id);
+          const novo = { ...t, id: atual ? atual.id : crypto.randomUUID(), perfil_id: me.id, ordem: i };
+          if (atual) Object.assign(atual, novo); else db.trabalhos.push(novo);
+          const marcados = (novo.coautores || []).map((c) => (db.perfis || []).find((p) => p.slug === c.slug)).filter((p) => p && p.id !== me.id).map((p) => p.id);
+          db.collab = (db.collab || []).filter((c) => c.trabalho_id !== novo.id || marcados.includes(c.coautor_id));
+          for (const pid of marcados) if (!db.collab.some((c) => c.trabalho_id === novo.id && c.coautor_id === pid)) db.collab.push({ trabalho_id: novo.id, coautor_id: pid, status: "pendente", papel: "", criado_em: new Date().toISOString() });
+          return novo.id;
+        });
+        return send(res, 200, ids);
+      }
+      if (fn === "meus_convites_collab") {
+        const me = who(req); if (!me) return send(res, 401, { message: "JWT expired" });
+        return send(res, 200, (db.collab || []).filter((c) => c.coautor_id === me.id && c.status !== "recusado").map((c) => { const t = db.trabalhos.find((x) => x.id === c.trabalho_id) || {}; const d = (db.perfis || []).find((p) => p.id === t.perfil_id) || {}; return { trabalho_id: t.id, titulo: t.titulo, tipo: t.tipo, imagem_url: t.imagem_url || null, status: c.status, papel: c.papel, dono_nome: d.nome, dono_slug: d.slug }; }));
+      }
+      if (fn === "responder_collab") {
+        const me = who(req); const c = (db.collab || []).find((x) => me && x.coautor_id === me.id && x.trabalho_id === body.p_trabalho);
+        if (!c) return send(res, 404, { code: "P0002", message: "Esse convite de collab não existe mais" });
+        c.status = body.p_aceitar ? "aceito" : "recusado"; c.papel = (body.p_papel || "").trim().slice(0, 200); c.respondido_em = new Date().toISOString();
         return send(res, 200, null);
+      }
+      if (fn === "collabs_do_perfil") {
+        const me = who(req); const p = (db.perfis || []).find((x) => x.slug === body.p_slug && x.publicado);
+        if (!p) return send(res, 200, []);
+        return send(res, 200, (db.collab || []).filter((c) => c.coautor_id === p.id && c.status === "aceito").map((c) => { const t = db.trabalhos.find((x) => x.id === c.trabalho_id); const d = (db.perfis || []).find((x) => x.id === t.perfil_id); return { t, d, c }; }).filter(({ d }) => d && d.publicado && (me || (p.link_publico && d.link_publico))).map(({ t, d, c }) => ({ ...t, papel: c.papel, dono_nome: d.nome, dono_slug: d.slug })));
       }
       if (fn === "portfolio_publico") {
         const p = (db.perfis || []).find((r) => r.slug === body.p_slug && r.publicado && r.link_publico);

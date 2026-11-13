@@ -50,6 +50,7 @@ import { ImportarCurriculo } from "@/components/ImportarCurriculo";
 import { mesmoTexto, type DadosCurriculo } from "@/lib/curriculo";
 import { SalvoLottie } from "@/components/animacoes/SalvoLottie";
 import { CampoCoautores } from "@/components/CampoCoautores";
+import { ConvitesCollab } from "@/components/ConvitesCollab";
 
 const CHAVE = "folium-rascunho-perfil";
 /** Rascunho automático de quem está logado: guarda o que ainda não foi salvo no banco. */
@@ -60,6 +61,8 @@ const MAX_DESCRICAO = 1000;
 const OUTRO = "__outro__";
 
 type TrabalhoRascunho = {
+  /** Id do banco (trabalho já salvo). Novo: sem id. */
+  id?: string;
   titulo: string;
   tipo: string;
   descricao: string;
@@ -355,6 +358,7 @@ function Editor(props: PropsEditor) {
             idiomas: p.idiomas ?? [],
             trabalhos: p.trabalhos?.length
               ? [...p.trabalhos].sort((a, b) => a.ordem - b.ordem).map((t) => ({
+                  id: t.id,
                   titulo: t.titulo,
                   tipo: t.tipo,
                   descricao: t.descricao,
@@ -456,7 +460,7 @@ function Editor(props: PropsEditor) {
     setSalvando(true);
     try {
       const limparLinks = Object.fromEntries(Object.entries(r.links).filter(([, v]) => v && v.trim()).map(([k, v]) => [k, v!.trim()]));
-      const slug = await salvarPerfil(
+      const { slug, idsTrabalhos } = await salvarPerfil(
         {
           id: userId,
           slug: r.slug || undefined,
@@ -497,6 +501,7 @@ function Editor(props: PropsEditor) {
           idiomas: r.idiomas.filter((x) => x.idioma.trim()),
         },
         r.trabalhos.map((t, i) => ({
+          id: t.id,
           titulo: t.titulo.trim(),
           tipo: t.tipo,
           descricao: t.descricao.trim(),
@@ -510,9 +515,16 @@ function Editor(props: PropsEditor) {
           coautores: t.coautores,
         }))
       );
-      setR((atual) => ({ ...atual, slug }));
+      // Guarda o id que o banco deu a cada trabalho: a próxima gravação atualiza os mesmos
+      // trabalhos, e os convites de collab (e os aceites dos colegas) continuam valendo.
+      const comIds = (lista: TrabalhoRascunho[]) => {
+        if (!idsTrabalhos) return lista;
+        let k = 0;
+        return lista.map((t) => (t.titulo.trim() ? { ...t, id: idsTrabalhos[k++] ?? t.id } : t));
+      };
+      setR((atual) => ({ ...atual, slug, trabalhos: atual.trabalhos.length === r.trabalhos.length ? comIds(atual.trabalhos) : atual.trabalhos }));
       lembrarMeuPortfolio(slug);
-      base.current = JSON.stringify({ ...r, slug });
+      base.current = JSON.stringify({ ...r, slug, trabalhos: comIds(r.trabalhos) });
       setRecuperado(false);
       try {
         localStorage.removeItem(chaveAuto);
@@ -705,6 +717,8 @@ function Editor(props: PropsEditor) {
           )}
           <Fichas atual={passo} feitas={feitas} onIr={irPara} />
         </div>
+
+        {real && <ConvitesCollab slug={r.slug || undefined} />}
 
         {passo === "voce" && (
           <Ficha id="voce" titulo={tituloRef}>
@@ -937,7 +951,7 @@ function Editor(props: PropsEditor) {
                   meuId={userId || undefined}
                   onMudar={(lista) => mudarTrabalho(i, { coautores: lista })}
                 />
-                <span className="ajuda">Marque quem fez com você. Se a pessoa tem portfólio no Fólium, o nome vira link para ele.</span>
+                <span className="ajuda">Marque quem fez com você. Quem tem portfólio no Fólium recebe um convite: se aceitar, o trabalho aparece também no portfólio dela, com o que ela fez.</span>
               </div>
               <details className="mais-detalhes" open={Boolean(t.cliente || t.ano || t.papel || t.link)}>
                 <summary>Mais detalhes (opcional): cliente, ano, sua parte, link</summary>
