@@ -143,7 +143,7 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
  * fora: vêm de contatos_perfis(), que só entrega para alunos, equipe e contratantes aprovados
  * (migração 20261112000000_seguranca_auditoria.sql).
  */
-const CAMPOS_PERFIL = "id, slug, nome, curso, semestre, cidade, bio, servicos, habilidades, valor_referencia, foto_url, disponivel, publicado, titulo, sobre_longo, conclusao, formacao, modalidades, tipos_vaga, links, experiencias, idiomas, link_publico, trabalhos(*)" as const;
+const CAMPOS_PERFIL = "id, slug, nome, curso, semestre, cidade, bio, servicos, habilidades, valor_referencia, foto_url, disponivel, publicado, titulo, sobre_longo, conclusao, formacao, modalidades, tipos_vaga, links, experiencias, idiomas, link_publico, trabalhos!perfil_id(*)" as const;
 /** Banco sem a coluna formacao (SQL de 13/11 ainda não rodado): lê o resto, como antes. */
 const CAMPOS_SEM_FORMACAO = CAMPOS_PERFIL.replace(" formacao,", "");
 let semFormacao = false;

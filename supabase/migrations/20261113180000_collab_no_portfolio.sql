@@ -19,7 +19,9 @@
 
 create table if not exists public.collab_participacoes (
   trabalho_id uuid not null references public.trabalhos (id) on delete cascade,
-  coautor_id uuid not null references public.perfis (id) on delete cascade,
+  -- Aponta para a conta, não para perfis: com perfis o Supabase veria dois caminhos entre perfis e
+  -- trabalhos e a lista de portfólios quebraria (ver 20261113200000_conserta_lista_portfolios.sql).
+  coautor_id uuid not null references auth.users (id) on delete cascade,
   status text not null default 'pendente' check (status in ('pendente', 'aceito', 'recusado')),
   papel text not null default '' check (char_length(papel) <= 200),
   criado_em timestamptz not null default now(),
