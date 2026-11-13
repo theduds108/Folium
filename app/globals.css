@@ -3723,3 +3723,26 @@ html { scroll-padding-top: 84px; }
 .convites-collab .link-mao { justify-self: start; }
 .convite-parte { font-size: var(--t-sec); color: var(--texto-suave); }
 .convite-aceito { border-color: rgba(79, 122, 58, 0.35); }
+
+/* Abas Obras / Collabs no portfólio (como as abas do perfil do Instagram). */
+.abas-obras-lista {
+  display: flex; gap: clamp(16px, 4vw, 32px); border-bottom: 1.5px solid var(--verde-musgo);
+  margin-bottom: 18px; overflow-x: auto;
+}
+.abas-obras-lista button {
+  display: inline-flex; align-items: baseline; gap: 8px; min-height: 48px; padding: 6px 2px 8px;
+  background: none; border: 0; border-bottom: 4px solid transparent; margin-bottom: -1.5px;
+  font-family: var(--fonte-titulo), Georgia, serif; font-size: clamp(1.3rem, 3.4vw, 1.9rem);
+  text-transform: uppercase; color: var(--texto-suave); cursor: pointer; white-space: nowrap;
+  transition: color var(--mov-rapido) ease, border-color var(--mov-rapido) ease;
+}
+.abas-obras-lista button.atual { color: var(--verde-musgo); border-bottom-color: var(--marrom-cobre); }
+.abas-obras-lista button:focus-visible { outline: 2px solid var(--verde-folio); outline-offset: 2px; }
+.abas-obras-n {
+  font-family: var(--fonte-texto), system-ui, sans-serif; font-size: var(--t-pequeno); font-weight: var(--peso-forte);
+  padding: 2px 8px; border-radius: 999px; background: rgba(79, 122, 58, 0.12); color: var(--verde-folio-escuro);
+}
+.abas-obras-lista button.atual .abas-obras-n { background: var(--marrom-cobre-escuro); color: #fffcf6; }
+.abas-obras-dica { margin: 0 0 14px; }
+@media (prefers-reduced-motion: reduce) { .abas-obras-lista button { transition: none; } }
+@media print { .abas-obras-painel[hidden] { display: block !important; } .abas-obras-lista { display: none; } }
