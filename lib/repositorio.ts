@@ -149,14 +149,35 @@ const CAMPOS_SEM_FORMACAO = CAMPOS_PERFIL.replace(" formacao,", "");
 let semFormacao = false;
 const colunaAusente = (e: { message?: string } | null, coluna: string) => !!e && new RegExp(coluna).test(e.message ?? "");
 
-/** Faz a leitura de perfis e, se o banco ainda não tem a coluna formacao, repete sem ela. */
+/**
+ * Lê perfis com os trabalhos. Se o banco recusar (coluna nova ainda não criada, relação ambígua
+ * entre perfis e trabalhos, cache do Supabase desatualizado…), tenta de novo de jeitos mais
+ * simples, e no último lê os trabalhos numa consulta separada. A lista de portfólios nunca
+ * some por causa de uma mudança no banco.
+ */
 async function lerPerfis<T>(consulta: (campos: string) => PromiseLike<{ data: T; error: { message?: string; code?: string } | null }>) {
   if (!semFormacao) {
     const r = await consulta(CAMPOS_PERFIL);
-    if (!colunaAusente(r.error, "formacao")) return r;
-    semFormacao = true;
+    if (!r.error) return r;
+    console.error("Leitura de perfis falhou, tentando sem a formação", r.error);
+    if (colunaAusente(r.error, "formacao")) semFormacao = true;
   }
-  return consulta(CAMPOS_SEM_FORMACAO);
+  const r2 = await consulta(semFormacao ? CAMPOS_SEM_FORMACAO : CAMPOS_PERFIL.replace("!perfil_id", ""));
+  if (!r2.error) return r2;
+  console.error("Leitura de perfis falhou de novo, lendo os trabalhos à parte", r2.error);
+  const campos = (semFormacao ? CAMPOS_SEM_FORMACAO : CAMPOS_PERFIL).replace(", trabalhos!perfil_id(*)", "");
+  let r3 = await consulta(campos);
+  if (r3.error && colunaAusente(r3.error, "formacao")) r3 = await consulta(campos.replace(" formacao,", ""));
+  if (r3.error || !r3.data) return r3;
+  const sb = supabase();
+  const lista = (Array.isArray(r3.data) ? r3.data : [r3.data]) as { id: string; trabalhos?: TrabalhoBanco[] }[];
+  if (sb && lista.length) {
+    const t = await sb.from("trabalhos").select("*").in("perfil_id", lista.map((p) => p.id));
+    const porPerfil = new Map<string, TrabalhoBanco[]>();
+    for (const x of (t.data ?? []) as (TrabalhoBanco & { perfil_id: string })[]) porPerfil.set(x.perfil_id, [...(porPerfil.get(x.perfil_id) ?? []), x]);
+    for (const p of lista) p.trabalhos = porPerfil.get(p.id) ?? [];
+  }
+  return r3;
 }
 
 type Contatos = Pick<PerfilBanco, "id" | "whatsapp" | "email_contato" | "curriculo_url" | "certificados">;
