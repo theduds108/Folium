@@ -3,6 +3,7 @@
 import { ConvidarColega } from "@/components/ConvidarColega";
 import { CopiarLinkPublico } from "@/components/CopiarLinkPublico";
 import { EstatisticasPerfil } from "@/components/EstatisticasPerfil";
+import { lembrarMeuPortfolio } from "@/lib/negocios";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -301,6 +302,7 @@ function Editor(props: PropsEditor) {
     meuPerfil(userId)
       .then((p) => {
         if (p) {
+          lembrarMeuPortfolio(p.slug);
           setCursoOutro(!(CURSOS as readonly string[]).includes(p.curso));
           setR({
             slug: p.slug,
@@ -465,6 +467,7 @@ function Editor(props: PropsEditor) {
         }))
       );
       setR((atual) => ({ ...atual, slug }));
+      lembrarMeuPortfolio(slug);
       base.current = JSON.stringify({ ...r, slug });
       setRecuperado(false);
       try {
