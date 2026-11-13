@@ -156,19 +156,26 @@ const colunaAusente = (e: { message?: string } | null, coluna: string) => !!e &&
  * some por causa de uma mudança no banco.
  */
 async function lerPerfis<T>(consulta: (campos: string) => PromiseLike<{ data: T; error: { message?: string; code?: string } | null }>) {
-  if (!semFormacao) {
-    const r = await consulta(CAMPOS_PERFIL);
-    if (!r.error) return r;
-    console.error("Leitura de perfis falhou, tentando sem a formação", r.error);
-    if (colunaAusente(r.error, "formacao")) semFormacao = true;
+  const semEmbed = (c: string) => c.replace(", trabalhos!perfil_id(*)", "");
+  // Do mais completo ao mais simples. A formação sai cedo: sem permissão de leitura ou sem a
+  // coluna, o banco recusa a consulta inteira.
+  const tentativas = [
+    ...(semFormacao ? [] : [CAMPOS_PERFIL, CAMPOS_PERFIL.replace("!perfil_id", "")]),
+    CAMPOS_SEM_FORMACAO,
+    CAMPOS_SEM_FORMACAO.replace("!perfil_id", ""),
+  ];
+  for (const campos of tentativas) {
+    const r = await consulta(campos);
+    if (!r.error) {
+      if (!campos.includes("formacao")) semFormacao = true;
+      return r;
+    }
+    console.error("Leitura de perfis falhou, tentando de outro jeito", campos.includes("formacao") ? "(com formação)" : "(sem formação)", r.error);
   }
-  const r2 = await consulta(semFormacao ? CAMPOS_SEM_FORMACAO : CAMPOS_PERFIL.replace("!perfil_id", ""));
-  if (!r2.error) return r2;
-  console.error("Leitura de perfis falhou de novo, lendo os trabalhos à parte", r2.error);
-  const campos = (semFormacao ? CAMPOS_SEM_FORMACAO : CAMPOS_PERFIL).replace(", trabalhos!perfil_id(*)", "");
-  let r3 = await consulta(campos);
-  if (r3.error && colunaAusente(r3.error, "formacao")) r3 = await consulta(campos.replace(" formacao,", ""));
+  // Último recurso: perfis sem os trabalhos e os trabalhos numa consulta separada.
+  const r3 = await consulta(semEmbed(CAMPOS_SEM_FORMACAO));
   if (r3.error || !r3.data) return r3;
+  semFormacao = true;
   const sb = supabase();
   const lista = (Array.isArray(r3.data) ? r3.data : [r3.data]) as { id: string; trabalhos?: TrabalhoBanco[] }[];
   if (sb && lista.length) {
