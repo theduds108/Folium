@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolhaIcone } from "./Logo";
+import { MarcaFolium } from "./Marca";
 import { InstalarApp } from "./InstalarApp";
 import { MenuPrincipal, type GrupoMenu } from "./MenuPrincipal";
 import { useConta, type TipoConta } from "@/lib/conta";
@@ -168,9 +168,8 @@ export function Cabecalho() {
     <>
       <header className="cabecalho">
         <div className="container cabecalho-interno">
-          <Link href="/" className="logo" aria-label="Fólium, página inicial">
-            <FolhaIcone />
-            Fólium
+          <Link href="/" className="logo marca-folium" aria-label="Fólium, página inicial">
+            <MarcaFolium />
           </Link>
           <nav className="nav" aria-label="Principal">
             {nav.topo.map((l) => (

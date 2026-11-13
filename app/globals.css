@@ -823,6 +823,16 @@ h3 { font-size: var(--t-base); letter-spacing: 0.01em; }
 
 .logo { text-transform: uppercase; font-size: var(--t-grande); letter-spacing: 0.02em; }
 
+/* Versão pequena do wordmark no cabeçalho: mesma proporção da capa. */
+.logo.marca-folium {
+  gap: 0;
+  font-size: 1.7rem;
+  letter-spacing: -0.03em;
+  line-height: 0.85;
+  padding: 4px 0;
+}
+@media (min-width: 900px) { .logo.marca-folium { font-size: 1.95rem; } }
+
 /* Rótulos pequenos nos cantos */
 .rotulos {
   display: flex;
@@ -846,6 +856,17 @@ h3 { font-size: var(--t-base); letter-spacing: 0.01em; }
   overflow: hidden;
 }
 
+/* Wordmark oficial (components/Marca.tsx): o mesmo desenho na capa e no cabeçalho. */
+.marca-folium {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  color: var(--verde-musgo);
+  isolation: isolate;
+}
+
 .marca-gigante {
   position: relative;
   display: flex;
@@ -858,7 +879,7 @@ h3 { font-size: var(--t-base); letter-spacing: 0.01em; }
   color: var(--verde-musgo);
 }
 
-.marca-gigante > span { position: relative; z-index: 1; }
+.marca-folium > span { position: relative; z-index: 1; }
 
 .bloco-cobre {
   position: absolute !important;

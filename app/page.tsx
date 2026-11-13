@@ -5,6 +5,7 @@ import { ConviteInstalar } from "@/components/InstalarApp";
 import { SoParaAluno, SoParaContratante } from "@/components/GuiaPorConta";
 import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
 import { Faixa, PapelRasgado } from "@/components/Zine";
+import { MarcaFolium } from "@/components/Marca";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
 
@@ -35,17 +36,8 @@ export default function Inicio() {
             <span>UNISAGRADO · Bauru, SP</span>
           </div>
 
-          <h1 className="marca-gigante" id="capa-marca" aria-label="Fólium">
-            <span className="bloco-cobre" aria-hidden="true" />
-            <span aria-hidden="true">F</span>
-            <span className="letra-folha" aria-hidden="true">
-              <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" strokeWidth="11" />
-                <path d="M28 72c0-26 16-42 44-44 0 28-16 44-44 44Z" fill="currentColor" />
-                <path d="M30 70 58 42" stroke="#F6F0E4" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span aria-hidden="true">LIUM</span>
+          <h1 className="marca-folium marca-gigante" id="capa-marca" aria-label="Fólium">
+            <MarcaFolium />
           </h1>
 
           <div className="capa-conteudo">
