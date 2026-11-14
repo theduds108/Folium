@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Anotacao } from "@/components/Zine";
 import { ReverTour } from "@/components/TourGuiado";
-import { SERVICOS_PRECO, brl } from "@/lib/precos";
+import { SERVICOS_PRECO, SOBRE_AS_FAIXAS, brl } from "@/lib/precos";
+import { OrigemFaixa } from "@/components/GuiaPrecos";
 
 /** Passo a passo de cada área do Fólium para quem contrata. */
 const PASSOS = [
@@ -99,7 +100,7 @@ export function GuiaContratante() {
       <section className="secao" id="precos">
         <h2>Quanto pagar</h2>
         <p className="suave" style={{ maxWidth: "42em" }}>
-          Faixas de referência para trabalhos de estudantes que estão começando na região de Bauru. Experiência, prazo curto e uso comercial amplo puxam o valor para cima. São estimativas do Fólium, não uma tabela oficial.
+          Experiência, prazo curto e uso comercial amplo puxam o valor para cima. {SOBRE_AS_FAIXAS}
         </p>
         <div className="cartao bloco guia-pagina">
           <div className="guia-lista">
@@ -111,13 +112,14 @@ export function GuiaContratante() {
                   {novaArea && <h3 className="guia-area">{x.area}</h3>}
                   <section className="guia-item">
                     <button type="button" className="guia-item-topo" aria-expanded={ab} onClick={() => setAberto(ab ? null : x.id)}>
-                      <span><strong>{x.servico}</strong><span className="suave"> · {x.base}</span></span>
+                      <span><strong>{x.servico}</strong><span className="suave"> · {x.base}</span>{x.fonte.tipo === "estimativa" && <span className="guia-selo">estimativa</span>}</span>
                       <span className="guia-faixa">{brl(x.min)} a {brl(x.max)}</span>
                     </button>
                     {ab && (
                       <div className="guia-item-corpo">
                         <p><strong>Normalmente inclui:</strong> {x.inclui.join(", ")}.</p>
                         <p><strong>Custa mais se tiver:</strong> {x.sobe.join(", ")}.</p>
+                        <OrigemFaixa fonte={x.fonte} />
                       </div>
                     )}
                   </section>

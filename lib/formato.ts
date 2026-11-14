@@ -49,3 +49,24 @@ export function formatarData(valor: string) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
   return m ? `${m[3]}/${m[2]}/${m[1]}` : valor;
 }
+
+type DadosCurso = { semestre: number; conclusao?: string; formacao?: { situacao?: string; turno?: string; inicio?: string } };
+
+/** Em que ponto do curso o aluno está, curto: "5º semestre", "Curso concluído", "Curso trancado". */
+export function etapaCurso(a: DadosCurso) {
+  const s = a.formacao?.situacao;
+  if (s === "Concluído") return "Curso concluído";
+  if (s === "Trancado") return "Curso trancado";
+  return `${a.semestre}º semestre`;
+}
+
+/** Linha completa da graduação: "5º semestre · noturno · desde Fev/2024 · conclusão em Dez/2027". */
+export function detalhesCurso(a: DadosCurso) {
+  const s = a.formacao?.situacao;
+  const inicio = formatarMes(a.formacao?.inicio);
+  const fim = formatarMes(a.conclusao);
+  const turno = a.formacao?.turno ? (a.formacao.turno === "EAD" ? "EAD" : a.formacao.turno.toLowerCase()) : "";
+  if (s === "Concluído")
+    return [etapaCurso(a), turno, inicio && fim ? `${inicio} – ${fim}` : fim ? `em ${fim}` : inicio ? `desde ${inicio}` : ""].filter(Boolean).join(" · ");
+  return [etapaCurso(a), turno, inicio ? `desde ${inicio}` : "", fim && s !== "Trancado" ? `conclusão em ${fim}` : ""].filter(Boolean).join(" · ");
+}

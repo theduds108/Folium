@@ -1,7 +1,7 @@
 // Leitura e gravação no banco (Supabase). Tudo aqui roda no navegador.
 // No modo demonstração (sem .env.local) as funções devolvem listas vazias.
 
-import type { Aluno, Certificado, Experiencia, Idioma, Links, Trabalho } from "./data";
+import type { Aluno, Certificado, Coautor, Experiencia, Formacao, Idioma, Links, Trabalho } from "./data";
 import type { Oportunidade } from "./conteudo";
 import { supabase } from "./supabase";
 import { mb, prepararFoto } from "./validarFoto";
@@ -27,6 +27,8 @@ export type PerfilBanco = {
   titulo: string;
   sobre_longo: string;
   conclusao: string;
+  /** Detalhes da graduação (migração 20261113120000). */
+  formacao?: Formacao;
   modalidades: string[];
   tipos_vaga: string[];
   links: Links;
@@ -34,6 +36,8 @@ export type PerfilBanco = {
   certificados: Certificado[];
   idiomas: Idioma[];
   curriculo_url: string | null;
+  /** Link público (migração 20261111120000): quem tem o link vê o portfólio sem login, sem contatos. */
+  link_publico?: boolean;
 };
 
 export type TrabalhoBanco = {
@@ -49,15 +53,41 @@ export type TrabalhoBanco = {
   link: string;
   papel: string;
   galeria: string[];
+  /** Colegas do trabalho em collab (migração 20261113120000). */
+  coautores?: Coautor[];
 };
 
-type PerfilComTrabalhos = PerfilBanco & { trabalhos: TrabalhoBanco[] | null };
+type PerfilComTrabalhos = PerfilBanco & { trabalhos: TrabalhoBanco[] | null; contatos_ocultos?: boolean };
 
 /** Só os dígitos, com 55 na frente se faltar (formato do wa.me). */
 export function whatsappParaLink(numero: string) {
   const d = numero.replace(/\D/g, "");
   if (!d) return "";
   return d.startsWith("55") && d.length >= 12 ? d : `55${d}`;
+}
+
+const SLUG_VALIDO = /^[a-z0-9][a-z0-9-]{1,79}$/;
+
+/** Só nomes de texto e slugs no formato do site: o que vem do banco nunca vira link estranho. */
+export function coautoresValidos(lista: unknown): Coautor[] {
+  if (!Array.isArray(lista)) return [];
+  return lista
+    .filter((c): c is Coautor => !!c && typeof c === "object" && typeof (c as Coautor).nome === "string" && (c as Coautor).nome.trim() !== "")
+    .slice(0, 6)
+    .map((c) => ({ nome: c.nome.trim().slice(0, 80), ...(typeof c.slug === "string" && SLUG_VALIDO.test(c.slug) ? { slug: c.slug } : {}) }));
+}
+
+function formacaoValida(f: unknown): Formacao {
+  if (!f || typeof f !== "object") return {};
+  const x = f as Formacao;
+  const txt = (v: unknown) => (typeof v === "string" ? v : undefined);
+  return {
+    grau: txt(x.grau),
+    situacao: txt(x.situacao),
+    turno: txt(x.turno),
+    inicio: txt(x.inicio),
+    outras: Array.isArray(x.outras) ? x.outras.filter((o) => o && typeof o.curso === "string" && o.curso.trim()) : [],
+  };
 }
 
 export function paraAluno(p: PerfilComTrabalhos): Aluno {
@@ -74,8 +104,10 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
       ano: t.ano ?? "",
       link: t.link ?? "",
       papel: t.papel ?? "",
+      coautores: coautoresValidos(t.coautores),
     }));
   return {
+    id: p.id,
     slug: p.slug,
     nome: p.nome,
     curso: p.curso,
@@ -94,6 +126,7 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
     titulo: p.titulo ?? "",
     sobre: p.sobre_longo ?? "",
     conclusao: p.conclusao ?? "",
+    formacao: formacaoValida(p.formacao),
     modalidades: p.modalidades ?? [],
     tiposVaga: p.tipos_vaga ?? [],
     links: p.links ?? {},
@@ -101,42 +134,128 @@ export function paraAluno(p: PerfilComTrabalhos): Aluno {
     certificados: p.certificados ?? [],
     idiomas: p.idiomas ?? [],
     curriculo: p.curriculo_url ?? undefined,
+    contatosOcultos: p.contatos_ocultos || undefined,
   };
 }
 
-const CAMPOS_PERFIL = "*, trabalhos(*)";
+/**
+ * Colunas do portfólio que qualquer conta lê. WhatsApp, e-mail, currículo e certificados ficam de
+ * fora: vêm de contatos_perfis(), que só entrega para alunos, equipe e contratantes aprovados
+ * (migração 20261112000000_seguranca_auditoria.sql).
+ */
+const CAMPOS_PERFIL = "id, slug, nome, curso, semestre, cidade, bio, servicos, habilidades, valor_referencia, foto_url, disponivel, publicado, titulo, sobre_longo, conclusao, formacao, modalidades, tipos_vaga, links, experiencias, idiomas, link_publico, trabalhos!perfil_id(*)" as const;
+/** Banco sem a coluna formacao (SQL de 13/11 ainda não rodado): lê o resto, como antes. */
+const CAMPOS_SEM_FORMACAO = CAMPOS_PERFIL.replace(" formacao,", "");
+let semFormacao = false;
+const colunaAusente = (e: { message?: string } | null, coluna: string) => !!e && new RegExp(coluna).test(e.message ?? "");
 
-/** Perfis publicados, mais recentes primeiro. */
-export async function listarAlunosReais(): Promise<Aluno[]> {
+/**
+ * Lê perfis com os trabalhos. Se o banco recusar (coluna nova ainda não criada, relação ambígua
+ * entre perfis e trabalhos, cache do Supabase desatualizado…), tenta de novo de jeitos mais
+ * simples, e no último lê os trabalhos numa consulta separada. A lista de portfólios nunca
+ * some por causa de uma mudança no banco.
+ */
+async function lerPerfis<T>(consulta: (campos: string) => PromiseLike<{ data: T; error: { message?: string; code?: string } | null }>) {
+  const semEmbed = (c: string) => c.replace(", trabalhos!perfil_id(*)", "");
+  // Do mais completo ao mais simples. A formação sai cedo: sem permissão de leitura ou sem a
+  // coluna, o banco recusa a consulta inteira.
+  const tentativas = [
+    ...(semFormacao ? [] : [CAMPOS_PERFIL, CAMPOS_PERFIL.replace("!perfil_id", "")]),
+    CAMPOS_SEM_FORMACAO,
+    CAMPOS_SEM_FORMACAO.replace("!perfil_id", ""),
+  ];
+  for (const campos of tentativas) {
+    const r = await consulta(campos);
+    if (!r.error) {
+      if (!campos.includes("formacao")) semFormacao = true;
+      return r;
+    }
+    console.error("Leitura de perfis falhou, tentando de outro jeito", campos.includes("formacao") ? "(com formação)" : "(sem formação)", r.error);
+  }
+  // Último recurso: perfis sem os trabalhos e os trabalhos numa consulta separada.
+  const r3 = await consulta(semEmbed(CAMPOS_SEM_FORMACAO));
+  if (r3.error || !r3.data) return r3;
+  semFormacao = true;
+  const sb = supabase();
+  const lista = (Array.isArray(r3.data) ? r3.data : [r3.data]) as { id: string; trabalhos?: TrabalhoBanco[] }[];
+  if (sb && lista.length) {
+    const t = await sb.from("trabalhos").select("*").in("perfil_id", lista.map((p) => p.id));
+    const porPerfil = new Map<string, TrabalhoBanco[]>();
+    for (const x of (t.data ?? []) as (TrabalhoBanco & { perfil_id: string })[]) porPerfil.set(x.perfil_id, [...(porPerfil.get(x.perfil_id) ?? []), x]);
+    for (const p of lista) p.trabalhos = porPerfil.get(p.id) ?? [];
+  }
+  return r3;
+}
+
+type Contatos = Pick<PerfilBanco, "id" | "whatsapp" | "email_contato" | "curriculo_url" | "certificados">;
+
+/**
+ * Junta os contatos aos perfis. Quem não pode ver (contratante em análise) recebe os perfis
+ * sem contatos e com `contatos_ocultos`. Se a função ainda não existe no banco (SQL não rodado),
+ * lê as colunas direto, como antes.
+ */
+async function comContatos(perfis: PerfilComTrabalhos[]): Promise<PerfilComTrabalhos[]> {
+  const sb = supabase();
+  if (!sb || !perfis.length) return perfis;
+  const ids = perfis.map((p) => p.id);
+  let lista: Contatos[] | null = null;
+  const r = await sb.rpc("contatos_perfis", { p_ids: ids });
+  if (!r.error) lista = (r.data as Contatos[] | null) ?? [];
+  else if (funcaoAusente(r.error)) {
+    const d = await sb.from("perfis").select("id, whatsapp, email_contato, curriculo_url, certificados").in("id", ids);
+    if (d.error) throw traduzirErro(d.error);
+    lista = (d.data as Contatos[]) ?? [];
+  } else throw traduzirErro(r.error);
+  const porId = new Map(lista.map((c) => [c.id, c]));
+  return perfis.map((p) => {
+    const c = porId.get(p.id);
+    return c
+      ? { ...p, ...c }
+      : { ...p, whatsapp: "", email_contato: "", curriculo_url: null, certificados: [], contatos_ocultos: true };
+  });
+}
+
+/** Perfis publicados, mais recentes primeiro. Com `lancarErro`, a falha vira erro (a tela avisa em vez de mostrar "nenhum"). */
+export async function listarAlunosReais(lancarErro = false): Promise<Aluno[]> {
   const sb = supabase();
   if (!sb) return [];
-  const { data, error } = await sb
-    .from("perfis")
-    .select(CAMPOS_PERFIL)
-    .eq("publicado", true)
-    .order("atualizado_em", { ascending: false })
-    .limit(200);
+  const { data, error } = await lerPerfis((campos) =>
+    sb.from("perfis").select(campos).eq("publicado", true).order("atualizado_em", { ascending: false }).limit(200)
+  );
   if (error) {
     console.error("Erro ao listar perfis", error);
+    if (lancarErro) throw traduzirErro(error);
     return [];
   }
-  return (data as PerfilComTrabalhos[]).map(paraAluno);
+  try {
+    return (await comContatos(data as unknown as PerfilComTrabalhos[])).map(paraAluno);
+  } catch (e) {
+    console.error("Erro ao ler contatos", e);
+    if (lancarErro) throw e;
+    return [];
+  }
 }
 
 export async function buscarAlunoReal(slug: string): Promise<Aluno | null> {
   const sb = supabase();
   if (!sb) return null;
-  const { data } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("slug", slug).maybeSingle();
-  return data ? paraAluno(data as PerfilComTrabalhos) : null;
+  const { data, error } = await lerPerfis((campos) => sb.from("perfis").select(campos).eq("slug", slug).maybeSingle());
+  // Falha de rede ou do banco: avisa quem chamou, para não confundir com "portfólio não encontrado".
+  if (error) throw traduzirErro(error);
+  if (!data) return null;
+  const [[completo], collabs] = await Promise.all([comContatos([data as unknown as PerfilComTrabalhos]), collabsDoPerfil(slug)]);
+  return { ...paraAluno(completo!), collabs };
 }
 
 /** Perfil e trabalhos do usuário logado, para o editor. */
 export async function meuPerfil(userId: string) {
   const sb = supabase();
   if (!sb) return null;
-  const { data, error } = await sb.from("perfis").select(CAMPOS_PERFIL).eq("id", userId).maybeSingle();
+  const { data, error } = await lerPerfis((campos) => sb.from("perfis").select(campos).eq("id", userId).maybeSingle());
   if (error) throw error;
-  return data as PerfilComTrabalhos | null;
+  if (!data) return null;
+  const [completo] = await comContatos([data as unknown as PerfilComTrabalhos]);
+  return completo!;
 }
 
 /** Transforma o nome em endereço: "Eduarda Corrêa" vira "eduarda-correa". */
@@ -151,6 +270,11 @@ export function criarSlug(nome: string) {
   return base.length >= 3 ? base : `aluno-${base || "novo"}`;
 }
 
+/** A função ainda não existe no banco (migração não rodada). */
+function funcaoAusente(error: { code?: string; message?: string }) {
+  return error.code === "PGRST202" || error.code === "42883" || /Could not find the function/i.test(error.message ?? "");
+}
+
 /**
  * Grava o perfil e substitui a lista de trabalhos.
  * Se o endereço (slug) já for de outra pessoa, tenta com um número no fim.
@@ -160,9 +284,28 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
   if (!sb) throw new Error("Banco não configurado");
 
   let slug = perfil.slug || criarSlug(perfil.nome);
+  let dados: typeof perfil = perfil;
   for (let tentativa = 0; ; tentativa++) {
-    const { error } = await sb.from("perfis").upsert({ ...perfil, slug });
+    // Atualiza se já existe; senão cria. (Sem upsert: o upsert pediria leitura das colunas de
+    // contato, que o banco só libera pela função contatos_perfis.)
+    const atualizado = await sb.from("perfis").update({ ...dados, slug }).eq("id", dados.id).select("id");
+    let error = atualizado.error;
+    if (!error && !atualizado.data?.length) error = (await sb.from("perfis").insert({ ...dados, slug })).error;
     if (!error) break;
+    // Banco sem a coluna do link público (SQL de 11/11 ainda não rodado): salva o resto.
+    if ("link_publico" in dados && /link_publico/.test(error.message ?? "") && tentativa < 5) {
+      const { link_publico: _semColuna, ...resto } = dados;
+      void _semColuna;
+      dados = resto;
+      continue;
+    }
+    // Banco sem a coluna formacao (SQL de 13/11 ainda não rodado): salva o resto.
+    if ("formacao" in dados && colunaAusente(error, "formacao") && tentativa < 5) {
+      const { formacao: _semColuna, ...resto } = dados;
+      void _semColuna;
+      dados = resto;
+      continue;
+    }
     if (error.code === "23505" && error.message.includes("slug") && tentativa < 5) {
       slug = `${criarSlug(perfil.nome).slice(0, 45)}-${Math.floor(100 + Math.random() * 900)}`;
       continue;
@@ -170,30 +313,48 @@ export async function salvarPerfil(perfil: Omit<PerfilBanco, "slug"> & { slug?: 
     throw traduzirErro(error);
   }
 
+  const validos = trabalhos
+    .filter((t) => t.titulo.trim())
+    .map((t, i) => ({
+      ...(t.id ? { id: t.id } : {}),
+      titulo: t.titulo,
+      tipo: t.tipo,
+      descricao: t.descricao,
+      imagem_url: t.imagem_url,
+      ordem: i,
+      cliente: t.cliente,
+      ano: t.ano,
+      link: t.link,
+      papel: t.papel,
+      galeria: t.galeria,
+      coautores: coautoresValidos(t.coautores),
+    }));
+
+  // Caminho principal: o banco troca a lista inteira numa transação só (tudo ou nada).
+  // Ver supabase/migrations/20261111000000_salvar_trabalhos_excluir_conta.sql.
+  const rpc = await sb.rpc("salvar_trabalhos", { p_trabalhos: validos });
+  // A função nova (SQL de 13/11, collab) devolve os ids na ordem: o editor guarda para a próxima
+  // gravação atualizar os mesmos trabalhos e os convites de collab não se perderem.
+  if (!rpc.error) return { slug, idsTrabalhos: Array.isArray(rpc.data) ? (rpc.data as string[]) : null };
+  if (!funcaoAusente(rpc.error)) throw traduzirErro(rpc.error);
+
+  // Banco ainda sem a função (SQL de 11/11 não rodado): troca em duas etapas e, se a gravação
+  // dos novos falhar (internet caiu, limite do plano), devolve os antigos para o aluno não perder nada.
+  const antigos = await sb.from("trabalhos").select("*").eq("perfil_id", perfil.id);
+  if (antigos.error) throw traduzirErro(antigos.error);
   const apagar = await sb.from("trabalhos").delete().eq("perfil_id", perfil.id);
   if (apagar.error) throw traduzirErro(apagar.error);
-  const validos = trabalhos.filter((t) => t.titulo.trim());
   if (validos.length) {
-    const { error } = await sb
-      .from("trabalhos")
-      .insert(
-        validos.map((t, i) => ({
-          perfil_id: perfil.id,
-          titulo: t.titulo,
-          tipo: t.tipo,
-          descricao: t.descricao,
-          imagem_url: t.imagem_url,
-          ordem: i,
-          cliente: t.cliente,
-          ano: t.ano,
-          link: t.link,
-          papel: t.papel,
-          galeria: t.galeria,
-        }))
-      );
-    if (error) throw traduzirErro(error);
+    let { error } = await sb.from("trabalhos").insert(validos.map(({ id: _id, ...t }) => (void _id, { ...t, perfil_id: perfil.id })));
+    // Banco sem a coluna coautores: grava sem ela.
+    if (colunaAusente(error, "coautores"))
+      ({ error } = await sb.from("trabalhos").insert(validos.map(({ coautores: _c, id: _id, ...t }) => (void _c, void _id, { ...t, perfil_id: perfil.id }))));
+    if (error) {
+      if (antigos.data?.length) await sb.from("trabalhos").insert(antigos.data);
+      throw traduzirErro(error);
+    }
   }
-  return slug;
+  return { slug, idsTrabalhos: null };
 }
 
 /**
@@ -250,7 +411,7 @@ function tempoDesde(iso: string) {
 }
 
 /** Oportunidades aprovadas pela equipe. */
-export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
+export async function listarOportunidadesReais(lancarErro = false): Promise<Oportunidade[]> {
   const sb = supabase();
   if (!sb) return [];
   const { data, error } = await sb
@@ -262,6 +423,7 @@ export async function listarOportunidadesReais(): Promise<Oportunidade[]> {
     .limit(100);
   if (error) {
     console.error("Erro ao listar oportunidades", error);
+    if (lancarErro) throw traduzirErro(error);
     return [];
   }
   return (data as LinhaOportunidade[]).map(paraOportunidade);
@@ -298,7 +460,30 @@ export async function enviarOportunidade(o: NovaOportunidade) {
 export async function marcarInteresse(oportunidadeId: string, perfilId: string) {
   const sb = supabase();
   if (!sb) return;
-  await sb.from("interesses").upsert({ oportunidade_id: oportunidadeId, perfil_id: perfilId });
+  const { error } = await sb
+    .from("interesses")
+    .upsert({ oportunidade_id: oportunidadeId, perfil_id: perfilId }, { onConflict: "oportunidade_id,perfil_id", ignoreDuplicates: true });
+  if (!error) return;
+  // Sem portfólio salvo não há o que mandar para a empresa (perfil_id aponta para perfis).
+  if (error.code === "23503") throw new Error("Salve seu portfólio antes: é ele que a empresa recebe quando você tem interesse.");
+  throw traduzirErro(error);
+}
+
+/** Retira o interesse numa vaga (a empresa deixa de ver o aluno na lista). */
+export async function desmarcarInteresse(oportunidadeId: string, perfilId: string) {
+  const sb = supabase();
+  if (!sb) return;
+  const { error } = await sb.from("interesses").delete().eq("oportunidade_id", oportunidadeId).eq("perfil_id", perfilId);
+  if (error) throw traduzirErro(error);
+}
+
+/** Vagas em que o aluno já marcou interesse, para o botão continuar marcado depois de recarregar. */
+export async function meusInteresses(perfilId: string): Promise<string[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.from("interesses").select("oportunidade_id").eq("perfil_id", perfilId);
+  if (error) return [];
+  return (data ?? []).map((l) => l.oportunidade_id as string);
 }
 
 export async function denunciar(alvoTipo: "perfil" | "oportunidade", alvo: string, motivo: string, detalhes: string) {
@@ -534,4 +719,105 @@ export async function enviarFeedback(f: { tipo: TipoFeedback; mensagem: string; 
       throw new Error("O feedback ainda não foi ligado no banco. Avise a equipe do Fólium.");
     throw traduzirErro(error);
   }
+}
+
+/**
+ * Exclui a conta de quem está logado (LGPD).
+ * 1. Apaga as fotos e PDFs da pessoa (pastas fotos/<id>/ e curriculos/<id>/).
+ * 2. Chama excluir_minha_conta() no banco, que apaga login, perfil, trabalhos, conta e salvos.
+ * 3. Sai deste aparelho.
+ */
+export async function excluirMinhaConta(userId: string) {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  for (const bucket of ["fotos", "curriculos"]) {
+    const { data } = await sb.storage.from(bucket).list(userId, { limit: 1000 });
+    const caminhos = (data ?? []).filter((f) => f.name).map((f) => `${userId}/${f.name}`);
+    if (caminhos.length) {
+      const { error } = await sb.storage.from(bucket).remove(caminhos);
+      if (error) throw new Error("Não consegui apagar seus arquivos agora. Nada foi excluído; tente de novo em instantes.");
+    }
+  }
+  const { error } = await sb.rpc("excluir_minha_conta");
+  if (error) {
+    if (funcaoAusente(error)) throw new Error("A exclusão de conta ainda não foi ativada pela equipe. Fale com a gente pela página Feedback.");
+    throw traduzirErro(error);
+  }
+  await sb.auth.signOut({ scope: "local" });
+}
+
+/** Colega do Fólium para marcar num trabalho em collab: só nome, curso e endereço do portfólio. */
+export type Colega = { slug: string; nome: string; curso: string; foto_url: string | null };
+
+/** Procura portfólios publicados pelo nome (para marcar colegas num trabalho). Sem contatos. */
+export async function buscarColegas(texto: string, meuId?: string): Promise<Colega[]> {
+  const sb = supabase();
+  const t = texto.trim().replace(/[%_,()*\\]/g, " ").trim();
+  if (!sb || t.length < 2) return [];
+  let q = sb.from("perfis").select("id, slug, nome, curso, foto_url").eq("publicado", true).ilike("nome", `%${t}%`).limit(6);
+  if (meuId) q = q.neq("id", meuId);
+  const { data, error } = await q;
+  if (error) return [];
+  return ((data ?? []) as (Colega & { id: string })[]).map(({ slug, nome, curso, foto_url }) => ({ slug, nome, curso, foto_url }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Trabalho em collab no portfólio dos colegas (migração 20261113180000_collab_no_portfolio.sql)
+
+/** Convite de collab que chegou para quem foi marcado num trabalho. */
+export type ConviteCollab = {
+  trabalho_id: string;
+  titulo: string;
+  tipo: string;
+  imagem_url: string | null;
+  status: "pendente" | "aceito";
+  papel: string;
+  dono_nome: string;
+  dono_slug: string;
+};
+
+/** Convites pendentes e aceitos da pessoa logada. Banco sem o SQL: lista vazia. */
+export async function meusConvitesCollab(): Promise<ConviteCollab[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("meus_convites_collab");
+  if (error) {
+    if (funcaoAusente(error)) return [];
+    throw traduzirErro(error);
+  }
+  return Array.isArray(data) ? (data as ConviteCollab[]) : [];
+}
+
+/** Aceita (com a parte da pessoa), edita a parte, recusa ou tira do portfólio. */
+export async function responderCollab(trabalhoId: string, aceitar: boolean, papel = "") {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  const { error } = await sb.rpc("responder_collab", { p_trabalho: trabalhoId, p_aceitar: aceitar, p_papel: papel.trim().slice(0, 200) });
+  if (error) throw traduzirErro(error);
+}
+
+type CollabBanco = TrabalhoBanco & { dono_nome: string; dono_slug: string };
+
+/**
+ * Trabalhos de outros alunos em que esta pessoa aceitou o collab, prontos para o portfólio dela:
+ * os créditos mostram quem publicou e os outros colegas, e "Minha parte" é a dela.
+ */
+export async function collabsDoPerfil(slug: string): Promise<Trabalho[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("collabs_do_perfil", { p_slug: slug });
+  if (error || !Array.isArray(data)) return [];
+  return (data as CollabBanco[]).map((t, i) => ({
+    titulo: t.titulo,
+    tipo: t.tipo,
+    descricao: t.descricao ?? "",
+    cor: CORES[(i + 3) % CORES.length]!,
+    imagem: t.imagem_url ?? undefined,
+    galeria: t.galeria ?? [],
+    cliente: t.cliente ?? "",
+    ano: t.ano ?? "",
+    link: t.link ?? "",
+    papel: t.papel ?? "",
+    coautores: coautoresValidos([{ nome: t.dono_nome, slug: t.dono_slug }, ...coautoresValidos(t.coautores).filter((c) => c.slug !== slug)]),
+  }));
 }

@@ -7,9 +7,12 @@ import { GaleriaObra } from "@/components/GaleriaObra";
 import { SeloVerificado } from "@/components/Logo";
 import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
-import { Denunciar } from "@/components/Denunciar";
+import { DenunciarPerfil } from "@/components/seguranca/DenunciarAntes";
+import { BotaoPdf } from "@/components/BotaoPdf";
+import { AbasObras } from "@/components/AbasObras";
 import type { Avaliacao } from "@/lib/conteudo";
-import { formatarMes, formatarPeriodo } from "@/lib/formato";
+import { MINIMO_PARA_MEDIA, ROTULO_CRITERIO, mediasPorCriterio } from "@/lib/seguranca-dados";
+import { detalhesCurso, etapaCurso, formatarMes, formatarPeriodo } from "@/lib/formato";
 
 /**
  * Uma obra do portfólio, como peça editorial: imagens inteiras num passe-partout
@@ -26,6 +29,17 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
         {meta && <span className="obra-meta">{meta}</span>}
         <h3 className="obra-titulo">{t.titulo}</h3>
         {t.descricao && <p className="obra-desc">{t.descricao}</p>}
+        {t.coautores && t.coautores.length > 0 && (
+          <p className="obra-collab">
+            <span className="obra-collab-rotulo">Em collab com</span>{" "}
+            {t.coautores.map((c, i) => (
+              <span key={`${c.nome}-${i}`}>
+                {i > 0 && (i === t.coautores!.length - 1 ? " e " : ", ")}
+                {c.slug ? <Link href={`/perfil/?u=${encodeURIComponent(c.slug)}`}>{c.nome}</Link> : c.nome}
+              </span>
+            ))}
+          </p>
+        )}
         {t.papel && <p className="obra-papel"><strong>Minha parte:</strong> {t.papel}</p>}
         {t.link && (
           <a className="link-mao obra-link" href={linkExterno(t.link)} target="_blank" rel="noopener noreferrer nofollow">
@@ -38,15 +52,20 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
 }
 
 /** Página pública do portfólio, usada pelos exemplos e pelos perfis do banco. */
-export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliacoes?: Avaliacao[] }) {
+export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; avaliacoes?: Avaliacao[]; acoes?: React.ReactNode }) {
+  const publico = !!aluno.publico;
   const primeiroNome = aluno.nome.split(" ")[0];
   const mensagem = encodeURIComponent(`Olá, ${primeiroNome}! Vi seu portfólio no Fólium e gostaria de conversar sobre um trabalho.`);
   const links = REDES.filter((r) => aluno.links?.[r.chave]);
   const experiencias = aluno.experiencias ?? [];
   const certificados = aluno.certificados ?? [];
+  const outras = aluno.formacao?.outras ?? [];
   const idiomas = aluno.idiomas ?? [];
   const interesses = [...(aluno.tiposVaga ?? []), ...(aluno.modalidades ?? [])];
   const [destaque, ...demais] = aluno.trabalhos;
+  // Aba Collabs, como no Instagram: os trabalhos do próprio aluno em que ele marcou colegas
+  // e os de colegas em que ele aceitou o convite.
+  const collabs = [...aluno.trabalhos.filter((t) => t.coautores && t.coautores.length > 0), ...(aluno.collabs ?? [])];
 
   // Ficha técnica: cada bloco ganha um rótulo editorial numerado, sem painéis novos.
   let n = 0;
@@ -54,9 +73,11 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
 
   return (
     <div className="container perfil">
-      <p className="perfil-voltar">
-        <Link href="/talentos" className="suave">← Voltar para talentos</Link>
-      </p>
+      {!publico && (
+        <p className="perfil-voltar">
+          <Link href="/talentos" className="suave">← Voltar para talentos</Link>
+        </p>
+      )}
 
       <div className="perfil-grade">
         <header className="perfil-ident">
@@ -67,7 +88,10 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
           <h1 className="perfil-nome">{aluno.nome}</h1>
           {aluno.titulo && <p className="perfil-titulo">{aluno.titulo}</p>}
           <Anotacao className="anotacao-perfil">
-            {aluno.semestre}º semestre, UNISAGRADO{aluno.conclusao ? ` · forma em ${formatarMes(aluno.conclusao)}` : ""}
+            {etapaCurso(aluno)}, UNISAGRADO
+            {aluno.conclusao && aluno.formacao?.situacao !== "Trancado"
+              ? ` · ${aluno.formacao?.situacao === "Concluído" ? "formou em" : "forma em"} ${formatarMes(aluno.conclusao)}`
+              : ""}
           </Anotacao>
 
           <div className="perfil-apresenta">
@@ -106,44 +130,92 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
               </dd>
             </dl>
           )}
-          {aluno.whatsapp && (
-            <a className="botao botao-verde" href={`https://wa.me/${aluno.whatsapp}?text=${mensagem}`} target="_blank" rel="noopener noreferrer">
-              Conversar no WhatsApp
-            </a>
+          {publico ? (
+            <>
+              <p className="suave perfil-publico-aviso">
+                Para falar com {primeiroNome} e ver currículo e certificados, entre no Fólium. A conta é grátis.
+              </p>
+              <Link href="/entrar?modo=primeiro" className="botao botao-primario">Criar conta grátis</Link>
+              <Link href="/entrar" className="botao botao-contorno">Já tenho conta</Link>
+            </>
+          ) : (
+            <>
+            {aluno.contatosOcultos && (
+              <p className="aviso perfil-publico-aviso" role="status">
+                Seu cadastro de contratante está em análise pela equipe do Fólium. Assim que for aprovado,
+                o WhatsApp, o e-mail e o currículo de {primeiroNome} aparecem aqui.
+              </p>
+            )}
+            {aluno.whatsapp && (
+              <a className="botao botao-verde" href={`https://wa.me/${aluno.whatsapp}?text=${mensagem}`} target="_blank" rel="noopener noreferrer">
+                Conversar no WhatsApp
+              </a>
+            )}
+            {aluno.email && (
+              <a className="botao botao-contorno" href={`mailto:${aluno.email}?subject=${encodeURIComponent("Contato pelo Fólium")}`}>
+                Enviar e-mail
+              </a>
+            )}
+            {aluno.curriculo && (
+              <LinkSeguro className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
+                Baixar currículo (PDF)
+              </LinkSeguro>
+            )}
+            <SalvarTalento slug={aluno.slug} />
+            <div className="compartilhar">
+              <CopiarLink />
+            </div>
+            <DenunciarPerfil alunoId={aluno.id} slug={aluno.slug} nome={aluno.nome} />
+            </>
           )}
-          {aluno.email && (
-            <a className="botao botao-contorno" href={`mailto:${aluno.email}?subject=${encodeURIComponent("Contato pelo Fólium")}`}>
-              Enviar e-mail
-            </a>
-          )}
-          {aluno.curriculo && (
-            <LinkSeguro className="botao botao-contorno" href={aluno.curriculo} target="_blank" rel="noopener noreferrer">
-              Baixar currículo (PDF)
-            </LinkSeguro>
-          )}
-          <SalvarTalento slug={aluno.slug} />
-          <div className="compartilhar">
-            <CopiarLink />
-          </div>
-          <Denunciar alvo={aluno.slug} />
+          {acoes}
+          <BotaoPdf />
         </aside>
 
         <div className="perfil-corpo">
-          {destaque && (
-            <section className="perfil-secao" aria-labelledby="obras-titulo">
-              <div className="secao-titulo">
-                <h2 id="obras-titulo">Obras</h2>
-                <span className="rotulos"><span>{aluno.trabalhos.length} {aluno.trabalhos.length === 1 ? "peça" : "peças"}</span></span>
-              </div>
-              <Obra t={destaque} destaque />
-              {demais.length > 0 && (
+          {collabs.length > 0 ? (
+            <AbasObras
+              nObras={aluno.trabalhos.length}
+              nCollabs={collabs.length}
+              obras={
+                destaque && (
+                  <>
+                    <Obra t={destaque} destaque />
+                    {demais.length > 0 && (
+                      <div className="obras-grade">
+                        {demais.map((t, i) => (
+                          <Obra key={`${i}-${t.titulo}`} t={t} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              }
+              collabs={
                 <div className="obras-grade">
-                  {demais.map((t, i) => (
-                    <Obra key={`${i}-${t.titulo}`} t={t} />
+                  {collabs.map((t, i) => (
+                    <Obra key={`c${i}-${t.titulo}`} t={t} />
                   ))}
                 </div>
-              )}
-            </section>
+              }
+            />
+          ) : (
+            destaque && (
+              <section className="perfil-secao" aria-labelledby="obras-titulo">
+                <div className="secao-titulo">
+                  <h2 id="obras-titulo">Obras</h2>
+                  <span className="rotulos"><span>{aluno.trabalhos.length} {aluno.trabalhos.length === 1 ? "peça" : "peças"}</span></span>
+                </div>
+                <Obra t={destaque} destaque />
+                {demais.length > 0 && (
+                  <div className="obras-grade">
+                    {demais.map((t, i) => (
+                      <Obra key={`${i}-${t.titulo}`} t={t} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )
           )}
 
           {aluno.sobre && (
@@ -173,10 +245,31 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
               <div>
                 <dt><span>{num()}</span> Formação</dt>
                 <dd>
-                  <strong>{aluno.curso}</strong>
-                  <span className="suave"> · UNISAGRADO · {aluno.semestre}º semestre{aluno.conclusao ? ` · conclusão em ${formatarMes(aluno.conclusao)}` : ""}</span>
-                  {certificados.length > 0 && (
-                    <ul className="lista-cursos ficha-sublista">
+                  <ul className="lista-cursos ficha-sublista lista-formacao">
+                    <li>
+                      <span className="curso-nome">
+                        {aluno.formacao?.grau ? `${aluno.formacao.grau} em ${aluno.curso}` : aluno.curso}
+                      </span>
+                      <span className="curso-meta">UNISAGRADO · {detalhesCurso(aluno)}</span>
+                    </li>
+                    {outras.map((o, i) => (
+                      <li key={i}>
+                        <span className="curso-nome">{o.curso}</span>
+                        <span className="curso-meta">
+                          {[o.nivel, o.instituicao, o.andamento ? (o.inicio ? `desde ${o.inicio} · em andamento` : "em andamento") : [o.inicio, o.fim].filter(Boolean).join(" – ")]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+              {certificados.length > 0 && (
+                <div>
+                  <dt><span>{num()}</span> Cursos e certificados</dt>
+                  <dd>
+                    <ul className="lista-cursos ficha-sublista lista-certificados">
                       {certificados.map((c, i) => (
                         <li key={i}>
                           <span className="curso-nome">
@@ -195,9 +288,9 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
                         </li>
                       ))}
                     </ul>
-                  )}
-                </dd>
-              </div>
+                  </dd>
+                </div>
+              )}
               {experiencias.length > 0 && (
                 <div>
                   <dt><span>{num()}</span> Experiência</dt>
@@ -245,15 +338,20 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
           {avaliacoes.length > 0 && (
             <section className="perfil-secao" aria-labelledby="avaliacoes-titulo">
               <h2 id="avaliacoes-titulo">Avaliações</h2>
+              <ResumoAvaliacoes avaliacoes={avaliacoes} />
               <div className="dois-lados revelar-grupo" style={{ marginTop: 16 }}>
-                {avaliacoes.map((a) => (
-                  <figure key={a.autor} className="cartao lado avaliacao">
+                {avaliacoes.map((a, i) => (
+                  <figure key={`${i}-${a.autor}`} className="cartao lado avaliacao">
                     <span className="estrelas" role="img" aria-label={`${a.nota} de 5 estrelas`}>
                       {"★".repeat(a.nota)}
                       <span className="estrela-vazia">{"★".repeat(5 - a.nota)}</span>
                     </span>
                     <blockquote>{a.texto}</blockquote>
-                    <figcaption className="suave">{a.autor} · contratante verificado</figcaption>
+                    {a.criterios && Object.keys(a.criterios).length > 0 && (
+                      <p className="ajuda avaliacao-criterios">{Object.entries(a.criterios).map(([k, v]) => `${ROTULO_CRITERIO[k] ?? k} ${v}`).join(" · ")}</p>
+                    )}
+                    <figcaption className="suave">{a.autor} · {a.selo ?? "contratante verificado"}</figcaption>
+                    {a.resposta && <p className="avaliacao-resposta"><strong>Resposta de {aluno.nome.split(" ")[0]}:</strong> {a.resposta}</p>}
                   </figure>
                 ))}
               </div>
@@ -262,5 +360,19 @@ export function PerfilVista({ aluno, avaliacoes = [] }: { aluno: Aluno; avaliaco
         </div>
       </div>
     </div>
+  );
+}
+
+/** Média geral e por critério. Só aparece a partir de 3 avaliações. */
+function ResumoAvaliacoes({ avaliacoes }: { avaliacoes: Avaliacao[] }) {
+  if (avaliacoes.length < MINIMO_PARA_MEDIA)
+    return <p className="suave" style={{ margin: "6px 0 0" }}>A média aparece a partir de {MINIMO_PARA_MEDIA} avaliações.</p>;
+  const geral = Math.round((avaliacoes.reduce((s, a) => s + a.nota, 0) / avaliacoes.length) * 10) / 10;
+  const criterios = mediasPorCriterio(avaliacoes);
+  return (
+    <p className="resumo-avaliacoes" style={{ margin: "6px 0 0" }}>
+      <strong>{geral.toLocaleString("pt-BR")} de 5</strong> em {avaliacoes.length} avaliações
+      {criterios.length > 0 && <span className="suave"> · {criterios.map((c) => `${c.rotulo} ${c.media.toLocaleString("pt-BR")}`).join(" · ")}</span>}
+    </p>
   );
 }

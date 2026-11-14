@@ -2,7 +2,7 @@
 // Páginas: rede primeiro, cópia guardada como reserva. Arquivos do build (_next/static, ícones,
 // fontes): guardados na primeira vez, porque o nome muda a cada versão.
 // Nada do Supabase passa por aqui (outro domínio), então dados e fotos protegidas nunca ficam no cache.
-const CACHE = "folium-v2";
+const CACHE = "folium-v3";
 const ESSENCIAIS = ["/", "/entrar/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

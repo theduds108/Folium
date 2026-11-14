@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { emailInstitucional, VAGAS_LIBERADAS } from "./config";
 import { supabase } from "./supabase";
 import { useSessao } from "./sessao";
+import { VERSAO_TERMOS } from "./versao-termos";
 
 /**
  * Tipos de conta e planos do Fólium.
@@ -31,6 +32,12 @@ export type Conta = {
   email: string;
   /** Já viu o tour guiado (guardado na conta, vale em qualquer aparelho). */
   tourVisto: boolean;
+  /** Contratante aprovado pela equipe (só então vê os contatos dos alunos). Colaborador: sempre true. */
+  aprovada: boolean;
+  /** Já aceitou a versão atual dos termos e do código de conduta (true se o SQL de 12/11 à tarde não rodou). */
+  termosAceitos: boolean;
+  /** Suspensa pela equipe até essa data (ISO). null = conta normal. */
+  suspensaAte: string | null;
 };
 
 type LinhaConta = {
@@ -45,6 +52,12 @@ type LinhaConta = {
   cidade: string;
   /** Coluna da migração 20261108000000_tour_visto.sql; some se ela ainda não rodou. */
   tour_visto_em?: string | null;
+  /** Coluna da migração 20261112000000_seguranca_auditoria.sql; some se ela ainda não rodou. */
+  aprovada_em?: string | null;
+  /** Colunas da migração 20261112180000_seguranca_pessoas.sql; somem se ela ainda não rodou. */
+  termos_aceitos_em?: string | null;
+  termos_versao?: string | null;
+  suspensa_ate?: string | null;
 };
 
 /** O que cada plano libera. Usado nas telas para decidir o que mostrar ou bloquear. */
@@ -84,6 +97,10 @@ const DE_LINHA = (l: LinhaConta, email: string): Conta => ({
   cidade: l.cidade,
   email,
   tourVisto: !!l.tour_visto_em,
+  // Sem a coluna (SQL ainda não rodado) ninguém fica em análise, como era antes.
+  aprovada: l.tipo !== "contratante" || l.aprovada_em === undefined || !!l.aprovada_em,
+  termosAceitos: l.termos_aceitos_em === undefined || (!!l.termos_aceitos_em && l.termos_versao === VERSAO_TERMOS),
+  suspensaAte: l.suspensa_ate && l.suspensa_ate > new Date().toISOString() ? l.suspensa_ate : null,
 });
 
 /* ---------- Modo demonstração (sem banco): a conta fica no navegador ---------- */
@@ -110,6 +127,9 @@ function lerDemo(): Conta | null {
       whatsapp: c.whatsapp ?? "",
       cidade: c.cidade ?? "Bauru, SP",
       tourVisto: !!c.tourVisto,
+      aprovada: true,
+      termosAceitos: true,
+      suspensaAte: null,
       email: c.tipo === "colaborador" ? "aluna.25111585@alunos.unisagrado.edu.br" : "contato@empresa.com",
     };
   } catch {
@@ -216,6 +236,8 @@ export function useConta(): EstadoConta {
     }
     if (carregandoSessao) return;
     if (!usuario) {
+      // Saiu: esquece a conta guardada, para o próximo login ler tudo de novo (plano, tour…).
+      if (contaDe.current) cache.delete(contaDe.current);
       contaDe.current = null;
       setConta(null);
       setCarregando(false);
@@ -230,7 +252,11 @@ export function useConta(): EstadoConta {
       promessa = carregarConta(usuario);
       cache.set(usuario.id, promessa);
     }
-    promessa.then((c) => {
+    const esta = promessa;
+    esta.then((c) => {
+      // Não guarda falha (internet caiu, banco fora do ar): a próxima tela tenta ler de novo
+      // em vez de deixar a pessoa logada e "sem conta" até recarregar a página.
+      if (!c && cache.get(usuario.id) === esta) cache.delete(usuario.id);
       if (!ativo) return;
       contaDe.current = usuario.id;
       setConta(c);
@@ -274,8 +300,8 @@ export async function salvarDadosConta(c: Pick<Conta, "nome" | "empresa" | "what
 }
 
 /**
- * Pede o Premium. Sem pagamento no site ainda: a equipe vê o pedido na tabela "contas"
- * e libera. No modo demonstração o Premium é ligado na hora, para dar para testar as telas.
+ * Entra na lista do Premium (ainda sem venda: o pagamento está sendo definido). Fica em "contas"
+  * (plano_pedido) e a equipe vê no painel. No modo demonstração o Premium é ligado na hora, para dar para testar as telas.
  */
 export async function pedirPremium() {
   const sb = supabase();

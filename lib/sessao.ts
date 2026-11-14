@@ -34,8 +34,13 @@ export function useSessao() {
   return { sessao, usuario: sessao?.user ?? null, carregando };
 }
 
+/**
+ * Sai da conta só neste aparelho. O padrão do Supabase ("global") desconectaria também o
+ * celular, o computador da faculdade etc.; e, sem internet, nem saía. "local" apaga a sessão
+ * guardada neste navegador na hora.
+ */
 export async function sair() {
-  await supabase()?.auth.signOut();
+  await supabase()?.auth.signOut({ scope: "local" });
   // Modo demonstração: esquece a conta de teste (ver lib/conta.ts).
   try {
     localStorage.removeItem("folium-demo-conta");

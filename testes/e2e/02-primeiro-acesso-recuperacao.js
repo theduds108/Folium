@@ -1,0 +1,70 @@
+// Primeiro acesso (link do e-mail) -> /senha -> criar login -> entrar com ele; recuperação; falha ao ler conta
+const { chromium } = require("playwright");
+const BASE = "http://localhost:3100", MOCK = "http://localhost:54321";
+const out = []; const ok = (n, c, x = "") => out.push(`${c ? "PASS" : "FAIL"} ${n} ${x}`);
+const hash = (s, type) => `#access_token=${s.access_token}&expires_at=${s.expires_at}&expires_in=3600&refresh_token=${s.refresh_token}&token_type=bearer&type=${type}`;
+(async () => { const browser = await chromium.launch(); try {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage(); const erros = []; page.on("pageerror", (e) => erros.push(e.message));
+  // primeiro acesso da bia (sem senha)
+  await page.goto(BASE + "/entrar/?modo=primeiro");
+  await page.getByLabel("E-mail institucional").fill("bia.456@gmail.com");
+  await page.getByRole("button", { name: "Receber link de acesso" }).click();
+  ok("primeiro acesso recusa e-mail não institucional p/ aluno", await page.locator("p.erro").isVisible());
+  await page.getByLabel("E-mail institucional").fill("bia.456@alunos.unisagrado.edu.br");
+  await page.getByRole("button", { name: "Receber link de acesso" }).click();
+  await page.waitForTimeout(800);
+  ok("primeiro acesso mostra 'Confira seu e-mail'", await page.getByText("Confira seu e-mail").isVisible());
+  const s = await (await fetch(MOCK + "/__magic?email=bia.456@alunos.unisagrado.edu.br")).json();
+  await page.goto(BASE + "/senha/" + hash(s, "magiclink"));
+  await page.waitForTimeout(2500);
+  ok("link do e-mail abre 'Crie seu usuário e senha'", await page.getByText("Crie seu usuário e senha").isVisible());
+  ok("token sai da barra de endereço", !page.url().includes("access_token"), page.url());
+  const sugerido = await page.getByLabel("Nome de usuário").inputValue();
+  ok("sugere nome de usuário a partir do e-mail", sugerido === "bia", sugerido);
+  await page.getByLabel("Senha", { exact: true }).fill("fraca");
+  await page.getByLabel("Repita a senha").fill("fraca");
+  await page.getByRole("button", { name: "Criar meu login" }).click();
+  ok("senha fraca é recusada", await page.locator("p.erro").isVisible());
+  await page.getByLabel("Senha", { exact: true }).fill("Forte#2026");
+  await page.getByLabel("Repita a senha").fill("Forte#2026");
+  await page.getByRole("button", { name: "Criar meu login" }).click();
+  await page.waitForTimeout(1500);
+  ok("login criado", await page.getByText("Login criado").isVisible());
+  await page.getByRole("button", { name: "Continuar" }).click(); await page.waitForTimeout(1500);
+  ok("continuar leva p/ meu-perfil", page.url().includes("/meu-perfil"), page.url());
+  ok("faixa 'crie seu login' some", !(await page.locator(".faixa-senha").isVisible().catch(() => false)));
+  const tourAberto = await page.waitForSelector(".tour-cartao, .tour", { timeout: 4000 }).then(() => true).catch(() => false);
+  out.push("INFO tour do aluno abriu no primeiro acesso: " + tourAberto);
+  await page.screenshot({ path: __dirname + "/capturas/shot-tour-aluno.png" });
+  // sair e entrar com o novo login
+  await page.evaluate(() => localStorage.removeItem("sb-localhost-auth-token")); 
+  await page.goto(BASE + "/entrar/"); await page.waitForTimeout(1000);
+  await page.getByLabel("Nome de usuário ou e-mail").fill("bia"); await page.getByLabel("Senha", { exact: true }).fill("Forte#2026");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await page.waitForURL("**/meu-perfil/**", { timeout: 8000 }).catch(() => {});
+  ok("entra com o login novo", page.url().includes("/meu-perfil"), page.url());
+  await page.waitForTimeout(2500);
+  ok("tour não volta na segunda vez", !(await page.locator(".tour-cartao").isVisible().catch(() => false)));
+  // recuperação de senha: link type=recovery numa conta que já tem login
+  const s2 = await (await fetch(MOCK + "/__magic?email=bia.456@alunos.unisagrado.edu.br")).json();
+  await page.goto(BASE + "/senha/" + hash(s2, "recovery")); await page.waitForTimeout(2500);
+  const titulo = await page.locator("h1").first().textContent();
+  out.push("INFO título na recuperação: " + titulo);
+  const obrig = await page.getByLabel(/Senha/).first().getAttribute("required");
+  ok("recuperação exige senha nova (não deixa salvar em branco)", obrig !== null, "required=" + obrig);
+  await page.screenshot({ path: __dirname + "/capturas/shot-recuperacao.png" });
+  await ctx.close();
+  // falha transitória ao ler conta
+  const c2 = await browser.newContext({ viewport: { width: 1366, height: 800 } }); const p3 = await c2.newPage();
+  await fetch(MOCK + "/__failcontas?n=1");
+  await p3.goto(BASE + "/entrar/"); await p3.getByLabel("Nome de usuário ou e-mail").fill("ana"); await p3.getByLabel("Senha", { exact: true }).fill("Senha#123");
+  await p3.getByRole("button", { name: "Entrar", exact: true }).click();
+  await p3.waitForTimeout(4000);
+  out.push("INFO após erro de rede na conta, url=" + p3.url());
+  await p3.goto(BASE + "/oportunidades/"); await p3.waitForTimeout(1500);
+  await p3.goto(BASE + "/entrar/"); await p3.waitForTimeout(3000);
+  ok("após falha passageira, a conta é lida de novo (não fica presa)", p3.url().includes("/meu-perfil"), p3.url());
+  await p3.screenshot({ path: __dirname + "/capturas/shot-falha-conta.png" });
+  out.push("INFO erros: " + erros.slice(0, 4).join(" || "));
+} catch (e) { out.push("ERRO " + e.message.split("\n")[0]); } await browser.close(); console.log(out.join("\n")); })();

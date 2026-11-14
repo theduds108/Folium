@@ -23,17 +23,22 @@ export function BuscaTalentos() {
   const [soDisponiveis, setSoDisponiveis] = useState(false);
   const [reais, setReais] = useState<Aluno[]>([]);
   const [carregando, setCarregando] = useState(bancoLigado);
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
 
   useEffect(() => {
     let ativo = true;
-    listarAlunosReais()
+    setFalhou(false);
+    if (tentativa) setCarregando(true);
+    listarAlunosReais(true)
       .then((r) => ativo && setReais(r))
+      .catch(() => ativo && setFalhou(true))
       .finally(() => ativo && setCarregando(false));
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [tentativa]);
 
   const todos = useMemo(() => [...reais, ...ALUNOS_VITRINE], [reais]);
 
@@ -130,7 +135,13 @@ export function BuscaTalentos() {
           {carregando && <span className="contagem-filtros"> · carregando perfis…</span>}
         </p>
 
-        {total > 0 || carregando ? (
+        {falhou && !carregando && reais.length === 0 ? (
+          <div className="cartao vazio" role="alert">
+            <h3>Não deu para carregar os talentos</h3>
+            <p className="suave">Deve ter sido a internet. Confira a conexão e tente de novo.</p>
+            <button className="botao botao-contorno" onClick={() => setTentativa((t) => t + 1)}>Tentar de novo</button>
+          </div>
+        ) : total > 0 || carregando ? (
           <div className="grade-alunos">
             {carregando && [0, 1, 2].map((i) => <EsqueletoPolaroide key={`esq-${i}`} />)}
             {resultado.map((a) => (

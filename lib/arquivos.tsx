@@ -53,6 +53,15 @@ export function urlSegura(url: string): Promise<string> {
   return p;
 }
 
+/**
+ * Só deixa passar endereços que o navegador abre com segurança: http(s), data:, blob: e caminhos
+ * do próprio site. Um "javascript:..." gravado direto no banco (sem passar pelo site) vira vazio.
+ */
+export function urlPermitida(url: string | undefined | null): string {
+  const u = (url ?? "").trim();
+  return /^(https?:|data:|blob:|\/(?!\/))/i.test(u) ? u : "";
+}
+
 export function ehArquivoProtegido(url: string | undefined | null) {
   return !!url && PROTEGIDO.test(url);
 }
@@ -60,10 +69,10 @@ export function ehArquivoProtegido(url: string | undefined | null) {
 /** Hook: devolve o link assinado (vazio enquanto carrega, ou se não houver permissão). */
 export function useUrlSegura(url: string | undefined | null): string {
   const protegido = ehArquivoProtegido(url);
-  const [final, setFinal] = useState(protegido ? "" : url ?? "");
+  const [final, setFinal] = useState(protegido ? "" : urlPermitida(url));
   useEffect(() => {
     if (!url) return setFinal("");
-    if (!ehArquivoProtegido(url)) return setFinal(url);
+    if (!ehArquivoProtegido(url)) return setFinal(urlPermitida(url));
     let ativo = true;
     setFinal("");
     urlSegura(url).then((u) => ativo && setFinal(u));

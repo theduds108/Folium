@@ -150,3 +150,59 @@ Cada feedback enviado em /feedback fica na tabela `feedbacks` e, se os dois segr
 5. Teste enviando um feedback em /feedback logada. O e-mail chega em alguns segundos (veja também o spam na primeira vez).
 
 Para trocar a chave ou o e-mail depois, em **Project Settings → Vault** edite os segredos `resend_api_key` e `feedback_email_destino`. Se o e-mail não chegar, o feedback continua salvo na tabela `feedbacks` (Table Editor); veja os envios em **Database → Extensions → pg_net** (tabela `net._http_response`).
+
+## Salvar trabalhos de uma vez e excluir conta (11/11/2026)
+
+Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111000000_salvar_trabalhos_excluir_conta.sql`. Ele cria duas funções:
+
+- `salvar_trabalhos`: o portfólio grava a lista de trabalhos numa transação só (tudo ou nada). Enquanto o SQL não for rodado, o site continua salvando do jeito antigo.
+- `excluir_minha_conta`: usada pelo botão **Excluir minha conta** em /privacidade. Sem o SQL, o botão avisa que a exclusão ainda não foi ativada.
+
+## Combinados, convites, avaliações, link público e painel da equipe (11/11/2026)
+
+1. Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261111120000_combinados_convites_equipe.sql`.
+2. Coloque você (e quem mais for da equipe) na tabela `equipe`, trocando o e-mail:
+
+   ```sql
+   insert into public.equipe (id) select id from auth.users where email = 'SEU-EMAIL-AQUI' on conflict do nothing;
+   ```
+3. Entre no site com essa conta: o menu ☰ ganha **Painel da equipe** (/equipe), onde dá para aprovar vagas, ver denúncias e feedbacks e liberar o Premium sem abrir o Table Editor.
+
+Enquanto o SQL não rodar, o site continua funcionando: o link público, as estatísticas, os convites e os combinados só não aparecem (ou avisam que ainda não foram ativados).
+
+## Ajustes da auditoria de segurança (12/11/2026)
+
+1. Rode no **SQL Editor** (sem texto selecionado) o arquivo `20261112000000_seguranca_auditoria.sql`. Ele:
+   - tira de quem está sem login o acesso às funções `plano_de`, `tipo_de` e `eh_aluno_institucional`;
+   - passa a exigir e-mail **confirmado** para alguém ser tratado como aluno UNISAGRADO;
+   - faz quem tem conta abrir só fotos, currículos e certificados de portfólios **publicados** (e os próprios). A equipe continua vendo tudo.
+   - deixa **contratante novo em análise**: ele vê os portfólios, mas WhatsApp, e-mail, currículo e certificados dos alunos só aparecem depois que a equipe aprova em **/equipe > Contratantes**. Convites e propostas também só depois da aprovação. **Os contratantes que já existem começam em análise**: aprove-os logo depois de rodar o SQL.
+2. Authentication > Sign In / Providers > Email: confira **Confirm email** ligado e ligue **Secure password change**.
+3. Authentication > URL Configuration > Redirect URLs: só `https://folium-phi.vercel.app/**` e `http://localhost:3000/**` (nunca `https://*.vercel.app/**`).
+
+Os headers de segurança do site (CSP, HSTS etc.) ficam em `vercel.json`. Se o projeto do Supabase mudar de endereço, troque o endereço `clpxenmytonfniwkmmuy.supabase.co` lá também, senão o site não consegue falar com o banco.
+
+## Segurança das pessoas (12/11/2026, à tarde)
+
+Rode **depois** do SQL da auditoria (acima). No **SQL Editor** (sem texto selecionado), rode `20261112180000_seguranca_pessoas.sql`. Ele:
+
+- guarda o **aceite dos termos e do código de conduta** (data e versão). Sem o aceite, ninguém propõe nem aceita combinado. Todas as contas, inclusive as que já existem, veem uma faixa pedindo o aceite;
+- cria as **ocorrências**: o botão **Preciso de ajuda** (só aluno, em combinado em andamento, prazo de 24 horas) e a **denúncia de combinado** nos dois sentidos (prazo de 5 dias úteis), com prints no bucket privado `provas`;
+- deixa o aluno **pausar** o combinado sem penalidade;
+- dá à equipe a aba **/equipe > Segurança**: começar análise, pedir a versão da outra parte (ela lê só o resumo que a equipe escrever), decidir (arquivar, advertência, suspensão de 30 dias, banimento, má-fé de quem denunciou) e encerrar o combinado. Tudo fica no histórico;
+- conta **suspensa** não publica vaga, não convida, não propõe nem aceita combinado; banida também sai da busca;
+- muda as **avaliações**: notas por critério, às cegas (aparecem quando os dois avaliaram ou 14 dias depois), só para contas aprovadas, com direito de resposta. A média só aparece a partir de 3 avaliações.
+
+Se o **Feedback por e-mail** já estiver configurado (Resend no Vault), a equipe recebe também um e-mail a cada pedido de ajuda ou denúncia, sem o relato (que só se lê no painel).
+
+O pedido de "avisar a faculdade" não manda nada sozinho: ele aparece no cartão da ocorrência para a equipe entrar em contato com a faculdade.
+
+## Denúncia antes do combinado (14/11/2026)
+
+Rode **depois** do SQL de segurança das pessoas (acima): `20261114120000_denuncia_antes_do_combinado.sql`. Pode rodar de novo sem problema. Ele deixa a denúncia completa (motivo, relato, prints, prazo de 5 dias úteis, defesa da outra parte) nascer também antes de haver combinado:
+
+- **no convite:** o aluno denuncia quem convidou, e o contratante denuncia o aluno que convidou;
+- **na vaga:** o aluno denuncia quem publicou uma vaga aprovada;
+- **no portfólio:** o contratante aprovado denuncia o aluno.
+
+O banco confere a ligação e descobre sozinho quem é a outra parte. A mesma pessoa não abre duas denúncias contra o mesmo alvo enquanto a primeira está em aberto. O pedido de ajuda continua só dentro de combinado. Na aba Segurança, essas denúncias aparecem com "(antes do combinado)" e de onde vieram.

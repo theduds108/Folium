@@ -10,6 +10,7 @@ import { MOSTRAR_EXEMPLOS } from "@/lib/config";
 import { useConta, type TipoConta } from "@/lib/conta";
 import { MATERIAS_EXEMPLO, edicaoAtual } from "@/lib/jornal";
 import { SERVICOS_PRECO, brl } from "@/lib/precos";
+import { etapaCurso } from "@/lib/formato";
 import { listarAlunosReais, listarMaterias, listarOportunidadesReais, type Materia } from "@/lib/repositorio";
 import { bancoLigado } from "@/lib/supabase";
 
@@ -143,7 +144,7 @@ export function JornalEdicao() {
               {recentes.map((a) => (
                 <li key={a.slug}>
                   <Link href={linkPerfil(a)}><strong>{a.nome}</strong></Link>
-                  <span className="suave">{a.titulo || a.servicos[0] || a.curso} · {a.curso}, {a.semestre}º semestre</span>
+                  <span className="suave">{a.titulo || a.servicos[0] || a.curso} · {a.curso}, {etapaCurso(a)}</span>
                 </li>
               ))}
             </ul>
@@ -196,7 +197,7 @@ function MancheteTalento({ aluno, rotulo, compacta = false }: { aluno: Aluno; ro
       <div className="jornal-manchete-texto">
         <span className="jornal-chapeu">{rotulo}</span>
         <h2>{aluno.nome}</h2>
-        <p className="jornal-linha-fina">{aluno.titulo || aluno.servicos.slice(0, 2).join(" e ")} · {aluno.curso}, {aluno.semestre}º semestre</p>
+        <p className="jornal-linha-fina">{aluno.titulo || aluno.servicos.slice(0, 2).join(" e ")} · {aluno.curso}, {etapaCurso(aluno)}</p>
         {!compacta && <p>{aluno.bio}</p>}
         {obra && !compacta && <p className="suave">Em destaque: <em>{obra.titulo}</em>{obra.cliente ? `, para ${obra.cliente}` : ""}.</p>}
         <Link href={linkPerfil(aluno)} className="botao botao-contorno">Ver portfólio</Link>

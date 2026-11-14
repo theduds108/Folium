@@ -10,6 +10,8 @@
  * Aparece uma vez por sessão: o script abaixo marca <html class="sem-abertura"> nas visitas
  * seguintes. Com prefers-reduced-motion: reduce, não aparece.
  */
+import { FOLHA } from "../Marca";
+
 const PULAR_SE_JA_VIU = `try{if(sessionStorage.getItem("folium-abertura"))document.documentElement.classList.add("sem-abertura");else sessionStorage.setItem("folium-abertura","1")}catch(e){}`;
 
 export function Abertura() {
@@ -21,9 +23,9 @@ export function Abertura() {
         <div className="abertura-papel">
           <div className="abertura-marca">
             <svg viewBox="0 0 100 100" className="abertura-folha">
-              <circle className="abertura-anel" cx="50" cy="50" r="43" pathLength="1" />
-              <path className="abertura-limbo" d="M28 72c0-26 16-42 44-44 0 28-16 44-44 44Z" />
-              <path className="abertura-nervura" d="M30 70 58 42" pathLength="1" />
+              <circle className="abertura-anel" cx={FOLHA.anel.cx} cy={FOLHA.anel.cy} r={FOLHA.anel.r} pathLength="1" />
+              <path className="abertura-limbo" d={FOLHA.limbo} />
+              <path className="abertura-nervura" d={FOLHA.nervura} pathLength="1" />
             </svg>
             <span className="abertura-nome">Fólium</span>
             <span className="abertura-frase">Seu trabalho, reconhecido.</span>

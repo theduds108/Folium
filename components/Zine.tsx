@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FolhaMarca } from "./Marca";
 
 /* Elementos visuais do estilo "zine": ornamentos, papel rasgado, índice de serviços e anotações à mão. */
 
@@ -8,7 +9,7 @@ export function Ornamentos({ claro = false }: { claro?: boolean }) {
     <span className="ornamentos" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M12 1l2.6 7.4L22 11l-7.4 2.6L12 21l-2.6-7.4L2 11l7.4-2.6Z" fill={cor} /></svg>
       <svg viewBox="0 0 24 24"><path d="M12 2c1 6 4 9 10 10-6 1-9 4-10 10-1-6-4-9-10-10 6-1 9-4 10-10Z" fill={cor} /></svg>
-      <svg viewBox="0 0 24 24"><path d="M4 20C4 10 10 4 21 3c0 11-6 17-17 17Z" fill={cor} /><path d="M5 19 15 9" stroke={claro ? "#2F3E2A" : "#F6F0E4"} strokeWidth="1.6" strokeLinecap="round" /></svg>
+      <FolhaMarca cor={cor} nervura={claro ? "#2F3E2A" : "#F6F0E4"} />
     </span>
   );
 }

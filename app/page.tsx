@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { DEPOIMENTOS, MISSAO, VALORES } from "@/lib/conteudo";
+import { DEPOIMENTOS, DIFERENCIAIS } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { ConviteInstalar } from "@/components/InstalarApp";
 import { SoParaAluno, SoParaContratante } from "@/components/GuiaPorConta";
 import { DestaquesInicio, LequeInicio, VagasInicio } from "@/components/VitrineInicio";
 import { Faixa, PapelRasgado } from "@/components/Zine";
+import { FolhaMarca, MarcaFolium } from "@/components/Marca";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
 
@@ -34,17 +36,8 @@ export default function Inicio() {
             <span>UNISAGRADO · Bauru, SP</span>
           </div>
 
-          <h1 className="marca-gigante" id="capa-marca" aria-label="Fólium">
-            <span className="bloco-cobre" aria-hidden="true" />
-            <span aria-hidden="true">F</span>
-            <span className="letra-folha" aria-hidden="true">
-              <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" strokeWidth="11" />
-                <path d="M28 72c0-26 16-42 44-44 0 28-16 44-44 44Z" fill="currentColor" />
-                <path d="M30 70 58 42" stroke="#F6F0E4" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span aria-hidden="true">LIUM</span>
+          <h1 className="marca-folium marca-gigante" id="capa-marca" aria-label="Fólium">
+            <MarcaFolium />
           </h1>
 
           <div className="capa-conteudo">
@@ -90,6 +83,8 @@ export default function Inicio() {
         <Faixa itens={INDICE} />
         <PapelRasgado inverter />
       </div>
+
+      <ConviteInstalar />
 
       <section className="secao">
         <div className="container">
@@ -196,32 +191,25 @@ export default function Inicio() {
 
       <section className="secao">
         <div className="container">
-          <div className="missao revelar">
-            <span className="rotulos"><span>Nossa missão</span></span>
-            <p>{MISSAO}</p>
-            <div className="etiquetas" style={{ justifyContent: "center" }}>
-              {VALORES.map((v) => <span key={v.titulo} className="etiqueta">{v.titulo}</span>)}
+          <div className="manifesto-inicio revelar">
+            <div className="manifesto-inicio-texto">
+              <span className="manifesto-inicio-rotulo">Por que o Fólium</span>
+              <p className="manifesto-inicio-frase">
+                O universitário tem talento de sobra e vitrine nenhuma. A gente muda isso.
+              </p>
+              <Link href="/sobre" className="manifesto-inicio-link">por que o Fólium é diferente →</Link>
             </div>
-            <Link href="/sobre" className="link-mao">conheça o Fólium →</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="secao">
-        <div className="container">
-          <div className="faixa-confianca revelar">
-            <div>
-              <h3>Espaço seguro</h3>
-              <p>Só entra quem tem vínculo com a universidade, conferido pelo e-mail institucional.</p>
-            </div>
-            <div>
-              <h3>Credibilidade</h3>
-              <p>Cada perfil mostra trabalhos reais e o selo de aluno verificado.</p>
-            </div>
-            <div>
-              <h3>Impacto local</h3>
-              <p>Negócios da região contratam talento da região, e o aluno ganha experiência real.</p>
-            </div>
+            <ul className="manifesto-inicio-lista">
+              {DIFERENCIAIS.slice(0, 3).map((d) => (
+                <li key={d.titulo}>
+                  <FolhaMarca tamanho={22} cor="#8fb46f" nervura="#2F3E2A" />
+                  <div>
+                    <strong>{d.titulo}</strong>
+                    <span>{d.curto}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
