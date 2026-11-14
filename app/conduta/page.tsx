@@ -113,7 +113,17 @@ export default function Conduta() {
 
       <section id="denuncias" className="cartao legal-secao" aria-labelledby="t-denuncias">
         <h2 id="t-denuncias">Denúncias nos dois sentidos</h2>
-        <p>O aluno pode denunciar o contratante, e o contratante pode denunciar o aluno, sempre ligado a um combinado.</p>
+        <p>
+          O aluno pode denunciar o contratante, e o contratante pode denunciar o aluno. Vale dentro de um combinado e também
+          antes dele, porque problema pode aparecer já no primeiro contato:
+        </p>
+        <ul>
+          <li><strong>No combinado:</strong> em Combinados, em cada combinado.</li>
+          <li><strong>No convite:</strong> o aluno denuncia quem convidou, e o contratante denuncia o aluno que convidou.</li>
+          <li><strong>Na vaga:</strong> o aluno denuncia quem publicou a vaga.</li>
+          <li><strong>No portfólio:</strong> o contratante aprovado denuncia o aluno.</li>
+        </ul>
+        <p>Vale também para o que aconteceu fora do Fólium, por WhatsApp ou e-mail, depois de um contato feito aqui. Anexe os prints.</p>
         <ol>
           <li><strong>Registro.</strong> Você escolhe o motivo, conta o que aconteceu e pode anexar prints. A equipe responde em até {PRAZO_DENUNCIA}.</li>
           <li><strong>Sigilo.</strong> A outra parte nunca lê o seu relato nem vê os seus prints. Se a equipe precisar da versão dela, manda só um resumo do problema.</li>

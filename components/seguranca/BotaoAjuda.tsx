@@ -64,7 +64,7 @@ export function BotaoAjuda({ combinadoId, userId, pausado, onEnviado }: { combin
               setEnviando(true);
               setErro("");
               try {
-                await registrarOcorrencia({ tipo: "ajuda", combinado_id: combinadoId, categoria, relato, provas, pausou_combinado: pausar && !pausado, avisar_faculdade: faculdade });
+                await registrarOcorrencia({ tipo: "ajuda", ligacao: { combinado_id: combinadoId }, categoria, relato, provas, pausou_combinado: pausar && !pausado, avisar_faculdade: faculdade });
                 setEnviadoEm(dataHora(new Date(Date.now() + 24 * 3600 * 1000).toISOString()));
               } catch (err) {
                 setErro((err as Error).message);

@@ -24,7 +24,7 @@ type Props = {
 };
 
 /**
- * Aba "Segurança" do painel da equipe: pedidos de ajuda (24h) e denúncias de combinado (5 dias úteis).
+ * Aba "Segurança" do painel da equipe: pedidos de ajuda (24h) e denúncias (5 dias úteis), de combinado ou de antes dele (convite, vaga, portfólio).
  * Fluxo: Recebida → Em análise → (pedir a versão da outra parte) → Decisão. Tudo vai para o histórico.
  */
 export function SegurancaEquipe({ ocorrencias, historico, contas, fazer }: Props) {
@@ -48,7 +48,7 @@ export function SegurancaEquipe({ ocorrencias, historico, contas, fazer }: Props
         Pedidos de ajuda: responder em até 24 horas. Denúncias: até 5 dias úteis. A outra parte nunca vê o relato nem os prints;
         ao pedir a versão dela, escreva só um resumo do problema, sem dizer quem denunciou nem detalhes que identifiquem.
       </p>
-      {!ocorrencias.length && <p className="suave">Nenhum pedido de ajuda nem denúncia de combinado.</p>}
+      {!ocorrencias.length && <p className="suave">Nenhum pedido de ajuda nem denúncia.</p>}
       {abertas.map((o) => <CartaoOcorrencia key={o.id} o={o} historico={historico.filter((h) => h.ocorrencia_id === o.id)} nome={nome} fazer={fazer} />)}
       {fechadas.length > 0 && (
         <details className="equipe-fechadas">
@@ -100,7 +100,7 @@ function CartaoOcorrencia({ o, historico, nome, fazer }: { o: Ocorrencia; histor
       <h2>{o.categoria}</h2>
       <p className="suave">
         {lado} <strong>{nome(o.autor_id)}</strong> sobre <strong>{nome(o.alvo_id)}</strong>
-        {o.combinado ? ` · combinado “${o.combinado.titulo}” (${o.combinado.status})` : ""} · {dataHora(o.criada_em)}
+        {o.combinado ? ` · combinado “${o.combinado.titulo}” (${o.combinado.status})` : o.contexto ? ` · ${o.contexto} (antes do combinado)` : ""} · {dataHora(o.criada_em)}
       </p>
       {(o.pausou_combinado || o.avisar_faculdade) && (
         <p className="aviso" style={{ margin: 0 }}>

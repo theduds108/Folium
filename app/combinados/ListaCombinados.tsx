@@ -6,7 +6,7 @@ import { useConta } from "@/lib/conta";
 import { formatarData } from "@/lib/formato";
 import { AcompanharSeguranca } from "@/components/seguranca/AcompanharSeguranca";
 import { BotaoAjuda } from "@/components/seguranca/BotaoAjuda";
-import { DenunciarCombinado } from "@/components/seguranca/DenunciarCombinado";
+import { DenunciarCombinado, DenunciarPessoa } from "@/components/seguranca/DenunciarPessoa";
 import { CRITERIOS_ALUNO, CRITERIOS_CONTRATANTE, ROTULO_CRITERIO, responderAvaliacao } from "@/lib/seguranca";
 import {
   NOME_STATUS,
@@ -112,7 +112,8 @@ export function ListaCombinados() {
                 <span className="suave"> · {v.vaga?.titulo ?? "vaga"} · </span>
                 <span className={`selo-status selo-${v.status}`}>
                   {v.status === "enviado" ? "Esperando resposta" : v.status === "aceito" ? "Tem interesse" : "Não pôde agora"}
-                </span>
+                </span>{" "}
+                <DenunciarPessoa ligacao={{ convite_id: v.id }} userId={conta.id} souContratante nomeOutro={v.perfil?.nome ?? "o aluno"} rotulo="Denunciar" onEnviado={recarregar} />
               </li>
             ))}
           </ul>

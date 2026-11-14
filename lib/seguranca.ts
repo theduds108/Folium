@@ -1,8 +1,9 @@
 "use client";
 
-// Segurança das pessoas: termos e código de conduta, botão "Preciso de ajuda", denúncia ligada a um
-// combinado (nos dois sentidos), defesa da outra parte, decisões da equipe e avaliação por critérios.
-// Tabelas e regras em supabase/migrations/20261112180000_seguranca_pessoas.sql.
+// Segurança das pessoas: termos e código de conduta, botão "Preciso de ajuda", denúncia nos dois sentidos
+// (num combinado, num convite, numa vaga ou num portfólio), defesa da outra parte, decisões da equipe e
+// avaliação por critérios. Tabelas e regras em supabase/migrations/20261112180000_seguranca_pessoas.sql
+// e 20261114120000_denuncia_antes_do_combinado.sql.
 
 import { traduzirErro } from "./repositorio";
 import { semMigracao } from "./negocios";
@@ -30,11 +31,15 @@ export async function aceitarTermos() {
 export type TipoOcorrencia = "ajuda" | "denuncia";
 export type StatusOcorrencia = "aberta" | "em_analise" | "aguardando_defesa" | "resolvida" | "arquivada";
 export type Decisao = "arquivada" | "advertencia" | "suspensao" | "banimento" | "ma_fe";
+/** De onde veio a denúncia: dentro de um combinado ou antes dele (convite, vaga, portfólio). */
+export type OrigemOcorrencia = "combinado" | "convite" | "vaga" | "perfil";
 
 export type Ocorrencia = {
   id: string;
   tipo: TipoOcorrencia;
   combinado_id: string | null;
+  origem?: OrigemOcorrencia;
+  contexto?: string;
   autor_id: string | null;
   alvo_id: string | null;
   autor_lado: "aluno" | "contratante" | "";
@@ -57,9 +62,16 @@ export type Ocorrencia = {
   combinado?: { titulo: string; contratante_nome: string; status: string } | null;
 };
 
+/** Com quem é a denúncia. O banco confere a ligação e descobre a outra parte sozinho. */
+export type LigacaoDenuncia =
+  | { combinado_id: string }
+  | { convite_id: string }
+  | { oportunidade_id: string }
+  | { perfil_id: string };
+
 export type NovaOcorrencia = {
   tipo: TipoOcorrencia;
-  combinado_id: string;
+  ligacao: LigacaoDenuncia;
   categoria: string;
   relato: string;
   provas: string[];
@@ -91,9 +103,16 @@ export async function enviarProva(userId: string, arquivo: File): Promise<string
 export async function registrarOcorrencia(o: NovaOcorrencia) {
   const sb = supabase();
   if (!sb) throw new Error("Banco não configurado");
+  const l = o.ligacao;
+  const origem: OrigemOcorrencia = "combinado_id" in l ? "combinado" : "convite_id" in l ? "convite" : "oportunidade_id" in l ? "vaga" : "perfil";
   const { error } = await sb.from("ocorrencias").insert({
     tipo: o.tipo,
-    combinado_id: o.combinado_id,
+    origem,
+    combinado_id: "combinado_id" in l ? l.combinado_id : null,
+    convite_id: "convite_id" in l ? l.convite_id : null,
+    oportunidade_id: "oportunidade_id" in l ? l.oportunidade_id : null,
+    // No portfólio, o banco precisa saber de quem é. Nos outros casos, ele mesmo preenche.
+    alvo_id: "perfil_id" in l ? l.perfil_id : null,
     categoria: o.categoria,
     relato: o.relato.trim(),
     provas: o.provas,
@@ -103,6 +122,10 @@ export async function registrarOcorrencia(o: NovaOcorrencia) {
   if (!error) return;
   if (semMigracao(error)) throw new Error("Esse recurso ainda está sendo ativado pela equipe. Se for urgente, ligue para os números acima.");
   if (/Muitas ocorrencias/.test(error.message)) throw new Error("Você mandou muitos registros hoje. Se for urgente, ligue para os números acima.");
+  if (/Denuncia repetida/.test(error.message)) throw new Error("Você já tem uma denúncia aberta sobre essa pessoa. A equipe está analisando e responde pelo e-mail da sua conta.");
+  // Coluna "origem" ainda não existe: o SQL da denúncia antes do combinado não rodou.
+  if (!("combinado_id" in l) && /origem|convite_id|oportunidade_id|column/i.test(error.message))
+    throw new Error("Essa denúncia ainda está sendo ativada pela equipe. Enquanto isso, escreva pela página Feedback.");
   throw traduzirErro(error);
 }
 
@@ -115,6 +138,7 @@ export async function minhasOcorrencias(autorId: string): Promise<Ocorrencia[]> 
   return (data as Ocorrencia[]) ?? [];
 }
 
+/** titulo_combinado: de onde veio a denúncia, ex.: Combinado “Logo”, Convite para a vaga “X”, Portfólio de Ana. */
 export type PedidoDefesa = { id: string; categoria: string; resumo_defesa: string; titulo_combinado: string; defesa: string; defesa_em: string | null; status: StatusOcorrencia };
 
 /** Denúncias contra mim em que a equipe pediu a minha versão. Nunca traz o relato nem quem denunciou. */

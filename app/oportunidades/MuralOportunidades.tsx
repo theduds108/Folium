@@ -10,7 +10,7 @@ import { bancoLigado } from "@/lib/supabase";
 import { desmarcarInteresse, listarOportunidadesReais, marcarInteresse, meusInteresses } from "@/lib/repositorio";
 import { useSessao } from "@/lib/sessao";
 import { useConta } from "@/lib/conta";
-import { Denunciar } from "@/components/Denunciar";
+import { DenunciarVaga } from "@/components/seguranca/DenunciarAntes";
 
 const TIPOS = ["Freela", "Projeto", "Estágio"] as const;
 
@@ -194,7 +194,7 @@ export function MuralOportunidades() {
                   {erroInteresse?.id === o.id && (
                     <p className="erro" role="alert" style={{ margin: 0 }}>{erroInteresse.texto}</p>
                   )}
-                  {o.real && <Denunciar alvo={o.id} tipo="oportunidade" />}
+                  {o.real && <DenunciarVaga vagaId={o.id} empresa={o.empresa} />}
                 </article>
               );
             })}
