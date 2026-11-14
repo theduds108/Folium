@@ -44,6 +44,32 @@ export const CATEGORIAS_CONTRATANTE = [
   "Outro motivo",
 ];
 
+/** Antes do combinado (convite, vaga): o aluno denuncia o contratante. */
+export const CATEGORIAS_ALUNO_CONTATO = [
+  "Assédio ou desrespeito",
+  "Insistiu depois que eu disse não",
+  "Pediu trabalho de graça ou “teste” sem pagar",
+  "Pediu dinheiro, dados ou pagamento por fora (parece golpe)",
+  "Vaga falsa ou diferente do anunciado",
+  "Outro motivo",
+];
+
+/** Antes do combinado (convite, portfólio): o contratante denuncia o aluno. */
+export const CATEGORIAS_CONTRATANTE_CONTATO = [
+  "Desrespeito ou assédio",
+  "Portfólio com trabalho de outra pessoa",
+  "Perfil falso ou informações enganosas",
+  "Pediu dinheiro adiantado ou parece golpe",
+  "Outro motivo",
+];
+
+export const NOME_ORIGEM: Record<"combinado" | "convite" | "vaga" | "perfil", string> = {
+  combinado: "No combinado",
+  convite: "No convite",
+  vaga: "Na vaga",
+  perfil: "No portfólio",
+};
+
 export const NOME_STATUS_OCORRENCIA: Record<StatusOcorrencia, string> = {
   aberta: "Recebida",
   em_analise: "Em análise",

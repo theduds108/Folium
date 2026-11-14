@@ -196,3 +196,13 @@ Rode **depois** do SQL da auditoria (acima). No **SQL Editor** (sem texto seleci
 Se o **Feedback por e-mail** já estiver configurado (Resend no Vault), a equipe recebe também um e-mail a cada pedido de ajuda ou denúncia, sem o relato (que só se lê no painel).
 
 O pedido de "avisar a faculdade" não manda nada sozinho: ele aparece no cartão da ocorrência para a equipe entrar em contato com a faculdade.
+
+## Denúncia antes do combinado (14/11/2026)
+
+Rode **depois** do SQL de segurança das pessoas (acima): `20261114120000_denuncia_antes_do_combinado.sql`. Pode rodar de novo sem problema. Ele deixa a denúncia completa (motivo, relato, prints, prazo de 5 dias úteis, defesa da outra parte) nascer também antes de haver combinado:
+
+- **no convite:** o aluno denuncia quem convidou, e o contratante denuncia o aluno que convidou;
+- **na vaga:** o aluno denuncia quem publicou uma vaga aprovada;
+- **no portfólio:** o contratante aprovado denuncia o aluno.
+
+O banco confere a ligação e descobre sozinho quem é a outra parte. A mesma pessoa não abre duas denúncias contra o mesmo alvo enquanto a primeira está em aberto. O pedido de ajuda continua só dentro de combinado. Na aba Segurança, essas denúncias aparecem com "(antes do combinado)" e de onde vieram.

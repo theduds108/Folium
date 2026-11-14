@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useConta } from "@/lib/conta";
+import { DenunciarPessoa } from "@/components/seguranca/DenunciarPessoa";
 import { convitesRecebidos, marcarVagasVistas, responderConvite, type Convite } from "@/lib/negocios";
 
 /**
@@ -73,6 +74,7 @@ export function ConvitesRecebidos() {
               </button>
             </div>
             {c.vaga?.contato && <span className="ajuda">Contato: {c.vaga.contato}</span>}
+            <DenunciarPessoa ligacao={{ convite_id: c.id }} userId={id} souContratante={false} nomeOutro={c.vaga?.empresa || "quem convidou"} rotulo="Denunciar quem convidou" />
           </li>
         ))}
       </ul>

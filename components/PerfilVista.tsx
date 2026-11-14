@@ -7,7 +7,7 @@ import { GaleriaObra } from "@/components/GaleriaObra";
 import { SeloVerificado } from "@/components/Logo";
 import { SalvarTalento } from "./SalvarTalento";
 import { CopiarLink } from "@/components/CopiarLink";
-import { Denunciar } from "@/components/Denunciar";
+import { DenunciarPerfil } from "@/components/seguranca/DenunciarAntes";
 import { BotaoPdf } from "@/components/BotaoPdf";
 import { AbasObras } from "@/components/AbasObras";
 import type { Avaliacao } from "@/lib/conteudo";
@@ -165,7 +165,7 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
             <div className="compartilhar">
               <CopiarLink />
             </div>
-            <Denunciar alvo={aluno.slug} />
+            <DenunciarPerfil alunoId={aluno.id} slug={aluno.slug} nome={aluno.nome} />
             </>
           )}
           {acoes}

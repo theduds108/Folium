@@ -136,7 +136,7 @@ const server = http.createServer((req, res) => {
       }
       // ---- Segurança das pessoas (12/11 à tarde)
       if (fn === "aceitar_termos") { const me = who(req); const c = (db.contas || []).find((x) => me && x.id === me.id); if (c) { c.termos_aceitos_em = new Date().toISOString(); c.termos_versao = body.p_versao; } return send(res, 200, null); }
-      if (fn === "meus_pedidos_de_defesa") { const me = who(req); return send(res, 200, (db.ocorrencias || []).filter((o) => me && o.alvo_id === me.id && o.tipo === "denuncia" && o.resumo_defesa).map((o) => ({ id: o.id, categoria: o.categoria, resumo_defesa: o.resumo_defesa, titulo_combinado: ((db.combinados || []).find((c) => c.id === o.combinado_id) || {}).titulo || "Combinado", defesa: o.defesa, defesa_em: o.defesa_em, status: o.status }))); }
+      if (fn === "meus_pedidos_de_defesa") { const me = who(req); return send(res, 200, (db.ocorrencias || []).filter((o) => me && o.alvo_id === me.id && o.tipo === "denuncia" && o.resumo_defesa).map((o) => ({ id: o.id, categoria: o.categoria, resumo_defesa: o.resumo_defesa, titulo_combinado: o.contexto || ((db.combinados || []).find((c) => c.id === o.combinado_id) || {}).titulo || "Combinado", defesa: o.defesa, defesa_em: o.defesa_em, status: o.status }))); }
       if (fn === "enviar_defesa") { const me = who(req); const o = (db.ocorrencias || []).find((x) => x.id === body.p_id && me && x.alvo_id === me.id && x.status === "aguardando_defesa"); if (!o) return send(res, 404, { code: "P0002", message: "Esse pedido de defesa não está aberto" }); o.defesa = body.p_texto; o.defesa_em = new Date().toISOString(); o.status = "em_analise"; return send(res, 200, null); }
       if (fn === "equipe_ocorrencia") {
         const me = who(req); if (!me || !(db.equipe || []).some((e) => e.id === me.id)) return send(res, 400, { code: "42501", message: "Só para a equipe" });
@@ -182,6 +182,20 @@ const server = http.createServer((req, res) => {
       if (req.method === "POST" && t === "ocorrencias") {
         const me = who(req);
         for (const b of (Array.isArray(body) ? body : [body])) {
+          // Antes do combinado (14/11): convite, vaga ou portfólio. Mesmas regras do gatilho preencher_ocorrencia.
+          if (!b.combinado_id) {
+            const conta = me && (db.contas || []).find((x) => x.id === me.id);
+            let alvo = null, lado = "", contexto = "";
+            const v = b.convite_id && (db.convites || []).find((x) => x.id === b.convite_id);
+            const o = !v && b.oportunidade_id && (db.oportunidades || []).find((x) => x.id === b.oportunidade_id && x.status === "aprovada");
+            if (v && me && [v.perfil_id, v.contratante_id].includes(me.id)) { lado = me.id === v.perfil_id ? "aluno" : "contratante"; alvo = lado === "aluno" ? v.contratante_id : v.perfil_id; contexto = "Convite"; }
+            else if (o && conta?.tipo === "colaborador") { lado = "aluno"; alvo = o.autor_id; contexto = `Vaga “${o.titulo}”`; }
+            else if (!b.convite_id && !b.oportunidade_id && conta?.tipo === "contratante" && conta.aprovada_em && (db.perfis || []).some((p) => p.id === b.alvo_id && p.publicado)) { lado = "contratante"; alvo = b.alvo_id; contexto = "Portfólio"; }
+            if (!alvo || b.tipo !== "denuncia" || alvo === me.id) return send(res, 400, { code: "P0002", message: "Não encontrado" });
+            if ((db.ocorrencias || []).some((x) => x.autor_id === me.id && x.alvo_id === alvo && ["aberta", "em_analise", "aguardando_defesa"].includes(x.status))) return send(res, 400, { code: "P0001", message: "Denuncia repetida" });
+            Object.assign(b, { autor_id: me.id, alvo_id: alvo, autor_lado: lado, contexto, urgente: false, status: "aberta", criada_em: new Date().toISOString(), prazo_em: new Date(Date.now() + 7 * 86400000).toISOString(), resumo_defesa: "", defesa: "", defesa_em: null, decisao: null, decisao_texto: "", sigilo: true });
+            continue;
+          }
           const c = (db.combinados || []).find((x) => x.id === b.combinado_id);
           if (!c || !me || ![c.perfil_id, c.contratante_id].includes(me.id) || (b.tipo === "ajuda" && me.id !== c.perfil_id)) return send(res, 403, { code: "42501", message: "new row violates row-level security policy" });
           Object.assign(b, { autor_id: me.id, alvo_id: me.id === c.perfil_id ? c.contratante_id : c.perfil_id, autor_lado: me.id === c.perfil_id ? "aluno" : "contratante", urgente: b.tipo === "ajuda", status: "aberta", criada_em: new Date().toISOString(), prazo_em: new Date(Date.now() + (b.tipo === "ajuda" ? 1 : 7) * 86400000).toISOString(), resumo_defesa: "", defesa: "", defesa_em: null, decisao: null, decisao_texto: "", sigilo: true });

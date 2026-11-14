@@ -67,7 +67,7 @@ function PedidoDeDefesa({ p, onEnviado }: { p: PedidoDefesa; onEnviado: () => vo
     <section className="cartao defesa" aria-labelledby={`defesa-${p.id}`}>
       <h2 id={`defesa-${p.id}`}>A equipe quer ouvir a sua versão</h2>
       <p className="suave" style={{ margin: 0 }}>
-        Recebemos uma denúncia sobre o combinado <strong>{p.titulo_combinado}</strong> ({p.categoria}). Ninguém é punido sem poder
+        Recebemos uma denúncia ligada a: <strong>{p.titulo_combinado}</strong> ({p.categoria}). Ninguém é punido sem poder
         contar o próprio lado.
       </p>
       <blockquote className="defesa-resumo">{p.resumo_defesa}</blockquote>
