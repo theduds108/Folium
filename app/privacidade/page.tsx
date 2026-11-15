@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import Link from "next/link";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { ExcluirConta } from "./ExcluirConta";
 
-export const metadata: Metadata = { title: "Termos e privacidade" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Termos e privacidade", descricao: "Termos de uso e política de privacidade do Fólium: quais dados guardamos, para quê e como excluir sua conta.", caminho: "/privacidade/" });
 
 const ATUALIZADO_EM = "12 de novembro de 2026";
 

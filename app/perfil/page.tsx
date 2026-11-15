@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { Suspense } from "react";
 import { PerfilReal } from "./PerfilReal";
 import { EsqueletoPerfil } from "@/components/Esqueleto";
 
-export const metadata: Metadata = { title: "Portfólio" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Portfólio", caminho: "/perfil/", indexar: false });
 
 /**
  * Perfis criados pelos alunos: carregados do banco no navegador, pelo endereço /perfil/?u=slug.

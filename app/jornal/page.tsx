@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { JornalEdicao } from "./JornalEdicao";
 import { SoComConta } from "@/components/SoComConta";
 
-export const metadata: Metadata = { title: "Jornal do Fólium" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Jornal", descricao: "O Jornal do Fólium: os portfólios e as vagas da semana dos universitários da UNISAGRADO.", caminho: "/jornal/" });
 
 export default function Jornal() {
   return (

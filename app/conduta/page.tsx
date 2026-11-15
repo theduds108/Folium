@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import Link from "next/link";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { AceitarTermos } from "@/components/seguranca/AceitarTermos";
 import { PRAZO_AJUDA, PRAZO_DENUNCIA, TELEFONES_APOIO } from "@/lib/seguranca-dados";
 
-export const metadata: Metadata = { title: "Código de conduta e segurança" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Código de conduta e segurança", descricao: "As regras de convivência e segurança do Fólium para alunos e contratantes, e como denunciar um problema.", caminho: "/conduta/" });
 
 const ATUALIZADO_EM = "12 de novembro de 2026";
 

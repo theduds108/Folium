@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { SoComConta } from "@/components/SoComConta";
 import { PainelEquipe } from "./PainelEquipe";
 
-export const metadata: Metadata = { title: "Painel da equipe", robots: { index: false } };
+export const metadata: Metadata = metadadosPagina({ titulo: "Painel da equipe", caminho: "/equipe/", indexar: false });
 
 export default function Equipe() {
   return (

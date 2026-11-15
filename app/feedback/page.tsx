@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { SoComConta } from "@/components/SoComConta";
 import { FormFeedback } from "./FormFeedback";
 
-export const metadata: Metadata = { title: "Feedback" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Feedback", caminho: "/feedback/", indexar: false });
 
 export default function Feedback() {
   return (

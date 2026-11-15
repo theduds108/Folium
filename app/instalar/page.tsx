@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { InstalarApp } from "@/components/InstalarApp";
 
-export const metadata: Metadata = { title: "Instalar o app" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Instalar o app", descricao: "Instale o Fólium no celular ou no computador sem passar pela loja de aplicativos: passo a passo para Android, iPhone e computador.", caminho: "/instalar/" });
 
 /** Passo a passo para instalar o Fólium no celular. O Fólium é um site instalável (PWA): não precisa de loja de aplicativos. */
 export default function Instalar() {

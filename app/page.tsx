@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { DEPOIMENTOS, DIFERENCIAIS } from "@/lib/conteudo";
 import { MOSTRAR_EXEMPLOS } from "@/lib/config";
@@ -8,6 +9,33 @@ import { Faixa, PapelRasgado } from "@/components/Zine";
 import { FolhaMarca, MarcaFolium } from "@/components/Marca";
 import { EntradaCapa } from "@/components/animacoes/EntradaCapa";
 import { FolhasCaindo } from "@/components/animacoes/FolhasCaindo";
+import { SITE_DESCRICAO, SITE_NOME, SITE_URL, metadadosPagina } from "@/lib/site";
+
+export const metadata: Metadata = metadadosPagina({ caminho: "/" });
+
+/** Dados estruturados (Schema.org) da home: quem é o Fólium e qual é o site. Só dados reais. */
+const DADOS_ESTRUTURADOS = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organizacao`,
+      name: SITE_NOME,
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/icons/icon-512.png`,
+      description: SITE_DESCRICAO,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#site`,
+      name: SITE_NOME,
+      url: `${SITE_URL}/`,
+      description: SITE_DESCRICAO,
+      inLanguage: "pt-BR",
+      publisher: { "@id": `${SITE_URL}/#organizacao` },
+    },
+  ],
+};
 
 /** Serviços mais procurados, mostrados no índice da faixa escura (cada um abre a busca filtrada). */
 const INDICE = [
@@ -28,6 +56,11 @@ const INDICE = [
 export default function Inicio() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        // JSON montado aqui no código, sem nada digitado por usuários; o replace evita fechar a tag por engano.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(DADOS_ESTRUTURADOS).replace(/</g, "\\u003c") }}
+      />
       <section className="capa-zine" aria-labelledby="capa-marca">
         <FolhasCaindo />
         <EntradaCapa>

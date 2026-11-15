@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { TabelaPlanos } from "./TabelaPlanos";
 
-export const metadata: Metadata = { title: "Planos" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Planos", descricao: "Planos do Fólium para alunos e contratantes: comece grátis e veja o que o Premium acrescenta.", caminho: "/planos/" });
 
 export default function Planos() {
   return (

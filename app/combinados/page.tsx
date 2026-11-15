@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { SoComConta } from "@/components/SoComConta";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { ListaCombinados } from "./ListaCombinados";
 
-export const metadata: Metadata = { title: "Combinados" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Combinados", caminho: "/combinados/", indexar: false });
 
 export default function Combinados() {
   return (

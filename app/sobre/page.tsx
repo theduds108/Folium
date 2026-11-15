@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import Link from "next/link";
 import { COMPARACAO, DIFERENCIAIS, EQUIPE, EXPANSAO, MISSAO, PARCEIROS_ATUAIS, VALORES, VISAO } from "@/lib/conteudo";
 import { Anotacao, Ornamentos, PapelRasgado } from "@/components/Zine";
 import { FolhaMarca } from "@/components/Marca";
 
-export const metadata: Metadata = { title: "Sobre" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Sobre", descricao: "Conheça o Fólium: a vitrine de portfólios dos universitários da UNISAGRADO que conecta alunos a empresas e contratantes da região.", caminho: "/sobre/" });
 
 const PASSOS = [
   {

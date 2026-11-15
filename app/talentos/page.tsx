@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { Suspense } from "react";
 import { BuscaTalentos } from "./BuscaTalentos";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { EsqueletoGrade } from "@/components/Esqueleto";
 import { SoComConta } from "@/components/SoComConta";
 
-export const metadata: Metadata = { title: "Encontrar talentos" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Encontrar talentos", descricao: "Busque portfólios de universitários da UNISAGRADO por curso e serviço e chame para o seu próximo freela.", caminho: "/talentos/" });
 
 export default function Talentos() {
   return (
