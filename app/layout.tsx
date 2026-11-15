@@ -7,21 +7,35 @@ import { AvisoSenha } from "@/components/AvisoSenha";
 import { FaixaConta } from "@/components/seguranca/FaixaConta";
 import { Cabecalho } from "@/components/Cabecalho";
 import { JanelaInstalar } from "@/components/InstalarApp";
+import { Medicao } from "@/components/Medicao";
 import { RegistrarSW } from "@/components/RegistrarSW";
 import { TourGuiado } from "@/components/TourGuiado";
 import { VisaoDemo } from "@/components/VisaoDemo";
 import { Abertura } from "@/components/animacoes/Abertura";
 import { Revelar } from "@/components/animacoes/Revelar";
 import { SCRIPT_CAPTURA } from "@/lib/instalar-script";
+import { IMAGEM_COMPARTILHAR, SITE_DESCRICAO, SITE_NOME, SITE_TITULO, SITE_URL, VERIFICACAO_GOOGLE } from "@/lib/site";
 
 const titulo = Archivo_Black({ weight: "400", subsets: ["latin"], variable: "--fonte-titulo", display: "swap" });
 const mao = Caveat({ subsets: ["latin"], variable: "--fonte-mao", display: "swap" });
 const texto = Inter({ subsets: ["latin"], variable: "--fonte-texto", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Fólium · Portfólios que viram oportunidade", template: "%s · Fólium" },
-  description:
-    "Vitrine segura de portfólios de universitários da UNISAGRADO. Encontre talentos locais para seu próximo freela.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITULO, template: "%s · Fólium" },
+  description: SITE_DESCRICAO,
+  applicationName: SITE_NOME,
+  // Padrão para páginas sem metadados próprios; as páginas usam metadadosPagina() (lib/site.ts).
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: SITE_NOME,
+    title: SITE_TITULO,
+    description: SITE_DESCRICAO,
+    images: [IMAGEM_COMPARTILHAR],
+  },
+  twitter: { card: "summary_large_image", title: SITE_TITULO, description: SITE_DESCRICAO, images: [IMAGEM_COMPARTILHAR.url] },
+  verification: VERIFICACAO_GOOGLE ? { google: VERIFICACAO_GOOGLE } : undefined,
   appleWebApp: { capable: true, title: "Fólium", statusBarStyle: "default" },
   icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
 };
@@ -63,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JanelaInstalar />
         <RegistrarSW />
         <Revelar />
+        <Medicao />
       </body>
     </html>
   );

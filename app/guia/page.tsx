@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { DICAS_SEGURANCA } from "@/lib/conteudo";
 import { GuiaConteudo } from "@/components/GuiaPrecos";
 import { SOBRE_AS_FAIXAS } from "@/lib/precos";
@@ -8,7 +9,7 @@ import { Anotacao } from "@/components/Zine";
 import Link from "next/link";
 import { ReverTour } from "@/components/TourGuiado";
 
-export const metadata: Metadata = { title: "Guia" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Guia de preços e segurança para freelas", descricao: "Quanto cobrar por um freela, como combinar o trabalho por escrito e como se proteger: o guia do Fólium para universitários e contratantes.", caminho: "/guia/" });
 
 /** Guia do aluno (alunos e visitantes) ou Guia do contratante, conforme a conta. */
 export default function Guia() {

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { metadadosPagina } from "@/lib/site";
 import { SoComConta } from "@/components/SoComConta";
 import { MuralOportunidades } from "./MuralOportunidades";
 import { AvisoEmpresa } from "./AreaVagas";
 import { CabecalhoArquivo } from "@/components/CabecalhoArquivo";
 import { ConvitesRecebidos } from "@/components/ConvitesRecebidos";
 
-export const metadata: Metadata = { title: "Oportunidades" };
+export const metadata: Metadata = metadadosPagina({ titulo: "Oportunidades", descricao: "Mural de vagas, freelas e projetos para universitários da UNISAGRADO, publicados por empresas e contratantes da região.", caminho: "/oportunidades/" });
 
 export default function Oportunidades() {
   return (
