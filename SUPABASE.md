@@ -206,3 +206,7 @@ Rode **depois** do SQL de segurança das pessoas (acima): `20261114120000_denunc
 - **no portfólio:** o contratante aprovado denuncia o aluno.
 
 O banco confere a ligação e descobre sozinho quem é a outra parte. A mesma pessoa não abre duas denúncias contra o mesmo alvo enquanto a primeira está em aberto. O pedido de ajuda continua só dentro de combinado. Na aba Segurança, essas denúncias aparecem com "(antes do combinado)" e de onde vieram.
+
+## Equipe exclui feedback (21/11/2026)
+
+Rode `20261121120000_equipe_exclui_feedback.sql`. Pode rodar de novo sem problema. Ele libera o botão **Excluir** na aba Feedbacks do painel `/equipe`: só quem está na tabela `equipe` consegue apagar, e o site pede confirmação no próprio cartão antes. Sem esse SQL, o botão avisa que não conseguiu excluir.

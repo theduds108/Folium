@@ -474,6 +474,16 @@ export async function equipeTirarPerfil(slug: string) {
   if (error) throw traduzirErro(error);
 }
 
+/** Exclui um feedback de vez. O banco só deixa quem está na equipe (regra "equipe exclui feedbacks"). */
+export async function equipeExcluirFeedback(id: string) {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  const { data, error } = await sb.from("feedbacks").delete().eq("id", id).select("id");
+  if (error) throw traduzirErro(error);
+  // Sem a regra no banco, o Supabase não dá erro: só não apaga nada.
+  if (!data?.length) throw new Error("Não deu para excluir. Rode no Supabase o SQL 20261121120000_equipe_exclui_feedback.sql e tente de novo.");
+}
+
 /** Aprova (ou volta para análise) um contratante: só aprovado vê contatos dos alunos. */
 export async function equipeAprovarContratante(id: string, aprovar: boolean) {
   const sb = supabase();
