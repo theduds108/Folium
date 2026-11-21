@@ -7,6 +7,7 @@ import { formatarData } from "@/lib/formato";
 import {
   equipeAprovarContratante,
   equipeDados,
+  equipeExcluirFeedback,
   equipeMudarPlano,
   equipeMudarVaga,
   equipeResolverDenuncia,
@@ -39,6 +40,8 @@ export function PainelEquipe() {
   const [aba, setAba] = useState<Aba | null>(null);
   const [versao, setVersao] = useState(0);
   const [aviso, setAviso] = useState("");
+  /** Feedback com a pergunta "Excluir?" aberta no próprio cartão. */
+  const [excluindo, setExcluindo] = useState<string | null>(null);
   const recarregar = useCallback(() => setVersao((v) => v + 1), []);
 
   useEffect(() => {
@@ -231,6 +234,29 @@ export function PainelEquipe() {
                 <span className="suave">{dia(f.criado_em)}{f.nota ? ` · nota ${f.nota}` : ""}{f.pagina ? ` · ${f.pagina}` : ""}</span>
               </div>
               <p className="equipe-texto">{f.mensagem}</p>
+              {excluindo === f.id ? (
+                <div className="equipe-confirmar" role="group" aria-label="Confirmar exclusão">
+                  <p>Excluir este feedback? Ele some do painel e do banco, e não dá para desfazer.</p>
+                  <div className="combinado-acoes">
+                    <button
+                      type="button"
+                      className="botao botao-perigo botao-pequeno"
+                      onClick={() => { setExcluindo(null); fazer(() => equipeExcluirFeedback(f.id), "Feedback excluído."); }}
+                    >
+                      Sim, excluir
+                    </button>
+                    <button type="button" className="botao botao-contorno botao-pequeno" onClick={() => setExcluindo(null)} autoFocus>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="combinado-acoes">
+                  <button type="button" className="botao botao-contorno botao-perigo botao-pequeno" onClick={() => setExcluindo(f.id)}>
+                    Excluir
+                  </button>
+                </div>
+              )}
             </article>
           ))}
         </section>
