@@ -151,7 +151,7 @@ export default function Conduta() {
       <section id="aceite" className="cartao legal-secao" aria-labelledby="t-aceite">
         <h2 id="t-aceite">Aceite</h2>
         <p className="suave">
-          Junto com os <Link href="/privacidade#termos">termos de uso e a política de privacidade</Link>, este código vale para
+          Junto com os <Link href="/termos">termos de uso</Link> e a <Link href="/privacidade">política de privacidade</Link>, este código vale para
           todas as contas. Guardamos a data e a versão do seu aceite.
         </p>
         <AceitarTermos />

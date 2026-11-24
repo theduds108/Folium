@@ -40,7 +40,7 @@ export function AceitarTermos() {
       <label className="caixa-marcar">
         <input type="checkbox" checked={marcado} onChange={(e) => setMarcado(e.target.checked)} />
         <span>
-          Li e aceito os <Link href="/privacidade#termos">termos de uso</Link> e este código de conduta. Entendo que o Fólium aproxima
+          Li e aceito os <Link href="/termos">termos de uso</Link> e este código de conduta. Entendo que o Fólium aproxima
           alunos e contratantes, mas não é empregador nem parte do combinado.
         </span>
       </label>

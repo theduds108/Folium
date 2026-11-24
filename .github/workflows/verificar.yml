@@ -1,0 +1,31 @@
+name: Verificar
+
+# Roda sozinho a cada pedido de mudança e toda semana: confere o código, o build e as bibliotecas.
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+  schedule:
+    - cron: "0 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Falhas conhecidas nas bibliotecas
+        run: npm audit --audit-level=high
+      - name: Regras de código
+        run: npm run lint
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://clpxenmytonfniwkmmuy.supabase.co

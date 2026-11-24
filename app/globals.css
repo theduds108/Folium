@@ -3749,3 +3749,16 @@ html { scroll-padding-top: 84px; }
 .abas-obras-dica { margin: 0 0 14px; }
 @media (prefers-reduced-motion: reduce) { .abas-obras-lista button { transition: none; } }
 @media print { .abas-obras-painel[hidden] { display: block !important; } .abas-obras-lista { display: none; } }
+
+/* Termos e privacidade: tabelas, dados do fornecedor e botão de baixar dados */
+.legal-tabela-rolagem { overflow-x: auto; margin: 6px 0 12px; }
+.legal-tabela { width: 100%; border-collapse: collapse; font-size: var(--t-sec); min-width: 560px; }
+.legal-tabela th, .legal-tabela td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--linha); }
+.legal-tabela thead th { font-weight: var(--peso-medio); }
+.legal-tabela tbody th { font-weight: var(--peso-medio); }
+.legal-dados { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 10px; }
+.legal-dados dt { font-weight: var(--peso-medio); }
+.legal-dados dd { margin: 0; overflow-wrap: anywhere; }
+.baixar-dados { margin-top: 12px; display: grid; gap: 8px; justify-items: start; }
+.planos-regras { max-width: 42em; padding-left: 1.2em; display: grid; gap: 4px; margin-top: 12px; }
+@media (max-width: 560px) { .legal-dados { grid-template-columns: 1fr; gap: 0; } .legal-dados dd { margin-bottom: 8px; } }

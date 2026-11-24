@@ -34,6 +34,7 @@ export const PAGINAS_PUBLICAS: { caminho: string; prioridade: number }[] = [
   { caminho: "/planos/", prioridade: 0.7 },
   { caminho: "/instalar/", prioridade: 0.5 },
   { caminho: "/conduta/", prioridade: 0.4 },
+  { caminho: "/termos/", prioridade: 0.3 },
   { caminho: "/privacidade/", prioridade: 0.3 },
 ];
 
