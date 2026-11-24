@@ -1,0 +1,9 @@
+# Avisa (e abre um pedido de atualização) quando uma biblioteca do site tem versão nova ou falha de segurança.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

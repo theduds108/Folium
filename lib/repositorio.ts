@@ -746,6 +746,21 @@ export async function excluirMinhaConta(userId: string) {
   await sb.auth.signOut({ scope: "local" });
 }
 
+/**
+ * Cópia de tudo o que o Fólium guarda sobre quem está logado (LGPD, art. 18: acesso e portabilidade).
+ * Vem da função exportar_meus_dados() do banco, que só lê as linhas da própria pessoa.
+ */
+export async function exportarMeusDados(): Promise<unknown> {
+  const sb = supabase();
+  if (!sb) throw new Error("Banco não configurado");
+  const { data, error } = await sb.rpc("exportar_meus_dados");
+  if (error) {
+    if (funcaoAusente(error)) throw new Error("O download dos dados ainda não foi ativado pela equipe. Peça pela página Feedback que mandamos em até 15 dias.");
+    throw traduzirErro(error);
+  }
+  return data;
+}
+
 /** Colega do Fólium para marcar num trabalho em collab: só nome, curso e endereço do portfólio. */
 export type Colega = { slug: string; nome: string; curso: string; foto_url: string | null };
 
