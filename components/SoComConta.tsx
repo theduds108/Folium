@@ -15,15 +15,19 @@ export function SoComConta({ titulo, texto, children }: { titulo: string; texto:
         <div className="cartao pagina-estreita"><p className="suave" style={{ margin: 0 }}>Carregando…</p></div>
       </div>
     );
-  if (!logado)
-    return (
-      <CartaoAviso titulo={titulo}>
-        <p className="suave">{texto}</p>
-        <Link href="/entrar" className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
-        <Link href="/entrar?modo=primeiro" className="botao botao-contorno" style={{ width: "100%", marginTop: 12 }}>
-          Fazer o primeiro acesso
-        </Link>
-      </CartaoAviso>
-    );
+  if (!logado) return <PedirConta titulo={titulo} texto={texto} />;
   return <>{children}</>;
+}
+
+/** Convite para entrar, usado quando a página é só para quem tem conta. */
+export function PedirConta({ titulo, texto }: { titulo: string; texto: string }) {
+  return (
+    <CartaoAviso titulo={titulo}>
+      <p className="suave">{texto}</p>
+      <Link href="/entrar" className="botao botao-primario" style={{ width: "100%" }}>Entrar</Link>
+      <Link href="/entrar?modo=primeiro" className="botao botao-contorno" style={{ width: "100%", marginTop: 12 }}>
+        Fazer o primeiro acesso
+      </Link>
+    </CartaoAviso>
+  );
 }
