@@ -36,3 +36,11 @@ export const SENHA_MINIMA = 8;
  * Sem banco ligado (rodando local sem .env.local), os exemplos aparecem de qualquer jeito.
  */
 export const MOSTRAR_ALUNOS_EXEMPLO = false;
+
+/**
+ * Vitrine aberta (temporária, pedida para o pitch de 27/11/2026): quem não tem conta vê a busca de
+ * talentos e os portfólios publicados, sem nenhum contato. O banco também precisa estar com a vitrine
+ * ligada (supabase/migrations/20261127120000_vitrine_aberta.sql); fechar no banco já basta para
+ * esconder tudo. Para voltar ao normal no site, troque para false.
+ */
+export const VITRINE_ABERTA = true;

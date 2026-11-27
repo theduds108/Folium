@@ -43,6 +43,26 @@ export async function portfolioPublico(slug: string): Promise<Aluno | null> {
   return { ...aluno, publico: true, collabs: await collabsDoPerfil(slug) };
 }
 
+/**
+ * Vitrine aberta (temporária, pitch de 27/11/2026): lista de portfólios publicados para quem não
+ * tem conta, só com as informações públicas (sem contatos, currículo nem certificados).
+ * Devolve null quando a vitrine está fechada no banco ou a SQL ainda não rodou.
+ */
+export async function vitrinePublica(): Promise<Aluno[] | null> {
+  const sb = supabase();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("vitrine_publica");
+  if (error) {
+    if (semMigracao(error)) return null;
+    throw traduzirErro(error);
+  }
+  if (!Array.isArray(data)) return null;
+  return (data as (PerfilBanco & { trabalhos: TrabalhoBanco[] })[]).map((p) => ({
+    ...paraAluno({ ...p, whatsapp: "", email_contato: "", links: {}, experiencias: [], certificados: [], curriculo_url: null, publicado: true }),
+    publico: true,
+  }));
+}
+
 /** Id anônimo deste navegador, só para contar visitas sem login (um por dia). */
 function idNavegador() {
   try {

@@ -12,6 +12,7 @@ import { PerfilVista } from "@/components/PerfilVista";
 import { EsqueletoPerfil } from "@/components/Esqueleto";
 import { AcoesContratante } from "@/components/AcoesContratante";
 import { CartaoAviso } from "@/components/Area";
+import { VITRINE_ABERTA } from "@/lib/config";
 
 /**
  * Portfólio do banco, em /perfil/?u=slug.
@@ -97,5 +98,5 @@ export function PerfilReal() {
 
   // Convites e propostas só depois que a equipe aprovar o contratante (o banco também barra).
   const acoes = conta?.tipo === "contratante" && conta.aprovada && aluno.id ? <AcoesContratante aluno={aluno} /> : null;
-  return <PerfilVista aluno={aluno} avaliacoes={avaliacoes} acoes={acoes} />;
+  return <PerfilVista aluno={aluno} avaliacoes={avaliacoes} acoes={acoes} voltar={VITRINE_ABERTA} />;
 }

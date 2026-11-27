@@ -59,6 +59,8 @@ const server = http.createServer((req, res) => {
     if (p === "/auth/v1/otp" || p === "/auth/v1/recover") return send(res, 200, {});
     if (p === "/__magic") { const u = users.find((x) => x.email === url.searchParams.get("email")); const s = session(u); return send(res, 200, s); }
     // ---------- rpc ----------
+    // Vitrine aberta (20261127120000): ligada a não ser que config_site diga o contrário.
+    const vitrineAberta = () => !(db.config_site || []).some((c) => c.chave === "vitrine_aberta" && c.valor === false);
     if (p.startsWith("/rest/v1/rpc/")) {
       const fn = p.split("/").pop();
       if (fn === "email_para_login") { const n = db.nomes_usuario.find((r) => r.nome === body.p_usuario); const u = n && users.find((x) => x.id === n.id); return send(res, 200, u && u.password === body.p_senha ? u.email : null); }
@@ -99,8 +101,15 @@ const server = http.createServer((req, res) => {
         if (!p) return send(res, 200, []);
         return send(res, 200, (db.collab || []).filter((c) => c.coautor_id === p.id && c.status === "aceito").map((c) => { const t = db.trabalhos.find((x) => x.id === c.trabalho_id); const d = (db.perfis || []).find((x) => x.id === t.perfil_id); return { t, d, c }; }).filter(({ d }) => d && d.publicado && (me || (p.link_publico && d.link_publico))).map(({ t, d, c }) => ({ ...t, papel: c.papel, dono_nome: d.nome, dono_slug: d.slug })));
       }
+      if (fn === "vitrine_publica") {
+        if (!vitrineAberta()) return send(res, 200, null);
+        return send(res, 200, (db.perfis || []).filter((r) => r.publicado).map((p) => {
+          const { whatsapp: _w, email_contato: _e, curriculo_url: _c, certificados: _ce, links: _l, experiencias: _x, ...seguro } = p;
+          return { ...seguro, trabalhos: (db.trabalhos || []).filter((t) => t.perfil_id === p.id) };
+        }));
+      }
       if (fn === "portfolio_publico") {
-        const p = (db.perfis || []).find((r) => r.slug === body.p_slug && r.publicado && r.link_publico);
+        const p = (db.perfis || []).find((r) => r.slug === body.p_slug && r.publicado && (r.link_publico || vitrineAberta()));
         if (!p) return send(res, 200, null);
         const { whatsapp: _w, email_contato: _e, curriculo_url: _c, certificados: _ce, links: _l, experiencias: _x, ...seguro } = p;
         return send(res, 200, { ...seguro, trabalhos: (db.trabalhos || []).filter((t) => t.perfil_id === p.id) });

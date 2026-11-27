@@ -9,6 +9,9 @@ import { CartaoAluno } from "@/components/CartaoAluno";
 import { EsqueletoPolaroide } from "@/components/Esqueleto";
 import { listarAlunosReais } from "@/lib/repositorio";
 import { bancoLigado } from "@/lib/supabase";
+import { useConta } from "@/lib/conta";
+import { vitrinePublica } from "@/lib/negocios";
+import { PedirConta } from "@/components/SoComConta";
 
 function normalizar(s: string) {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -26,19 +29,31 @@ export function BuscaTalentos() {
   const [falhou, setFalhou] = useState(false);
   const [tentativa, setTentativa] = useState(0);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const { logado, carregando: contaCarregando } = useConta();
+  // Sem conta: só a vitrine aberta (portfólios sem contatos). Fechada no banco, volta o convite para entrar.
+  const [fechada, setFechada] = useState(false);
+
+  // Só carrega quando já se sabe se há conta; quem já entrou não recarrega quando a conta é conferida de novo.
+  const pronto = logado || !contaCarregando;
 
   useEffect(() => {
+    if (!pronto) return;
     let ativo = true;
     setFalhou(false);
+    setFechada(false);
     if (tentativa) setCarregando(true);
-    listarAlunosReais(true)
-      .then((r) => ativo && setReais(r))
+    (logado ? listarAlunosReais(true) : vitrinePublica())
+      .then((r) => {
+        if (!ativo) return;
+        if (r === null) setFechada(true);
+        else setReais(r);
+      })
       .catch(() => ativo && setFalhou(true))
       .finally(() => ativo && setCarregando(false));
     return () => {
       ativo = false;
     };
-  }, [tentativa]);
+  }, [tentativa, logado, pronto]);
 
   const todos = useMemo(() => [...reais, ...ALUNOS_VITRINE], [reais]);
 
@@ -69,6 +84,9 @@ export function BuscaTalentos() {
   };
 
   const total = resultado.length;
+
+  if (fechada)
+    return <PedirConta titulo="Entre para ver os talentos" texto="A busca de talentos é só para quem tem conta no Fólium. A conta é grátis: aluno usa o e-mail institucional, empresa ou contratante usa qualquer e-mail." />;
 
   return (
     <div className="arquivo">

@@ -9,7 +9,8 @@ import { Anotacao } from "@/components/Zine";
 import { ALUNOS_VITRINE, type Aluno } from "@/lib/data";
 import { listarAlunosReais, listarOportunidadesReais } from "@/lib/repositorio";
 import { OPORTUNIDADES, type Oportunidade } from "@/lib/conteudo";
-import { MOSTRAR_EXEMPLOS } from "@/lib/config";
+import { MOSTRAR_EXEMPLOS, VITRINE_ABERTA } from "@/lib/config";
+import { vitrinePublica } from "@/lib/negocios";
 import { bancoLigado } from "@/lib/supabase";
 import { useConta } from "@/lib/conta";
 
@@ -20,21 +21,30 @@ function carregarVitrine() {
   return cache;
 }
 
-/** Portfólios só aparecem para quem entrou: visitante não carrega nada. */
+/** Vitrine aberta (temporária): visitante vê os portfólios sem contatos; fechada no banco, nada. */
+let cacheVisitante: Promise<Aluno[]> | null = null;
+function carregarVitrineVisitante() {
+  cacheVisitante ??= vitrinePublica()
+    .then((r) => r ?? [])
+    .catch(() => []);
+  return cacheVisitante;
+}
+
+/** Portfólios só aparecem para quem entrou (ou, com a vitrine aberta, sem contatos para visitantes). */
 function useVitrine() {
   const { logado, carregando: carregandoConta } = useConta();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [carregando, setCarregando] = useState(true);
   useEffect(() => {
     if (carregandoConta) return;
-    if (!logado) {
+    if (!logado && !VITRINE_ABERTA) {
       setAlunos([]);
       setCarregando(false);
       return;
     }
     let ativo = true;
     setCarregando(true);
-    carregarVitrine()
+    (logado ? carregarVitrine() : carregarVitrineVisitante())
       .then((a) => ativo && setAlunos(a))
       .finally(() => ativo && setCarregando(false));
     return () => {
@@ -73,7 +83,7 @@ export function DestaquesInicio() {
       </div>
     );
   }
-  if (!logado) {
+  if (!logado && alunos.length === 0) {
     return (
       <div className="cartao vazio">
         <h3>Entre para ver quem está disponível</h3>

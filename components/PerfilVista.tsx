@@ -52,7 +52,7 @@ function Obra({ t, destaque = false }: { t: Trabalho; destaque?: boolean }) {
 }
 
 /** Página pública do portfólio, usada pelos exemplos e pelos perfis do banco. */
-export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; avaliacoes?: Avaliacao[]; acoes?: React.ReactNode }) {
+export function PerfilVista({ aluno, avaliacoes = [], acoes, voltar = false }: { aluno: Aluno; avaliacoes?: Avaliacao[]; acoes?: React.ReactNode; /** Mostra "Voltar para talentos" mesmo sem conta (vitrine aberta). */ voltar?: boolean }) {
   const publico = !!aluno.publico;
   const primeiroNome = aluno.nome.split(" ")[0];
   const mensagem = encodeURIComponent(`Olá, ${primeiroNome}! Vi seu portfólio no Fólium e gostaria de conversar sobre um trabalho.`);
@@ -73,7 +73,7 @@ export function PerfilVista({ aluno, avaliacoes = [], acoes }: { aluno: Aluno; a
 
   return (
     <div className="container perfil">
-      {!publico && (
+      {(!publico || voltar) && (
         <p className="perfil-voltar">
           <Link href="/talentos" className="suave">← Voltar para talentos</Link>
         </p>
